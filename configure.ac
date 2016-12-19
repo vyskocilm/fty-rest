@@ -6,7 +6,7 @@ PACKAGE_VENDOR="Eaton"
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 # Sub-makefiles: do not forget to update SUBDIRS list in root Makefile.am
-AC_CONFIG_FILES([Makefile docs/man/Makefile tools/Makefile docs/examples/Makefile database/mysql/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules tar-pax no-dist-gzip dist-xz subdir-objects])
 
@@ -482,52 +482,10 @@ dnl--- end of the section suggested by autoscan
 
 # Checks for optional programs. 
 
-dnl script is in m4
-#doxygen
-AC_PROG_TRY_DOXYGEN
-
-AS_IF([test -z "$DOXYGEN"],
-  [AC_MSG_NOTICE([
-  -----------------------------------------
-  No Doxygen program found - continuing
-  without Doxygen documentation support.
-  -----------------------------------------
-  ])
-  HAVE_DOXYGEN=0],
-  [HAVE_DOXYGEN=1])
-myDOXDIR="docs/doxygen"
-mydoxylog="doxylog.txt"
-mysrcDIR="src" 
-dnl the directory to search source file that must be included in documentation
-AM_CONDITIONAL([HAVE_DOXYGEN],[test -n "$DOXYGEN"])
-AC_SUBST([HAVE_DOXYGEN])
-AC_SUBST([myDOXDIR])
-AC_SUBST([mydoxylog])
-AC_SUBST([mysrcDIR])
-
 # astyle
 dnl ASTYLE would have the absolute path, use AC_CHECK_PROGS for relative
 AC_PATH_PROGS([ASTYLE], [astyle])
 AM_CONDITIONAL([HAVE_ASTYLE], [test -n "${ASTYLE}"])
-
-dnl Documentation generation
-# asciidoc
-AC_PATH_PROGS([ASCIIDOC], [asciidoc])
-# a2x
-dnl TODO  MVY a2x - is it ok?
-AC_PATH_PROGS([A2X], [a2x])
-
-AS_IF([test -z "$ASCIIDOC" -a -z "$A2X"],
-  [AC_MSG_NOTICE([
-  -----------------------------------------
-  No asciidoc or a2x program found - continuing
-  without ASCIIDOC documentation support.
-  -----------------------------------------
-  ])
-])
-AM_CONDITIONAL([HAVE_ASCIIDOC],[test -n "$ASCIIDOC"])
-AM_CONDITIONAL([HAVE_A2X],[test -n "$A2X"])
-
 
 # sed is great!
 AC_CHECK_PROGS([SED], [sed])
@@ -651,10 +609,7 @@ Summary:
         includedir:              ${includedir}
         lib dir:                 ${libdir}
 
-        a2x:                     ${A2X:-none}
         astyle:                  ${ASTYLE:-none}
-        asciidoc:                ${ASCIIDOC:-none}
-        doxygen:                 ${DOXYGEN:-none}
         ecppc:                   ${ECPPC:-none}
 
         ENABLE_CI_TESTS:         ${ci_tests}
