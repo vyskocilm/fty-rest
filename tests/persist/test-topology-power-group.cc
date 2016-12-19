@@ -71,7 +71,14 @@ TEST_CASE("Power topology group #1","[db][topology][power][group][power_topology
     byte* buffer = zframe_data (frame);
     assert ( buffer );
 
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#if CZMQ_VERSION_MAJOR == 3
+    byte* buffer = zframe_data (frame);
+    assert ( buffer );
+    
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 

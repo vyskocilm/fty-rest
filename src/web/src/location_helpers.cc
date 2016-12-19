@@ -82,10 +82,14 @@ int asset_location_r(asset_msg_t** asset_msg, std::string& json) {
         names.pop_front();
         if(it_f == NULL)
             continue;
+#if CZMQ_VERSION_MAJOR == 3
         byte *buffer = zframe_data(it_f);
         if(buffer == NULL)
             goto err_cleanup;
         zmsg = zmsg_decode(buffer, zframe_size(it_f));
+#else
+        zmsg = zmsg_decode (it_f);
+#endif
         if(zmsg == NULL || !zmsg_is (zmsg))
             goto err_cleanup;
         zframe_destroy(&it_f);

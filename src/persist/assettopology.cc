@@ -399,8 +399,13 @@ int matryoshka2frame (zmsg_t **matryoshka, zframe_t **frame )
 {
     assert ( matryoshka );
     if ( *matryoshka ) {
+#if CZMQ_VERSION_MAJOR == 3
         byte *buffer;
         size_t zmsg_size = zmsg_encode (*matryoshka, &buffer);
+#else
+        zframe_t *ret_frame = zmsg_encode (*matryoshka);
+        size_t zmsg_size = zframe_size (ret_frame);
+#endif
 
         // double check size
         // TODO after some time, remove the redundant check
@@ -416,7 +421,9 @@ int matryoshka2frame (zmsg_t **matryoshka, zframe_t **frame )
         }
         assert ( check_size == zmsg_size );
 
+#if CZMQ_VERSION_MAJOR == 3
         zframe_t *ret_frame = zframe_new (buffer, zmsg_size);
+#endif
         assert ( ret_frame );
 
         zmsg_destroy (matryoshka);
@@ -1152,7 +1159,11 @@ edge_lf print_frame_to_edges (zframe_t* frame, a_elmnt_id_t parent_id,
     
     edge_lf result, result1;
 
+#if CZMQ_VERSION_MAJOR == 3
     _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
      
     _scoped_zmsg_t* pop = NULL;
@@ -1165,7 +1176,7 @@ edge_lf print_frame_to_edges (zframe_t* frame, a_elmnt_id_t parent_id,
         result.insert(std::make_tuple (
                     asset_msg_element_id(item), 
                     asset_msg_type(item), 
-                    asset_msg_name(item), 
+                    asset_msg_name(item),
                     asset_msg_type_name(item), 
                     parent_id, type, name, dtype_name) ); 
         log_debug ("parent_id = %" PRIu32, parent_id );
@@ -1224,7 +1235,11 @@ void print_frame (zframe_t* frame, a_elmnt_id_t parent_id)
     byte* buffer = zframe_data (frame);
     assert ( buffer );
 
-    _scoped_zmsg_t* zmsg = zmsg_decode (buffer, zframe_size (frame));
+#if CZMQ_VERSION_MAJOR == 3
+    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
      
     _scoped_zmsg_t* pop = NULL;
@@ -1630,7 +1645,11 @@ void print_frame_devices (zframe_t* frame)
     byte* buffer = zframe_data (frame);
     assert ( buffer );
 
-    _scoped_zmsg_t* zmsg = zmsg_decode (buffer, zframe_size (frame));
+#if CZMQ_VERSION_MAJOR == 3
+    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
      
     _scoped_zmsg_t* pop = NULL;

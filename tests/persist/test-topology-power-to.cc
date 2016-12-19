@@ -109,10 +109,14 @@ TEST_CASE("Power topology to #3","[db][topology][power][power_topology.sql][to][
     
     // check the devices, should be one
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
      
@@ -163,10 +167,14 @@ TEST_CASE("Power topology to #4","[db][topology][power][power_topology.sql][to][
     
     // check the devices, should be one
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
      
@@ -255,10 +263,14 @@ TEST_CASE("Power topology to #5","[db][topology][power][power_topology.sql][to][
 
     // check the devices, should be three
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
     
@@ -350,10 +362,14 @@ TEST_CASE("Power topology to #6","[db][topology][power_topology.sql][power][to][
     
     // check the devices, should be fsix devices
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 
@@ -435,10 +451,14 @@ TEST_CASE("Power topology to #7","[db][topology][power_topology.sql][power][to][
 
     // check the devices, should be one device
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 
@@ -523,10 +543,14 @@ TEST_CASE("Power topology to #8","[db][topology][power_topology.sql][power][to][
 
     // check the devices, should be three devices
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 
@@ -599,10 +623,14 @@ TEST_CASE("Power topology to #9","[db][topology][power_topology.sql][power][to][
 
     // check the devices, should be nine device
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 
@@ -706,10 +734,14 @@ TEST_CASE("Power topology to #10","[db][topology][power_topology.sql][power][to]
 
     // check the devices, should be two devices
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 
@@ -793,10 +825,14 @@ TEST_CASE("Power topology to #11","[db][topology][power][power_topology.sql][to]
 
     // check the devices, should be two
     zframe_t* frame = asset_msg_devices (cretTopology);
+#if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);
     assert ( buffer );
     
-    _scoped_zmsg_t* zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+#else
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+#endif
     assert ( zmsg );
     assert ( zmsg_is (zmsg) );
 

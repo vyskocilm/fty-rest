@@ -175,9 +175,13 @@ UserInfo user;
 
             std::string json = "{";
             if (devices) {
+#if CZMQ_VERSION_MAJOR == 3
                 byte *buffer = zframe_data (devices);
                 assert (buffer);
                 _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (devices));
+#else
+                _scoped_zmsg_t *zmsg = zmsg_decode (devices);
+#endif
                 if (zmsg == NULL || !zmsg_is (zmsg)) {
                     zframe_destroy (&devices);
                     log_error ("zmsg_decode() failed");

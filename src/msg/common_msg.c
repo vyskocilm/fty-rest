@@ -209,6 +209,14 @@ struct _common_msg_t {
     self->needle += string_size; \
 }
 
+#if CZMQ_VERSION_MAJOR == 4
+static int zsocket_type (void *socket) {
+    assert (socket);
+    assert (zsock_is (socket));
+    assert (streq (zsock_type_str (socket), "ROUTER"));
+    return ZMQ_ROUTER;
+}
+#endif
 
 //  --------------------------------------------------------------------------
 //  Create a new common_msg

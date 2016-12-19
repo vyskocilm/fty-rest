@@ -200,6 +200,7 @@ app_to_chunk (app_t **request) {
         return NULL;
     }
     _scoped_byte *buffer = NULL;
+#if CZMQ_VERSION_MAJOR == 3
     size_t buff_size = zmsg_encode (zmsg, &buffer);
     zmsg_destroy (&zmsg);
     if (buff_size == 0 || !buffer) {
@@ -207,6 +208,11 @@ app_to_chunk (app_t **request) {
     }
     zchunk_t *chunk = zchunk_new ((const void *) buffer, buff_size);
     FREE0 (buffer)
+#else
+    zframe_t *frame = zmsg_encode (zmsg);
+    zchunk_t *chunk = zchunk_new (zframe_data (frame), zframe_size (frame));
+    zframe_destroy (&frame);
+#endif
     return chunk;
 }
 
@@ -230,7 +236,13 @@ ymsg_request_app(ymsg_t *ymsg) {
     zchunk_t *chunk = ymsg_request( ymsg );
     if (!chunk)
        return NULL;
+#if CZMQ_VERSION_MAJOR == 3
     _scoped_zmsg_t *zmsg = zmsg_decode( zchunk_data( chunk ), zchunk_size( chunk ) );
+#else
+    zframe_t *frame = zframe_new (zchunk_data (chunk), zchunk_size (chunk));
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+    zframe_destroy (&frame);
+#endif
     if( (! zmsg) || (! is_app( zmsg ) ) ) {
         zmsg_destroy( &zmsg );
         return NULL;
@@ -256,7 +268,13 @@ ymsg_response_app(ymsg_t *ymsg) {
     zchunk_t *chunk = ymsg_response( ymsg );
     if( ! chunk ) return NULL;
 
+#if CZMQ_VERSION_MAJOR == 3
     _scoped_zmsg_t *zmsg = zmsg_decode( zchunk_data( chunk ), zchunk_size( chunk ) );
+#else
+    zframe_t *frame = zframe_new (zchunk_data (chunk), zchunk_size (chunk));
+    _scoped_zmsg_t *zmsg = zmsg_decode (frame);
+    zframe_destroy (&frame);
+#endif
     if( (! zmsg) || (! is_app( zmsg ) ) ) {
         zmsg_destroy( &zmsg );
         return NULL;

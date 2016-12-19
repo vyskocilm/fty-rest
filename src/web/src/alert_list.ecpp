@@ -307,8 +307,14 @@ if (streq (part, "LIST")) {
     bool first = true;
 </%cpp>
 [
-% while (frame) {
-%   zmsg_t *decoded_zmsg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+<%cpp>
+ while (frame) {
+#if CZMQ_VERSION_MAJOR == 3
+   zmsg_t *decoded_zmsg = zmsg_decode (zframe_data (frame), zframe_size (frame));
+#else
+    zmsg_t *decoded_zmsg = zmsg_decode (frame);
+#endif
+</%cpp>
 %   zframe_destroy (&frame);
 %   if (!decoded_zmsg) {
 %       log_error ("Bad frame, skipping");
