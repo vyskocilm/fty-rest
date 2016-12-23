@@ -984,11 +984,11 @@ bios_csv_LDFLAGS = \
 						 ${CXXTOOLS_LIBS} -ltntdb
 
 
-client_PROGRAMS +=	agent-autoconfig
+client_PROGRAMS +=	fty-autoconfig
 
-agent_autoconfig_SOURCES = \
-			src/agents/autoconfig/agent-autoconfig.cc \
-			src/agents/autoconfig/agent-autoconfig.h \
+fty_autoconfig_SOURCES = \
+			src/agents/autoconfig/fty-autoconfig.cc \
+			src/agents/autoconfig/fty-autoconfig.h \
 			src/agents/autoconfig/Configurator.h \
 			src/agents/autoconfig/ConfiguratorFactory.h \
 			src/agents/autoconfig/ConfiguratorFactory.cc \
@@ -999,7 +999,7 @@ agent_autoconfig_SOURCES = \
 			src/agents/autoconfig/TemplateRuleConfigurator.h \
 			src/agents/autoconfig/TemplateRuleConfigurator.cc 
 
-agent_autoconfig_LDADD = \
+fty_autoconfig_LDADD = \
 			libpriv-log.la \
 			libpriv-db.la \
 			libpriv-proto.la \
@@ -1014,9 +1014,9 @@ agent_autoconfig_LDADD = \
 
 # FIXME remove utils ymsg
 
-agent_autoconfig_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} -lcidr -lbiosapi -ltntdb
+fty_autoconfig_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} -lcidr -lbiosapi -ltntdb
 
-agent_autoconfig_CPPFLAGS =	$(AM_CPPFLAGS) \
+fty_autoconfig_CPPFLAGS =	$(AM_CPPFLAGS) \
 				-I$(abs_top_srcdir)/tools \
 				-I$(abs_top_srcdir)/src/persist \
 				-I$(abs_top_srcdir)/src/shared \
@@ -1026,7 +1026,7 @@ agent_autoconfig_CPPFLAGS =	$(AM_CPPFLAGS) \
 #XXX: $(localstatedir) did not worked
 #FIXME: installing things to /var is not a good idea according FHS or GNU standards
 #		so this needs to be reconsidered later on (datadir is preffered location)
-template_ruledir = $(datadir)/$(PACKAGE)/agent-autoconfig
+template_ruledir = $(datadir)/$(PACKAGE)/fty-autoconfig
 RULE_TEMPLATES = \
 			src/agents/autoconfig/rule_templates/average.humidity@__datacenter__.rule \
 			src/agents/autoconfig/rule_templates/average.temperature@__datacenter__.rule \
