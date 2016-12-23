@@ -1087,7 +1087,7 @@ client_PROGRAMS += warranty-metric
 
 warranty_metric_SOURCES = src/warranty/warranty-metric.cc
 
-warranty_metric_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb -lbiosproto -lmlm
+warranty_metric_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb -lbiosproto -lfty_proto -lmlm
 
 warranty_metric_LDADD = \
 			libpriv-log.la \
@@ -1178,7 +1178,7 @@ bios_web_la_LDFLAGS = 	${LIBCZMQ_LIBS}	${CXXTOOLS_LIBS} \
 			${LIBSODIUM_LIBS} ${LIBSASL2_LIBS} \
 			${LIBBIOSPROTO_LIBS} \
 			$(LDFLAGS_NO_UNDEFS) \
-			-module -lm -ltntdb -ltntnet -lcidr -lmagic -lbiosapi -lz
+			-module -lm -ltntdb -ltntnet -lcidr -lmagic -lbiosapi -lfty_proto -lz
 
 bios_web_la_LIBADD = \
 			libpriv-db.la libpriv-cidr.la libpriv-proto.la \
