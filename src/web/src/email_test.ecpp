@@ -90,13 +90,13 @@ UserInfo user;
     // send message
     zuuid_t *uuid = zuuid_new ();
     zmsg_t *send = s_smtp_GET_message (checked_email.c_str(), uuid);
-    int rv = client->sendto ("agent-smtp", "SENDMAIL", 1000, &send);
+    int rv = client->sendto ("fty-email", "SENDMAIL", 1000, &send);
 
     if (rv == -1)
     {
         log_critical (
                     "Error: client->sendto (address = '%s', subject = '%s', timeout = 1000) failed.",
-                        "agent-smtp", "SENDMAIL");
+                        "fty-email", "SENDMAIL");
         http_die ("internal-error", "client->sendto () failed");
     }
 

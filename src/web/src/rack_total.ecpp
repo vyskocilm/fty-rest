@@ -31,7 +31,7 @@
 #include <exception>
 #include <limits.h>
 
-#include <biosproto.h>
+#include <fty_proto.h>
 
 #include <sys/types.h>
 #include <sys/syscall.h>
@@ -83,12 +83,12 @@ s_total_rack_power(
 
     zuuid_t *uuid = zuuid_new ();
     zmsg_t *request = s_rt_encode_GET (name.c_str(), uuid);
-    int rv = client->sendto ("agent-rt", "latest-rt-data", 1000, &request);
+    int rv = client->sendto ("fty-metric-cache", "latest-rt-data", 1000, &request);
     if (rv == -1) {
         zuuid_destroy (&uuid);
         log_critical (
                 "client->sendto (address = '%s', subject = '%s') failed",
-                "agent-rt", "latest-rt-data");
+                "fty-metric-cache", "latest-rt-data");
         throw std::runtime_error ("client->sendto () failed.");
     }
 
@@ -117,20 +117,20 @@ s_total_rack_power(
 
     zmsg_t *data = zmsg_popmsg (msg);
     while (data) {
-        bios_proto_t *bmsg = bios_proto_decode (&data);
+        fty_proto_t *bmsg = fty_proto_decode (&data);
         if (!bmsg) {
-            log_warning ("decoding bios_proto_t failed");
+            log_warning ("decoding fty_proto_t failed");
             continue;
         }
 
-        if (!streq (bios_proto_type (bmsg), src.c_str ())) {
-            bios_proto_destroy (&bmsg);
+        if (!streq (fty_proto_type (bmsg), src.c_str ())) {
+            fty_proto_destroy (&bmsg);
             data = zmsg_popmsg (msg);
             continue;
         }
         else {
-            ret = std::stod (bios_proto_value (bmsg));
-            bios_proto_destroy (&bmsg);
+            ret = std::stod (fty_proto_value (bmsg));
+            fty_proto_destroy (&bmsg);
             break;
         }
     }
