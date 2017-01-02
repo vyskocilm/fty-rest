@@ -30,7 +30,7 @@
 #include <stdexcept>
 #include <cxxtools/split.h>
 #include <malamute.h>
-#include <bios_proto.h>
+#include <fty_proto.h>
 
 #include <math.h>
 #include "data.h"
@@ -40,7 +40,7 @@
 
 #include "utils++.h"
 
-#define RT_PROVIDER_PEER "agent-rt"
+#define RT_PROVIDER_PEER "fty-metric-cache"
 #define RT_SUBJECT "latest-rt-data"
 #define MLM_ENDPOINT "ipc://@/malamute"
 
@@ -371,16 +371,16 @@ UserInfo user;
         dataDc.emplace (aDc, std::map<std::string,std::string>());
         while  ( zmsg_size (mreply) > 0 ) {
             zmsg_t *encoded_metric = zmsg_popmsg (mreply);
-            bios_proto_t *metric = bios_proto_decode (&encoded_metric);
-            if ( !metric || bios_proto_id (metric) != BIOS_PROTO_METRIC ) {
+            fty_proto_t *metric = fty_proto_decode (&encoded_metric);
+            if ( !metric || fty_proto_id (metric) != FTY_PROTO_METRIC ) {
                 log_error ("Cannot decode some part of the reply, skip it");
                 zmsg_destroy (&mreply);
                 continue;
             }
-            if ( interesting_sources.count ( bios_proto_type (metric)) != 0 ) {
-                dataDc.at(aDc).emplace (bios_proto_type (metric), bios_proto_value (metric) );
+            if ( interesting_sources.count ( fty_proto_type (metric)) != 0 ) {
+                dataDc.at(aDc).emplace (fty_proto_type (metric), fty_proto_value (metric) );
             }
-            bios_proto_destroy (&metric);
+            fty_proto_destroy (&metric);
         }
 
         for( size_t P = 0; P < requestedParams.size(); P++ ) {

@@ -36,7 +36,7 @@
 #include <string>
 #include <cmath>
 
-#include <biosproto.h>
+#include <fty_proto.h>
 
 #include <sys/types.h>
 #include <sys/syscall.h>
@@ -227,12 +227,12 @@ std::vector<a_elmnt_id_t> asset_ids;
         zuuid_t *uuid = zuuid_new ();
         zmsg_t *request = s_rt_encode_GET (asset.item.name.c_str (), uuid);
 
-        int rv = client->sendto ("agent-rt", "latest-rt-data", 1000, &request);
+        int rv = client->sendto ("fty-metric-cache", "latest-rt-data", 1000, &request);
         if (rv == -1) {
             zuuid_destroy (&uuid);
             log_critical (
                     "client->sendto (address = '%s', subject = '%s', timeout = 1000) failed.",
-                    "agent-rt", "latest-rt-data");
+                    "fty-metric-cache", "latest-rt-data");
             http_die ("internal-error", "client->sendto () failed");
         }
 
@@ -262,18 +262,18 @@ std::vector<a_elmnt_id_t> asset_ids;
 
         zmsg_t *data = zmsg_popmsg (msg);
         while (data) {
-            bios_proto_t *bmsg = bios_proto_decode (&data);
+            fty_proto_t *bmsg = fty_proto_decode (&data);
             if (!bmsg) {
-                log_warning ("decoding bios_proto_t failed");
+                log_warning ("decoding fty_proto_t failed");
                 continue;
             }
 
             // TODO: non double values are not (yet) supported
             measurements.emplace (std::make_pair (
-                bios_proto_type (bmsg),
-                std::stod (bios_proto_value (bmsg), NULL)));
+                fty_proto_type (bmsg),
+                std::stod (fty_proto_value (bmsg), NULL)));
 
-            bios_proto_destroy (&bmsg);
+            fty_proto_destroy (&bmsg);
 
             data = zmsg_popmsg (msg);
         }
