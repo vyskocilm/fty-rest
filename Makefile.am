@@ -1083,6 +1083,22 @@ fty_inventory_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/db \
 			-I$(abs_top_srcdir)/src/persist
 
+client_PROGRAMS += legacy-asset
+
+legacy_asset_SOURCES = src/agents/legacy_asset/legacy_asset_server.cc \
+						src/agents/legacy_asset/legacy_asset.cc
+
+legacy_asset_LDFLAGS = ${CXXTOOLS_LIBS} -lbiosproto -lfty_proto -lmlm
+
+legacy_asset_LDADD = \
+			libpriv-log.la \
+			libpriv-db.la
+
+legacy_asset_CPPFLAGS =	$(AM_CPPFLAGS) \
+			-I$(abs_top_srcdir)/tools \
+			-I$(abs_top_builddir)/tools \
+			-I$(abs_top_srcdir)/src/db
+
 client_PROGRAMS += warranty-metric
 
 warranty_metric_SOURCES = src/warranty/warranty-metric.cc
@@ -1477,7 +1493,7 @@ EXTRA_DIST += $(top_srcdir)/tests/test-mlm.supp
 clean-junit:
 	/bin/rm -rf $(abs_top_builddir)/tests/junit
 
-clean-local: clean-docs clean-junit clean-systemd-units
+clean-local: clean-junit
 
 # This may and should complain on non-empty dirs; "distclean-generic"
 # with proper list of DISTCLEANFILES should have taken care of that
