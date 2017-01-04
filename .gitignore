@@ -42,6 +42,9 @@ Makefile.in
 Makefile
 !Makefile.am
 bios_web.la
+fty-autoconfig
+fty-inventory
+legacy-asset
 
 *.o
 *.lo
