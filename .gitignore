@@ -42,6 +42,9 @@ Makefile.in
 Makefile
 !Makefile.am
 bios_web.la
+fty-autoconfig
+fty-inventory
+legacy-asset
 
 *.o
 *.lo
@@ -55,24 +58,6 @@ db_dump
 
 .dirstamp
 stamp-h1
-
-docs/man/*.xml
-docs/man/*.8
-docs/develop/*.html
-
-!docs/develop/README-builder.txt
-!docs/develop/README-init-os-accounts.txt
-docs/develop/*.txt
-
-docs/doxygen/Doxyfile
-!docs/doxygen/Doxyfile.in
-docs/doxygen/doxylog.txt
-docs/doxygen/html/
-docs/doxygen/doxygen_sqlite3.db
-docs/doxygen/*.tmp
-
-docs/examples/sudoers.d/bios_00_base
-!docs/examples/sudoers.d/bios_00_base.in
 
 .test.log
 .test.trs
@@ -109,65 +94,14 @@ generate_measurement
 warranty-metric
 bios-csv
 
-tests/junit/
-tests/CI/web/log/
-tests/CI/tmp.*
-tests/CI/web/commands/tmp.*
-tests/CI/*.pyc
-
 var/
 
 build/
 build-*/
 
-core-*.*/
-core-*.*.tar.?z
-core-*.deb
-
-bios-*.*/
-bios-*.*.tar.?z
-bios-*.deb
-
 src/utils/messages/json_schemas.h
-tools/journalctl
-tools/run-test-doc.sh
-tools/run-test-doc.sh.log
-tools/run-test-doc.sh.trs
-tools/db-init
-!tools/db-init.in
 tools/bios-passwd
 !tools/bios-passwd.in
-
-systemd/42-bios-systemd.preset
-!systemd/bios-db-init.service.in
-systemd/bios-db-init.service
-!systemd/bios-agent-cm.service.in
-systemd/bios-agent-cm.service
-!systemd/bios-agent-inventory.service.in
-systemd/bios-agent-inventory.service
-!systemd/bios-agent-autoconfig.service.in
-systemd/bios-agent-autoconfig.service
-systemd/bios-reset-button.service
-!systemd/bios-reset-button.service.in
-!systemd/biostimer-warranty-metric.service.in
-systemd/biostimer-warranty-metric.service
-!systemd/ifplug-dhcp-autoconf.service.in
-systemd/ifplug-dhcp-autoconf.service
-!systemd/bios-ssh-last-resort.service.in
-systemd/bios-ssh-last-resort.service
-!systemd/bios-networking.service.in
-systemd/bios-networking.service
-!systemd/bios-fake-th.service.in
-systemd/bios-fake-th.service
-!systemd/biostimer-verify-fs.service.in
-systemd/biostimer-verify-fs.service
-!systemd/biostimer-compress-logs.service.in
-systemd/biostimer-compress-logs.service
-!systemd/biostimer-loghost-rsyslog-netconsole.service.in
-systemd/biostimer-loghost-rsyslog-netconsole.service
-
-!tools/tntnet-ExecStartPre.sh.in
-tools/tntnet-ExecStartPre.sh
 
 src/web/src/auth-verify.cpp
 src/web/src/auth-require.cpp
@@ -225,13 +159,8 @@ src/web/src/input_power_chain.cpp
 tntnet.xml.example
 !src/web/tntnet.xml
 tntnet.xml
-tests/CI/run_tntnet_make.env
 
 !src/agents
 
 src/api/libbiosapi.pc
 !src/api/libbiosapi.pc.in
-tools/verify-fs
-!tools/verify-fs.in
-
-database/mysql/test_averages_relative.sql
