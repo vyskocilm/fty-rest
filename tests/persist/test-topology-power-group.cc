@@ -68,8 +68,6 @@ TEST_CASE("Power topology group #1","[db][topology][power][group][power_topology
 
     // check the devices
     zframe_t* frame = asset_msg_devices (cretTopology);
-    byte* buffer = zframe_data (frame);
-    assert ( buffer );
 
 #if CZMQ_VERSION_MAJOR == 3
     byte* buffer = zframe_data (frame);

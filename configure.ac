@@ -450,7 +450,6 @@ PKG_CHECK_MODULES([LIBZMQ], [libzmq >= 3.0], [], [AC_MSG_ERROR([cannot find libz
 PKG_CHECK_MODULES([LIBCZMQ], [libczmq >= 3.0], [], [AC_MSG_ERROR([cannot find libczmq version >= 3])])
 PKG_CHECK_MODULES([LIBMLM], [libmlm >= 0.1.0], [], [AC_MSG_ERROR([cannot find malamute library >= 0.1.0])])
 PKG_CHECK_MODULES([LIBFTYPROTO], [libfty_proto >= 1.0.0], [], AC_MSG_ERROR([cannot find libfty_proto library >= 1.0.0]))
-PKG_CHECK_MODULES([LIBBIOSPROTO], [libbiosproto >= 0.1.0], [], AC_MSG_ERROR([cannot find libbiosproto library >= 0.1.0]))
 
 AC_MSG_CHECKING([presence of augtool])
 AS_IF([which augtool >/dev/null 2>&1], [AC_MSG_RESULT([yes])], [
@@ -635,7 +634,7 @@ Summary:
         LIBSASL2_LIBS:           ${LIBSASL2_LIBS}
         LIBMLM_CFLAGS:           ${LIBMLM_CFLAGS}
         LIBMLM_LIBS:             ${LIBMLM_LIBS}
-        LIBBIOSPROTO_LIBS:       ${LIBBIOSPROTO_LIBS}
+        LIBFTYPROTO_LIBS:       ${LIBFTYPROTO_LIBS}
         SASLAUTHD_MUX:           ${SASLAUTHD_MUX}
         PKG_CONFIG:              ${PKG_CONFIG}
         SYSTEMDSYSTEMUNITDIR:    ${systemdsystemunitdir}

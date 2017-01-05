@@ -103,10 +103,10 @@ TEST_CASE("Power topology datacenter #1","[db][topology][power][datacenter][powe
     // check the devices
     zframe_t* frame = asset_msg_devices (cretTopology);
 #if CZMQ_VERSION_MAJOR == 3
-    byte* buffer = zframe_data (frame);
-    assert ( buffer );
+    byte* buffer1 = zframe_data (frame);
+    assert ( buffer1 );
     
-    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer1, zframe_size (frame));
 #else
     _scoped_zmsg_t *zmsg = zmsg_decode (frame);
 #endif
@@ -162,14 +162,12 @@ TEST_CASE("Power topology datacenter #2","[db][topology][power][datacenter][powe
     
     // check the devices
     zframe_t* frame = asset_msg_devices (cretTopology);
-    byte* buffer = zframe_data (frame);
-    assert ( buffer );
     
 #if CZMQ_VERSION_MAJOR == 3
-    byte* buffer = zframe_data (frame);
-    assert ( buffer );
+    byte* buffer2 = zframe_data (frame);
+    assert ( buffer2 );
     
-    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer, zframe_size (frame));
+    _scoped_zmsg_t *zmsg = zmsg_decode ( buffer2, zframe_size (frame));
 #else
     _scoped_zmsg_t *zmsg = zmsg_decode (frame);
 #endif
