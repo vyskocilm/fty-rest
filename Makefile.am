@@ -1295,12 +1295,6 @@ EXTRA_DIST += \
 # add CI tests to dist
 EXTRA_DIST +=		$(top_srcdir)/tests/CI
 
-# This will be removed from the OS image by the preinstallimage-bios.sh script
-obsdir		=  $(datadir)/@PACKAGE@/obs
-obs_SCRIPTS	=  obs/preinstallimage-bios.sh
-
-EXTRA_DIST	+= $(obs_SCRIPTS)
-
 #----------------------------------------------------------------------
 #           list of text-based documentation files (rules below)
 # Note that the basic filenames in these variables are relative to the
