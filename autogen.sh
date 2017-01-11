@@ -58,6 +58,13 @@ if [ ! -d ./config ]; then
     fi
 fi
 
+autoreconf --install --force --verbose -I config
+status=$?
+if [ $status -ne 0 ]; then
+    echo "autogen.sh: error: autoreconf exited with status $status" 1>&2
+    exit 1
+fi
+
 #MVY: Problem: jenkins ci job is aborted as builder script tries to manipulate with packages
 #     Solution: end the autogen.sh here
 #
