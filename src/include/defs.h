@@ -118,5 +118,8 @@ enum internal_err {
 #define KEY_ASSET_NAME      "__name"
 #define KEY_OPERATION       "__operation"
 
+// agent names
+#define FTY_EMAIL_ADDRESS "fty-email"
+
 #endif // SRC_INCLUDE_DEFS_H__
 
