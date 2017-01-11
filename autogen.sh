@@ -58,6 +58,13 @@ if [ ! -d ./config ]; then
     fi
 fi
 
+#MVY: Problem: jenkins ci job is aborted as builder script tries to manipulate with packages
+#     Solution: end the autogen.sh here
+#
+# The builder script should be revisited anyway, because package manipulation is
+# not we expect build script will do.
+exit 0
+
 # This flag changes to yes if some obsolete/missing files are found
 # and unless FORCE_AUTORECONF=no, will trigger an autoreconf/automake
 # For FORCE_AUTORECONF="no" or "auto", we trace all such dependencies
