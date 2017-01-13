@@ -32,7 +32,6 @@ extern const char* MLM_ENDPOINT;
 
 // names of malamute clients (== bios agents)
 extern const char* BIOS_AGENT_NAME_COMPUTATION;
-extern const char* BIOS_AGENT_NAME_DB_MEASUREMENT;
 extern const char* BIOS_AGENT_NAME_DB_INVENTORY;
 extern const char* BIOS_AGENT_NAME_ALERT_AGENT;
 
