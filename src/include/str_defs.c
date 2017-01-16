@@ -31,7 +31,6 @@
 const char* MLM_ENDPOINT = "ipc://@/malamute";
 
 const char *BIOS_AGENT_NAME_COMPUTATION = "fty-metric-compute";
-const char *BIOS_AGENT_NAME_DB_MEASUREMENT = "fty-metric-store";
 const char *BIOS_AGENT_NAME_DB_INVENTORY = "persistence.inventory";
 const char* BIOS_AGENT_NAME_ALERT_AGENT = "fty-alert-engine";
 
