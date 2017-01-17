@@ -26,7 +26,6 @@
 #ifndef SRC_INCLUDE_STR_DEFS_H__
 #define SRC_INCLUDE_STR_DEFS_H__
 
-#define ALERTS_LIST_AGENT "ALERTS-LIST" 
 // bios malamute endpoint
 extern const char* MLM_ENDPOINT;
 
@@ -34,6 +33,7 @@ extern const char* MLM_ENDPOINT;
 extern const char* BIOS_AGENT_NAME_COMPUTATION;
 extern const char* BIOS_AGENT_NAME_DB_INVENTORY;
 extern const char* BIOS_AGENT_NAME_ALERT_AGENT;
+extern const char* FTY_ALERT_LIST;
 
 #define AVG_STEPS_SIZE 7
 extern const char* AVG_STEPS[AVG_STEPS_SIZE];
