@@ -237,7 +237,7 @@ get_path (const std::string& key)
     else
     if (key.find ("BIOS_METRIC_STORE_") == 0)
     {
-        return "/etc/bios-agent-ms/bios-agent-ms.cfg";
+        return "/etc/fty-metric-store/fty-metric-store.cfg";
     }
     else
     if (key.find ("BIOS_NUT_") == 0)
