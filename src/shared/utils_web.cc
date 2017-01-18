@@ -232,7 +232,7 @@ get_path (const std::string& key)
 {
     if (key.find ("BIOS_SMTP_") == 0) 
     {
-        return "/etc/agent-smtp/bios-agent-smtp.cfg";
+        return "/etc/fty-email/fty-email.cfg";
     }
     else
     if (key.find ("BIOS_METRIC_STORE_") == 0)
@@ -242,7 +242,7 @@ get_path (const std::string& key)
     else
     if (key.find ("BIOS_NUT_") == 0)
     {
-        return "/etc/agent-nut/bios-agent-nut.cfg";
+        return "/etc/fty-nut/fty-nut.cfg";
     }
     // general config file
     return "/etc/default/bios.cfg";
