@@ -269,12 +269,14 @@ std::vector<a_elmnt_id_t> asset_ids;
             }
 
             // TODO: non double values are not (yet) supported
-            measurements.emplace (std::make_pair (
-                fty_proto_type (bmsg),
-                std::stod (fty_proto_value (bmsg), NULL)));
-
+            double dvalue = 0.0;
+            try {
+                dvalue = std::stod (fty_proto_value (bmsg));
+            } catch (const std::exception& e) {
+                log_error ("fty_proto_value () returned a string that does not encode a double value: '%s'. Defaulting to 0.0 value.", fty_proto_value (bmsg));
+            }
+            measurements.emplace (std::make_pair (fty_proto_type (bmsg), dvalue));
             fty_proto_destroy (&bmsg);
-
             data = zmsg_popmsg (msg);
         }
         zmsg_destroy (&msg);
