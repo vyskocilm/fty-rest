@@ -26,10 +26,20 @@
 @end
 */
 #include "legacy_asset_server.h"
+#include "str_defs.h"
 
 int main () {
 
+    bool verbose = false;
+    if (streq (::getenv ("BIOS_LOG_LEVEL"), "LOG_DEBUG"))
+        verbose = true;
+
     zactor_t *server = zactor_new (legacy_asset_server, (void*) "legacy-asset-server");
+    if (verbose)
+        zstr_send (server, "VERBOSE");
+    zstr_sendx (server, "CONNECT", MLM_ENDPOINT, NULL);
+    zstr_sendx (server, "PRODUCER", bios_get_stream_main (), NULL);
+    zstr_sendx (server, "CONSUMER", "ASSETS", ".*", NULL);
 
     while (true) {
         char *str = zstr_recv (server);

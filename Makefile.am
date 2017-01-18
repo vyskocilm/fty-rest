@@ -1083,6 +1083,7 @@ legacy_asset_SOURCES = src/agents/legacy_asset/legacy_asset_server.cc \
 legacy_asset_LDFLAGS = ${CXXTOOLS_LIBS} -lfty_proto -lmlm
 
 legacy_asset_LDADD = \
+			libpriv-defs.la \
 			libpriv-log.la \
 			libpriv-db.la
 

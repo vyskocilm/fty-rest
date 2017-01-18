@@ -37,6 +37,22 @@
 #include "subprocess.h"
 #include "helpers.h"
 
+
+// allow REST API to use old names for backward compatibility reasons
+// usefull for REST API tests and web UI
+// XXX: The document response will have a real service name
+static std::map <std::string, std::string> LEGACY_MAP = {
+    {"bios-agent-smtp", "fty-email"},
+    {"bios-agent-rt", "fty-metric-cache"},
+};
+
+static
+std::string s_handle_legacy_name (const std::string& name) {
+    if (LEGACY_MAP.count (name) == 0)
+        return name;
+    return LEGACY_MAP [name];
+}
+
 struct SystemdUnitState {
     std::string LoadState;     // loaded/
     std::string ActiveState;   // active/
@@ -514,6 +530,8 @@ UserInfo user;
         } else {
             service_name = request.getArg("service_name");
         }
+
+        service_name = s_handle_legacy_name (service_name);
 
         if ( checked_operation == "list" ) {
             if ( learn_allowed_units_details(NULL) <= 0 ) {
