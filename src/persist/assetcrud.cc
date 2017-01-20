@@ -43,47 +43,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 
 
-db_reply_t
-    process_insert_inventory
-        (tntdb::Connection &conn, const char *device_name, zhash_t *ext_attributes)
-{
-    LOG_START;
-    tntdb::Transaction trans (conn);
-
-    db_reply_t ret = select_device (conn, device_name);
-    if ( ret.status == 0 )
-        trans.commit(); // nothing was done, but we need to end the transaction
-    else
-    {
-        m_dvc_id_t id = (m_dvc_id_t) ret.item;
-        a_elmnt_id_t element_id = 0;
-        // TODO get rid of oldstyle functions
-        int rv = convert_monitor_to_asset_safe (url.c_str(), id, &element_id);
-        if ( rv != 0 )
-        {
-            ret.errtype = DB_ERR;
-            ret.errsubtype = DB_ERROR_BADINPUT; // anebo jiny kod???
-            ret.msg = "";
-            ret.status = 1;
-            trans.commit(); // nothing was done, but we need to end the transaction
-        }
-        else
-        {
-            ret = persist::insert_into_asset_ext_attributes (conn, ext_attributes, element_id, true);
-            if ( ret.status == 0 )
-            {
-                ret.affected_rows = 0;
-                trans.rollback();
-            }
-            else
-                trans.commit();
-        }
-    }
-    LOG_END;
-    return ret;
-}
-
-
 zlist_t* select_asset_device_links_all(tntdb::Connection &conn,
                 a_elmnt_id_t device_id, a_lnk_tp_id_t link_type_id)
 {

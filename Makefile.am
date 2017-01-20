@@ -1049,32 +1049,6 @@ RULE_TEMPLATES = \
 template_rule_DATA =	$(RULE_TEMPLATES)
 EXTRA_DIST +=		$(RULE_TEMPLATES)
 
-client_PROGRAMS +=	fty-inventory
-
-fty_inventory_SOURCES = \
-			src/agents/inventory/fty-inventory.cc \
-			tools/dbpath.h
-
-fty_inventory_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} \
-							${LIBBIOSPROTO_LIBS} \
-							-ltntdb -lbiosapi -lcidr -lfty_proto
-
-fty_inventory_LDADD = \
-			libpriv-db.la \
-			libpriv-cidr.la \
-			libpriv-defs.la \
-			libpriv-log.la \
-			libpriv-proto.la \
-			libbiosapi.la \
-			libpriv-utils-ymsg.la
-
-fty_inventory_CPPFLAGS =	$(AM_CPPFLAGS) \
-			-I$(abs_top_builddir)/tools \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/src/persist \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_srcdir)/src/persist
-
 client_PROGRAMS += legacy-asset
 
 legacy_asset_SOURCES = src/agents/legacy_asset/legacy_asset_server.cc \

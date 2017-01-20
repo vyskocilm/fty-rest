@@ -37,11 +37,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // ===============================================================
 
 
-db_reply_t
-    process_insert_inventory
-        (tntdb::Connection &conn, const char *device_name, zhash_t *ext_attributes);
-
-
 std::set <a_elmnt_id_t> select_asset_group_elements (tntdb::Connection &conn, a_elmnt_id_t group_id);
 
 
