@@ -188,6 +188,7 @@ LIBBIOSAPI_AGE=0
 # copy from autoconf manual, note single suffix rules can't be used there!!
 # NOTE: For non-Makefiles (e.g. for sources), .in conversions should be done in
 # the Makefiles so as to process all the dependencies as sources are updated!
+SED ?= sed
 autopathedit = ${SED} \
 	-e 's|@myDBpath[@]|$(myDBpath)|g' \
 	-e 's|@top_srcdir[@]|$(top_srcdir)|g' \
@@ -209,7 +210,7 @@ autopathedit = ${SED} \
 	-e 's|@libexecdir[@]|$(libexecdir)|g' \
 	-e 's|@libdir[@]|$(libdir)|g'
 
-define process-in-file =
+define process-in-file
 	echo "  SED      $(1) => $(2)"; rm -f $(2); mkdir -p "`dirname "$(2)"`"; $(autopathedit) < "$(1)" > "$(2)" || exit $$?
 endef
 
@@ -1257,7 +1258,6 @@ endif
 #----------------------------------------------------------------------
 
 EXTRA_DIST += \
-			$(top_srcdir)/tools/dbinit.h \
 			$(top_srcdir)/tools/dbpath.h \
 			$(top_srcdir)/include/*.h \
 			$(top_srcdir)/src/msg/*.xml \
@@ -1268,7 +1268,7 @@ EXTRA_DIST += \
 			$(top_srcdir)/tests/shared/test-csv.cc.*sv
 
 # add CI tests to dist
-EXTRA_DIST +=		$(top_srcdir)/tests/CI
+#EXTRA_DIST +=		$(top_srcdir)/tests/CI
 
 #----------------------------------------------------------------------
 #           list of text-based documentation files (rules below)
