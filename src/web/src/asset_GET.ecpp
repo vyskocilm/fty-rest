@@ -237,7 +237,7 @@ UserInfo user;
 </%cpp>
 {
       "id": "<$$ tmp.item.basic.id $>"
-    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.id $>&sub_type=epdu,pdu,feed,genset,ups"
+    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.id $>&sub_type=epdu,pdu,feed,genset,ups,sts"
     , "name": "<$$ utils::json::escape (tmp.item.basic.name) $>"
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
