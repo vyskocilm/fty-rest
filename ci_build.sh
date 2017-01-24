@@ -8,7 +8,7 @@ set -x
 set -e
 
 dpkg -l | grep -i sasl || true
-apt-cache search '*sasl*' || true
+apt-cache search '.*sasl.*' || true
 
 if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] ; then
     if [ -d "./tmp" ]; then
