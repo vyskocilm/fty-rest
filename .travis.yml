@@ -21,22 +21,22 @@ env:
     - CI_QUIET=true
   matrix:
     - BUILD_TYPE=default
-   - BUILD_TYPE=default-Werror
+    - BUILD_TYPE=default-Werror
 #   - BUILD_TYPE=cmake
 #   - BUILD_TYPE=android
 #   - BUILD_TYPE=check-py
 
-matrix:
-  include:
-  - env: BUILD_TYPE=valgrind
-    os: linux
-    dist: trusty
-    sudo: required
-    addons:
-      apt:
-        packages:
-        - valgrind
-        - libmagic-dev
+#matrix:
+#  include:
+#  - env: BUILD_TYPE=valgrind
+#    os: linux
+#    dist: trusty
+#    sudo: required
+#    addons:
+#      apt:
+#        packages:
+#        - valgrind
+#        - libmagic-dev
 
 addons:
   sources:
@@ -48,6 +48,12 @@ addons:
     - asciidoc
     - xmlto
     - libmagic-dev
+    - tntnet
+    - tntnet-runtime
+    - libtntnet-dev
+    - libtnt-dev
+    - libsasl2-2
+    - libsasl2-dev
 # Not packaged yet, or wrong names for Travis repos, or wrong versions
 #    - libzmq3-dev
 #    - libczmq3-dev
@@ -56,12 +62,6 @@ addons:
 #    - libcidr0-dev
 #    - cxxtools-dev
 #    - libnutclient-dev
-    - tntnet
-    - tntnet-runtime
-    - libtntnet-dev
-    - libtnt-dev
-    - libsasl2-2
-    - libsasl2-dev
 
 before_install:
 - if [ $TRAVIS_OS_NAME == "osx" ] ; then brew update; brew install binutils valgrind ; fi
@@ -75,7 +75,7 @@ deploy:
     # To encrypt your access token run: `travis encrypt -r user/repo`
     secure: <encrypted github access token>
   file_glob: true
-  file: ${FTY_CORE_DEPLOYMENT}
+  file: ${FTY_REST_DEPLOYMENT}
   skip_cleanup: true
   on:
     branch: master
