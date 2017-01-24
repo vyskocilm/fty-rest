@@ -119,6 +119,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     fi
 
     CONFIG_OPTS+=("--with-systemdtmpfilesdir=${BUILD_PREFIX}/usr/lib/tmpfiles.d")
+    CONFIG_OPTS+=("--with-systemdsystempresetdir=${BUILD_PREFIX}/usr/lib/systemd/system-preset")
+    CONFIG_OPTS+=("--with-systemdsystemunitdir=${BUILD_PREFIX}/usr/lib/systemd/system")
 
     if [ "$HAVE_CCACHE" = yes ] && [ "${COMPILER_FAMILY}" = GCC ]; then
         PATH="/usr/lib/ccache:$PATH"
