@@ -23,10 +23,10 @@
 #           it does expect all the information on stdin to not accidentally leak it
 #           /usr/bin/printf "%s\n%s\n%s\n" "user" "old_password" "new_password"
 #           The new password strength is verified by "testpass.sh" helper script.
-#  \todo    it acually DO NOT check the old password, because unix2_chkpwd has been
-#           designed by very paranoid ppl and I am lazy to write own binary, so the check
-#           is going to be on REST API level. But in order to maintain stable protocol, script
-#           requires it.
+#  \todo    it actually DOES NOT check the old password, because unix2_chkpwd
+#           has been designed by very paranoid ppl and I am lazy to write my
+#           own binary, so the check is going to be on REST API level.
+#           But in order to maintain stable protocol, script requires it.
 
 set -e
 
