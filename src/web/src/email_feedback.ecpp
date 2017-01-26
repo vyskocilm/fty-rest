@@ -249,13 +249,13 @@ UserInfo user;
             uuid);
     for (const std::string& path: paths)
         zmsg_addstr (send, path.c_str ());
-    int rv = client->sendto (FTY_EMAIL_ADDRESS, "SENDMAIL", 1000, &send);
+    int rv = client->sendto (strcat (FTY_EMAIL_ADDRESS, "-sendmail-only"), "SENDMAIL", 1000, &send);
 
     if (rv == -1)
     {
         log_critical (
                     "Error: client->sendto (address = '%s', subject = '%s', timeout = 1000) failed.",
-                        FTY_EMAIL_ADDRESS, "SENDMAIL");
+                        strcat (FTY_EMAIL_ADDRESS, "-sendmail-only"), "SENDMAIL");
         s_rm_rf (paths, &temp_dir);
         http_die ("internal-error", "client->sendto () failed");
     }
