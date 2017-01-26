@@ -120,6 +120,7 @@ enum internal_err {
 
 // agent names
 #define FTY_EMAIL_ADDRESS "fty-email"
+#define FTY_EMAIL_ADDRESS_SENDMAIL_ONLY "fty-email-sendmail-only"
 
 #endif // SRC_INCLUDE_DEFS_H__
 
