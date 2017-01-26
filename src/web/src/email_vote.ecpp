@@ -160,7 +160,7 @@ UserInfo user;
     {
         log_critical (
                     "Error: client->sendto (address = '%s', subject = '%s', timeout = 1000) failed.",
-                        FTY_EMAIL_ADDRESS_SENDMAIL_ONLY, "-sendmail-only"), "SENDMAIL");
+                        FTY_EMAIL_ADDRESS_SENDMAIL_ONLY, "SENDMAIL");
         http_die ("internal-error", "client->sendto () failed");
     }
 
