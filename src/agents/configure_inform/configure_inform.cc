@@ -25,6 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "str_defs.h"
 #include "assets.h"
 #include "dbpath.h"
+#include "fty_asset_uptime_configurator.h"
 
 static zhash_t*
 s_map2zhash (const std::map<std::string, std::string>& m)
@@ -63,6 +64,7 @@ void
 
         std::string s_priority = std::to_string (oneRow.first.priority);
         std::string s_parent = std::to_string (oneRow.first.parent_id);
+        std::string s_asset_name = oneRow.first.name;
 
         std::string subject;
         subject = persist::typeid_to_type (oneRow.first.type_id);
@@ -78,6 +80,9 @@ void
         zhash_insert (aux, "subtype", (void*) persist::subtypeid_to_subtype (oneRow.first.subtype_id).c_str());
         zhash_insert (aux, "parent", (void*) s_parent.c_str ());
         zhash_insert (aux, "status", (void*) oneRow.first.status.c_str());
+        
+        //data for uptime
+        insert_upses_to_aux (aux, s_asset_name); 
 
         std::function<void(const tntdb::Row&)> cb = \
             [aux](const tntdb::Row &row) {
@@ -99,7 +104,7 @@ void
         }
 
         zhash_t *ext = s_map2zhash (oneRow.first.ext);
-
+            
         zmsg_t *msg = fty_proto_encode_asset (
                 aux,
                 oneRow.first.name.c_str(),
