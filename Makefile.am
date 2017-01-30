@@ -493,7 +493,9 @@ noinst_LTLIBRARIES += 	libpriv-configure-inform.la
 
 libpriv_configure_inform_la_SOURCES = \
 			src/agents/configure_inform/configure_inform.cc \
-			src/agents/configure_inform/configure_inform.h
+			src/agents/configure_inform/configure_inform.h \
+			src/include/fty_asset_uptime_configurator.h \
+			src/include/fty_asset_uptime_configurator.cc
 
 libpriv_configure_inform_la_CPPFLAGS = $(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
