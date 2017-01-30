@@ -22,19 +22,6 @@
 #ifndef FTY_ASSET_UPTIME_CONFIGURATOR_H_INCLUDED
 #define FTY_ASSET_UPTIME_CONFIGURATOR_H_INCLUDED
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void
-    fty_asset_uptime_configurator_test (bool verbose);
-
-//  @end
-
-#ifdef __cplusplus
-}
-#endif
-
 // inserts additional data to aux part of datacenter asset message
 bool
    insert_upses_to_aux (zhash_t *aux, std::string asset_name);
