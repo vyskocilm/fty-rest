@@ -111,7 +111,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     CONFIG_OPTS+=("CPPFLAGS=-I${BUILD_PREFIX}/include")
     CONFIG_OPTS+=("CXXFLAGS=-I${BUILD_PREFIX}/include")
     CONFIG_OPTS+=("LDFLAGS=-L${BUILD_PREFIX}/lib")
-    CONFIG_OPTS+=("PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig:/usr/lib/pkgconfig:/lib/pkgconfig")
+    CONFIG_OPTS+=("PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/lib/pkgconfig")
     CONFIG_OPTS+=("--prefix=${BUILD_PREFIX}")
     CONFIG_OPTS+=("--with-docs=no")
     if [ -z "${CI_CONFIG_QUIET-}" ] || [ "${CI_CONFIG_QUIET-}" = yes ] || [ "${CI_CONFIG_QUIET-}" = true ]; then
