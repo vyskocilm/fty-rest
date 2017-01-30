@@ -458,17 +458,21 @@ AC_CHECK_HEADERS([tntdb.h],
 AC_CHECK_HEADER([tnt/tntnet.h], , AC_MSG_ERROR([tntnet headers not found]))
 AC_LANG_POP([C++])
 
-set -x
+#set -x
 AC_MSG_NOTICE([Using PKG_CONFIG_PATH='$PKG_CONFIG_PATH'])
 PKG_CHECK_MODULES([LIBCIDR], [libcidr], [], [AC_MSG_ERROR([cannot find libcidr])])
 PKG_CHECK_MODULES([CXXTOOLS], [cxxtools >= 2.2.0], [], [AC_MSG_ERROR([cannot find cxxtools >= 2.2.0])])
-PKG_CHECK_MODULES([LIBSASL2], [libsasl2 >= 2.1.0], [], [AC_MSG_ERROR([cannot find sasl 2 library >= 2.1.0])])
+AC_MSG_NOTICE([Looking for libsasl(2)])
+pkg-config --debug libsasl2 || true
+pkg-config --debug libsasl || true
+find /lib /usr -name 'libsasl*.pc' | while read F ; do echo "=== $F :" ; cat "$F"; done
+PKG_CHECK_MODULES([LIBSASL2], [libsasl2 >= 2.1.0], [pkg-config --debug libsasl2], [AC_MSG_ERROR([cannot find sasl 2 library >= 2.1.0])])
 PKG_CHECK_MODULES([LIBSODIUM], [libsodium >= 0.7.0], [], [AC_MSG_ERROR([cannot find libsodium >= 0.7.0])])
 PKG_CHECK_MODULES([LIBZMQ], [libzmq >= 3.0], [], [AC_MSG_ERROR([cannot find libzmq version >= 3])])
 PKG_CHECK_MODULES([LIBCZMQ], [libczmq >= 3.0], [], [AC_MSG_ERROR([cannot find libczmq version >= 3])])
 PKG_CHECK_MODULES([LIBMLM], [libmlm >= 0.1.0], [], [AC_MSG_ERROR([cannot find malamute library >= 0.1.0])])
 PKG_CHECK_MODULES([LIBFTYPROTO], [libfty_proto >= 1.0.0], [], AC_MSG_ERROR([cannot find libfty_proto library >= 1.0.0]))
-set +x
+#set +x
 
 AC_MSG_CHECKING([presence of augtool])
 AS_IF([which augtool >/dev/null 2>&1], [AC_MSG_RESULT([yes])], [
