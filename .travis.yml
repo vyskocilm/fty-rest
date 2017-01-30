@@ -54,7 +54,7 @@ addons:
     - libtnt-dev
     - libsasl2-2
     - libsasl2-dev
-    - libcidr-dev
+    - libcidr
 # Not packaged yet, or wrong names for Travis repos, or wrong versions
 #    - libzmq3-dev
 #    - libczmq3-dev
