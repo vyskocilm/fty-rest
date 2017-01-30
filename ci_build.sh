@@ -118,6 +118,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         CONFIG_OPTS+=("--quiet")
     fi
 
+    CONFIG_OPTS+=("--with-pkgconfigdir=${BUILD_PREFIX}/lib/pkgconfig")
     CONFIG_OPTS+=("--with-systemdtmpfilesdir=${BUILD_PREFIX}/usr/lib/tmpfiles.d")
     CONFIG_OPTS+=("--with-systemdsystempresetdir=${BUILD_PREFIX}/usr/lib/systemd/system-preset")
     CONFIG_OPTS+=("--with-systemdsystemunitdir=${BUILD_PREFIX}/usr/lib/systemd/system")
@@ -436,6 +437,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
 
     # Build and check this project; note that zprojects always have an autogen.sh
     echo ""
+    echo "=== LIBCIDR.PC"
+    cat "${BUILD_PREFIX}"/lib/pkgconfig/libcidr.pc || true
     echo "`date`: INFO: Starting build of currently tested project with DRAFT APIs..."
     CCACHE_BASEDIR=${PWD}
     export CCACHE_BASEDIR

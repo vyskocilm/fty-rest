@@ -16,9 +16,9 @@ services:
 # Set CI_CONFIG_QUIET=true to enable "configure --quiet" (only report stderr)
 env:
   global:
-    - CI_TIME=false
-    - CI_TRACE=false
-    - CI_QUIET=true
+    - CI_TIME=true
+    - CI_TRACE=true
+    - CI_CONFIG_QUIET=false
   matrix:
     - BUILD_TYPE=default
     - BUILD_TYPE=default-Werror
