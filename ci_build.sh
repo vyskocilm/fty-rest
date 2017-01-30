@@ -7,7 +7,7 @@
 set -e
 
 dpkg -l | grep -i sasl || true
-dpkg -S 'libsasl*pc' || true
+dpkg -S 'libsasl*.pc' || true
 apt-cache search '.*sasl.*' || true
 
 # Set this to enable verbose profiling
