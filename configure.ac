@@ -39,6 +39,7 @@ AS_IF([test -n "${pkgconfigdir}" -a -d "${pkgconfigdir}"],
 		[PKG_CONFIG_PATH="${pkgconfigdir}:${PKG_CONFIG_PATH}"])
 	 export PKG_CONFIG_PATH
 	])
+AC_MSG_NOTICE([Using PKG_CONFIG_PATH='$PKG_CONFIG_PATH'])
 
 # the default value may be revised, so we have two layers of conditionals here
 _ENABLE_DEBUG_BUILD=1
