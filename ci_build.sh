@@ -437,8 +437,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
 
     # Build and check this project; note that zprojects always have an autogen.sh
     echo ""
-    echo "=== LIBCIDR.PC"
-    cat "${BUILD_PREFIX}"/lib/pkgconfig/libcidr.pc || true
+#    echo "=== LIBCIDR.PC"
+#    cat "${BUILD_PREFIX}"/lib/pkgconfig/libcidr.pc || true
     echo "`date`: INFO: Starting build of currently tested project with DRAFT APIs..."
     CCACHE_BASEDIR=${PWD}
     export CCACHE_BASEDIR
