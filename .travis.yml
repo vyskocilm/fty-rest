@@ -17,8 +17,8 @@ services:
 env:
   global:
     - CI_TIME=true
-    - CI_TRACE=true
-    - CI_CONFIG_QUIET=false
+    - CI_TRACE=false
+    - CI_CONFIG_QUIET=true
   matrix:
     - BUILD_TYPE=default
     - BUILD_TYPE=default-Werror
