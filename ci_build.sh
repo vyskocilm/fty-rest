@@ -42,6 +42,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     PATH="`echo "$PATH" | sed -e 's,^/usr/lib/ccache/?:,,' -e 's,:/usr/lib/ccache/?:,,' -e 's,:/usr/lib/ccache/?$,,' -e 's,^/usr/lib/ccache/?$,,'2`"
     CCACHE_PATH="$PATH"
     CCACHE_DIR="${HOME}/.ccache"
+    PATH="${BUILD_PREFIX}/sbin:${BUILD_PREFIX}/bin:$PATH"
     export CCACHE_PATH CCACHE_DIR PATH
     HAVE_CCACHE=no
     if which ccache && ls -la /usr/lib/ccache ; then
@@ -448,7 +449,6 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         echo "`date`: INFO: Building prerequisite 'tntnet' from Git repository..." >&2
         $CI_TIME git clone --quiet --depth 1 -b 2.2 https://github.com/42ity/tntnet tntnet
         cd tntnet
-        cd ./tntnet
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
         git --no-pager log --oneline -n1
