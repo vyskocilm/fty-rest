@@ -47,15 +47,15 @@ addons:
     - git
     - asciidoc
     - xmlto
-    - libmagic-dev
-    - tntnet
-    - tntnet-runtime
-    - libtntnet-dev
-    - libtnt-dev
     - libsasl2-2
     - libsasl2-dev
     - sasl2-bin
 # Not packaged yet, or wrong names for Travis repos, or wrong versions
+#    - libmagic-dev
+#    - tntnet
+#    - tntnet-runtime
+#    - libtntnet-dev
+#    - libtnt-dev
 #    - libzmq3-dev
 #    - libczmq3-dev
 #    - libmlm-dev
