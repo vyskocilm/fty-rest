@@ -42,6 +42,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     PATH="`echo "$PATH" | sed -e 's,^/usr/lib/ccache/?:,,' -e 's,:/usr/lib/ccache/?:,,' -e 's,:/usr/lib/ccache/?$,,' -e 's,^/usr/lib/ccache/?$,,'2`"
     CCACHE_PATH="$PATH"
     CCACHE_DIR="${HOME}/.ccache"
+    PATH="${BUILD_PREFIX}/sbin:${BUILD_PREFIX}/bin:$PATH"
     export CCACHE_PATH CCACHE_DIR PATH
     HAVE_CCACHE=no
     if which ccache && ls -la /usr/lib/ccache ; then
