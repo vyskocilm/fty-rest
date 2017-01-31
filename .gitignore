@@ -175,3 +175,5 @@ libzmq/
 malamute/
 sodium/
 tntdb/
+tntnet/
+magic/
