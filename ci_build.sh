@@ -6,9 +6,9 @@
 
 set -e
 
-dpkg -l | grep -i sasl || true
-dpkg -S 'libsasl*.pc' || true
-apt-cache search '.*sasl.*' || true
+#dpkg -l | grep -i sasl || true
+#dpkg -S 'libsasl*.pc' || true
+#apt-cache search '.*sasl.*' || true
 
 # Set this to enable verbose profiling
 [ -n "${CI_TIME-}" ] || CI_TIME=""
