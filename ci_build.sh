@@ -186,7 +186,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'sodium' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 -b stable https://github.com/42ity/libsodium sodium
+        $CI_TIME git clone --quiet --depth 1 -b stable https://github.com/jedisct1/libsodium sodium
         cd sodium
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
