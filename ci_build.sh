@@ -448,7 +448,6 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         echo "`date`: INFO: Building prerequisite 'tntnet' from Git repository..." >&2
         $CI_TIME git clone --quiet --depth 1 -b 2.2 https://github.com/42ity/tntnet tntnet
         cd tntnet
-        cd ./tntnet
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
         git --no-pager log --oneline -n1
