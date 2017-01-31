@@ -80,20 +80,22 @@ void
         zhash_insert (aux, "subtype", (void*) persist::subtypeid_to_subtype (oneRow.first.subtype_id).c_str());
         zhash_insert (aux, "parent", (void*) s_parent.c_str ());
         zhash_insert (aux, "status", (void*) oneRow.first.status.c_str());
-        
-        //data for uptime
-        insert_upses_to_aux (aux, s_asset_name); 
+
+        // this is a bit hack, but we now that our topology ends with datacenter (hopefully)
+        std::string dc_name;
 
         std::function<void(const tntdb::Row&)> cb = \
-            [aux](const tntdb::Row &row) {
+            [aux, &dc_name](const tntdb::Row &row) {
                 for (const auto& name: {"parent_name1", "parent_name2", "parent_name3", "parent_name4", "parent_name5"}) {
                     std::string foo;
                     row [name].get (foo);
                     std::string hash_name = name;
                     //                11 == strlen ("parent_name")
                     hash_name.insert (11, 1, '.');
-                    if (!foo.empty ())
+                    if (!foo.empty ()) {
                         zhash_insert (aux, hash_name.c_str (), (void*) foo.c_str ());
+                        dc_name = foo;
+                    }
                 }
             };
         int r = persist::select_asset_element_super_parent (conn, oneRow.first.id, cb);
@@ -117,7 +119,28 @@ void
             mlm_client_destroy (&client);
             throw std::runtime_error("mlm_client_send () failed.");
         }
+
+        //data for uptime
+        if (oneRow.first.subtype_id == persist::asset_subtype::UPS) {
+            zhash_t *aux = zhash_new ();
+            insert_upses_to_aux (aux, dc_name);
+            zhash_update (aux, "type", (void*) "datacenter");
+            zmsg_t *msg = fty_proto_encode_asset (
+                    aux,
+                    dc_name.c_str (),
+                    "inventory",
+                    NULL);
+            std::string subject = "datacenter.unknown@";
+            subject.append (dc_name);
+            r = mlm_client_send (client, subject.c_str (), &msg);
+            zhash_destroy (&aux);
+            if ( r != 0 ) {
+                mlm_client_destroy (&client);
+                throw std::runtime_error("mlm_client_send () failed.");
+            }
+        }
     }
+
     zclock_sleep (500); // ensure that everything was send before we destroy the client
     mlm_client_destroy (&client);
 }
