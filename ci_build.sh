@@ -6,8 +6,9 @@
 
 set -e
 
-dpkg -l | grep -i sasl || true
-apt-cache search '.*sasl.*' || true
+#dpkg -l | grep -i sasl || true
+#dpkg -S 'libsasl*.pc' || true
+#apt-cache search '.*sasl.*' || true
 
 # Set this to enable verbose profiling
 [ -n "${CI_TIME-}" ] || CI_TIME=""
@@ -111,13 +112,14 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     CONFIG_OPTS+=("CPPFLAGS=-I${BUILD_PREFIX}/include")
     CONFIG_OPTS+=("CXXFLAGS=-I${BUILD_PREFIX}/include")
     CONFIG_OPTS+=("LDFLAGS=-L${BUILD_PREFIX}/lib")
-    CONFIG_OPTS+=("PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig")
+    CONFIG_OPTS+=("PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/lib/pkgconfig")
     CONFIG_OPTS+=("--prefix=${BUILD_PREFIX}")
     CONFIG_OPTS+=("--with-docs=no")
     if [ -z "${CI_CONFIG_QUIET-}" ] || [ "${CI_CONFIG_QUIET-}" = yes ] || [ "${CI_CONFIG_QUIET-}" = true ]; then
         CONFIG_OPTS+=("--quiet")
     fi
 
+    CONFIG_OPTS+=("--with-pkgconfigdir=${BUILD_PREFIX}/lib/pkgconfig")
     CONFIG_OPTS+=("--with-systemdtmpfilesdir=${BUILD_PREFIX}/usr/lib/tmpfiles.d")
     CONFIG_OPTS+=("--with-systemdsystempresetdir=${BUILD_PREFIX}/usr/lib/systemd/system-preset")
     CONFIG_OPTS+=("--with-systemdsystemunitdir=${BUILD_PREFIX}/usr/lib/systemd/system")
@@ -177,6 +179,38 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     # or MacOS packages; other OSes are not currently supported by Travis cloud
     [ -z "$CI_TIME" ] || echo "`date`: Starting build of dependencies (if any)..."
 
+    # Start of recipe for dependency: sodium
+    if ! (command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list libsodium-dev >/dev/null 2>&1) || \
+           (command -v brew >/dev/null 2>&1 && brew ls --versions sodium >/dev/null 2>&1) \
+    ; then
+        echo ""
+        BASE_PWD=${PWD}
+        echo "`date`: INFO: Building prerequisite 'sodium' from Git repository..." >&2
+        $CI_TIME git clone --quiet --depth 1 -b stable https://github.com/jedisct1/libsodium sodium
+        cd sodium
+        CCACHE_BASEDIR=${PWD}
+        export CCACHE_BASEDIR
+        git --no-pager log --oneline -n1
+        if [ -e autogen.sh ]; then
+            $CI_TIME ./autogen.sh 2> /dev/null
+        fi
+        if [ -e buildconf ]; then
+            $CI_TIME ./buildconf 2> /dev/null
+        fi
+        if [ ! -e autogen.sh ] && [ ! -e buildconf ] && [ ! -e ./configure ] && [ -s ./configure.ac ]; then
+            $CI_TIME libtoolize --copy --force && \
+            $CI_TIME aclocal -I . && \
+            $CI_TIME autoheader && \
+            $CI_TIME automake --add-missing --copy && \
+            $CI_TIME autoconf || \
+            $CI_TIME autoreconf -fiv
+        fi
+        $CI_TIME ./configure "${CONFIG_OPTS[@]}"
+        $CI_TIME make -j4
+        $CI_TIME make install
+        cd "${BASE_PWD}"
+    fi
+
     # Start of recipe for dependency: libzmq
     if ! (command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list libzmq3-dev >/dev/null 2>&1) || \
            (command -v brew >/dev/null 2>&1 && brew ls --versions libzmq >/dev/null 2>&1) \
@@ -185,6 +219,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'libzmq' from Git repository..." >&2
         $CI_TIME git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq
+        #$CI_TIME git clone --quiet --depth 1 https://github.com/42ity/libzmq libzmq
         cd libzmq
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -216,7 +251,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         echo ""
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'czmq' from Git repository..." >&2
-        $CI_TIME git clone --quiet --depth 1 -b v3.0.2 https://github.com/zeromq/czmq.git czmq
+        # $CI_TIME git clone --quiet --depth 1 -b v3.0.2 https://github.com/zeromq/czmq.git czmq
+        $CI_TIME git clone --quiet --depth 1 https://github.com/42ity/czmq czmq
         cd czmq
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -249,6 +285,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'malamute' from Git repository..." >&2
         $CI_TIME git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute
+        # $CI_TIME git clone --quiet --depth 1 https://github.com/42ity/malamute malamute
         cd malamute
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
@@ -402,6 +439,39 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         cd "${BASE_PWD}"
     fi
 
+    # Start of recipe for dependency: tntnet
+    if ! (command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list tntnet-dev >/dev/null 2>&1) || \
+           (command -v brew >/dev/null 2>&1 && brew ls --versions tntnet >/dev/null 2>&1) \
+    ; then
+        echo ""
+        BASE_PWD=${PWD}
+        echo "`date`: INFO: Building prerequisite 'tntnet' from Git repository..." >&2
+        $CI_TIME git clone --quiet --depth 1 -b 2.2 https://github.com/42ity/tntnet tntnet
+        cd tntnet
+        cd ./tntnet
+        CCACHE_BASEDIR=${PWD}
+        export CCACHE_BASEDIR
+        git --no-pager log --oneline -n1
+        if [ -e autogen.sh ]; then
+            $CI_TIME ./autogen.sh 2> /dev/null
+        fi
+        if [ -e buildconf ]; then
+            $CI_TIME ./buildconf 2> /dev/null
+        fi
+        if [ ! -e autogen.sh ] && [ ! -e buildconf ] && [ ! -e ./configure ] && [ -s ./configure.ac ]; then
+            $CI_TIME libtoolize --copy --force && \
+            $CI_TIME aclocal -I . && \
+            $CI_TIME autoheader && \
+            $CI_TIME automake --add-missing --copy && \
+            $CI_TIME autoconf || \
+            $CI_TIME autoreconf -fiv
+        fi
+        $CI_TIME ./configure "${CONFIG_OPTS[@]}"
+        $CI_TIME make -j4
+        $CI_TIME make install
+        cd "${BASE_PWD}"
+    fi
+
     # Start of recipe for dependency: fty-proto
     if ! (command -v dpkg-query >/dev/null 2>&1 && dpkg-query --list libfty_proto-dev >/dev/null 2>&1) || \
            (command -v brew >/dev/null 2>&1 && brew ls --versions fty-proto >/dev/null 2>&1) \
@@ -436,6 +506,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
 
     # Build and check this project; note that zprojects always have an autogen.sh
     echo ""
+    echo "=== LIBCIDR.PC"
+    cat "${BUILD_PREFIX}"/lib/pkgconfig/libcidr.pc || true
     echo "`date`: INFO: Starting build of currently tested project with DRAFT APIs..."
     CCACHE_BASEDIR=${PWD}
     export CCACHE_BASEDIR

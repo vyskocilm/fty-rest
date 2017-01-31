@@ -164,3 +164,14 @@ tntnet.xml
 
 src/api/libbiosapi.pc
 !src/api/libbiosapi.pc.in
+
+# Travis deps
+tmp/
+cidr/
+cxxtools/
+czmq/
+fty-proto/
+libzmq/
+malamute/
+sodium/
+tntdb/
