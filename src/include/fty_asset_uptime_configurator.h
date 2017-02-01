@@ -23,6 +23,10 @@
 #define FTY_ASSET_UPTIME_CONFIGURATOR_H_INCLUDED
 
 // inserts additional data to aux part of datacenter asset message
+// *aux ... aux part of fty-proto message where info about DC and its UPSes is kept
+// asset_name ... name of UPS.
+//            UPS -> info about DC where it is located
+//                -> list of UPSes located in the DC 
 bool
    insert_upses_to_aux (zhash_t *aux, std::string asset_name);
 

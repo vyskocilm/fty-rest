@@ -123,7 +123,7 @@ void
         //data for uptime
         if (oneRow.first.subtype_id == persist::asset_subtype::UPS) {
             zhash_t *aux = zhash_new ();
-            insert_upses_to_aux (aux, dc_name);
+            insert_upses_to_aux (aux, oneRow.first.name);
             zhash_update (aux, "type", (void*) "datacenter");
             zmsg_t *msg = fty_proto_encode_asset (
                     aux,
