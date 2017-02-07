@@ -996,8 +996,6 @@ fty_autoconfig_SOURCES = \
 			src/agents/autoconfig/ConfiguratorFactory.cc \
 			src/agents/autoconfig/RuleConfigurator.h \
 			src/agents/autoconfig/RuleConfigurator.cc \
-			src/agents/autoconfig/UptimeConfigurator.h \
-			src/agents/autoconfig/UptimeConfigurator.cc \
 			src/agents/autoconfig/TemplateRuleConfigurator.h \
 			src/agents/autoconfig/TemplateRuleConfigurator.cc 
 

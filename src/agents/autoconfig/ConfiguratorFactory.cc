@@ -27,18 +27,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "log.h"
 #include "asset_types.h"
 
-#include "UptimeConfigurator.h"
 #include "TemplateRuleConfigurator.h"
-
 #include "ConfiguratorFactory.h"
 
 std::vector <Configurator*> ConfiguratorFactory::getConfigurator (const AutoConfigurationInfo& info)
 {
-    static UptimeConfigurator iUptimeConfigurator;
     static TemplateRuleConfigurator iTemplateRuleConfigurator;
 
     static std::vector <Configurator *> configurators {
-        &iUptimeConfigurator,
         &iTemplateRuleConfigurator
     };
 
