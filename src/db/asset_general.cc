@@ -239,7 +239,7 @@ db_reply_t
     
     //generate unique name
     setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name ((char *) element_name);
+    char *transliterated = ic_utf8_to_name (strdup (element_name));
     std::string name (transliterated + std::to_string (element_id));
     if ( extattributes != NULL )
         zhash_insert (extattributes, "name", (void *) name.c_str ());
