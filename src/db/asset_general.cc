@@ -19,12 +19,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "db/assets.h"
 
 #include <tntdb/transaction.h>
-#include <locale.h>
 
 #include "log.h"
 #include "asset_types.h"
 #include "defs.h"
-#include "ic.h"
 
 namespace persist {
 
@@ -178,7 +176,8 @@ int
         return 5;
     }
 
-    // links don't have 'dest' defined - it was not known until now; we have to fix it
+    // u links, neni definovan dest, prortoze to jeste neni znamo, tak musime
+    // uvnitr funkce to opravit
     for ( auto &one_link: links )
     {
         one_link.dest = element_id;
@@ -236,36 +235,25 @@ db_reply_t
         return reply_insert1;
     }
     auto element_id = reply_insert1.rowid;
-    
-    //generate unique name
-    setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name ((char *) element_name);
-    std::string name (transliterated + std::to_string (element_id));
-    if ( extattributes != NULL )
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    else {
-        extattributes = zhash_new ();
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    }
-
     std::string err = "";
-
-    int reply_insert2 = insert_into_asset_ext_attributes
-        (conn, element_id, extattributes, false, err);
-    if ( reply_insert2 != 0 )
+    if ( extattributes != NULL )
     {
-        trans.rollback();
-        log_error ("end: device was not inserted (fail in ext_attributes)");
-        db_reply_t ret;
-        ret.status     = 0;
-        ret.errtype    = DB_ERR;
-        ret.errsubtype = DB_ERROR_BADINPUT;
-        // too complicated, to transform from one format to onother
-        ret.rowid      = -reply_insert2;
-        ret.msg        = err;
-        return ret;
+        int reply_insert2 = insert_into_asset_ext_attributes
+            (conn, element_id, extattributes, false, err);
+        if ( reply_insert2 != 0 )
+        {
+            trans.rollback();
+            log_error ("end: device was not inserted (fail in ext_attributes)");
+            db_reply_t ret;
+            ret.status     = 0;
+            ret.errtype    = DB_ERR;
+            ret.errsubtype = DB_ERROR_BADINPUT;
+            // too complicated, to transform from one format to onother
+            ret.rowid      = -reply_insert2;
+            ret.msg        = err;
+            return ret;
+        }
     }
-
     auto reply_insert3 = insert_element_into_groups (conn, groups, element_id);
     if ( ( reply_insert3.status == 0 ) && ( reply_insert3.affected_rows != groups.size() ) )
     {
@@ -297,11 +285,10 @@ db_reply_t
 
     trans.commit();
     LOG_END;
-    free (transliterated);
     return reply_insert1;
 }
 
-// because of transactions, previous function is not used here!
+// because of transactions, previos function is not used here!
 db_reply_t
     insert_device
        (tntdb::Connection &conn,
@@ -332,32 +319,23 @@ db_reply_t
     }
     auto element_id = reply_insert1.rowid;
     std::string err = "";
-   
-    //generate unique name
-    setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name (strdup (element_name));
-    std::string name(transliterated  + std::to_string (element_id));
     if ( extattributes != NULL )
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    else {
-        extattributes = zhash_new ();
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    }
-   
-    int reply_insert2 = insert_into_asset_ext_attributes
-        (conn, element_id, extattributes, false, err);
-    if ( reply_insert2 != 0 )
     {
-        trans.rollback();
-        log_error ("end: device was not inserted (fail in ext_attributes)");
-        db_reply_t ret;
-        ret.status     = 0;
-        ret.errtype    = DB_ERR;
-        ret.errsubtype = DB_ERROR_BADINPUT;
-        // too complicated, to transform from one format to onother
-        ret.rowid      = -reply_insert2;
-        ret.msg        = err;
-        return ret;
+        int reply_insert2 = insert_into_asset_ext_attributes
+            (conn, element_id, extattributes, false, err);
+        if ( reply_insert2 != 0 )
+        {
+            trans.rollback();
+            log_error ("end: device was not inserted (fail in ext_attributes)");
+            db_reply_t ret;
+            ret.status     = 0;
+            ret.errtype    = DB_ERR;
+            ret.errsubtype = DB_ERROR_BADINPUT;
+            // too complicated, to transform from one format to onother
+            ret.rowid      = -reply_insert2;
+            ret.msg        = err;
+            return ret;
+        }
     }
 
     auto reply_insert3 = insert_element_into_groups (conn, groups, element_id);
@@ -368,7 +346,8 @@ db_reply_t
         return reply_insert3;
     }
 
-    // links don't have 'dest' defined - it was not known until now; we have to fix it
+    // u links, neni definovan dest, prortoze to jeste neni znamo, tak musime
+    // uvnitr funkce to opravit
     for ( auto &one_link: links )
     {
         one_link.dest = element_id;
@@ -418,7 +397,6 @@ db_reply_t
     }
     trans.commit();
     LOG_END;
-    free (transliterated);
     return reply_insert1;
 }
 //=============================================================================
