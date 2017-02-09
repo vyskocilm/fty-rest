@@ -299,6 +299,12 @@ EXTRA_DIST += tools/bios_agent++.h.sh tools/bios_agent++.h.in
 # Some of our code is arranged into private libraries used during
 # build, but not published or distributed outside the build-tree.
 
+noinst_LTLIBRARIES += 		libpriv-ic.la
+
+libpriv_ic_la_SOURCES = \
+					src/shared/ic.h \
+					src/shared/ic.c
+
 noinst_LTLIBRARIES += 		libpriv-tntnet-mlm.la
 
 libpriv_tntnet_mlm_la_SOURCES = \
@@ -418,6 +424,8 @@ libpriv_db_la_CPPFLAGS = $(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
 			-I$(abs_top_srcdir)/src/ \
 			-I$(abs_top_srcdir)/src/db \
+			-I$(abs_top_srcdir)/src/shared \
+			-I$(abs_top_builddir)/src/shared \
 			-I$(abs_top_srcdir)/tools \
 			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_builddir)/src/persist
@@ -428,6 +436,7 @@ libpriv_db_la_LIBADD =	libbiosapi.la \
 			libpriv-db-assets.la \
 			libpriv-utils-plusplus.la \
 			libpriv-topic-cache.la
+			libpriv-ic.la
 
 noinst_LTLIBRARIES += 	libpriv-db-measurements.la
 

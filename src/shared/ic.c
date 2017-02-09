@@ -23,9 +23,10 @@
 #include <string.h>
 #include <errno.h>
 #include <iconv.h>
+#include <ctype.h>
 
 static
-int s_convert(iconv_t *id, char *inbuf, size_t *bytes, char *outbuf, size_t *capacity)
+int s_convert(iconv_t id, char *inbuf, size_t *bytes, char *outbuf, size_t *capacity)
 {
     size_t converted;
 
