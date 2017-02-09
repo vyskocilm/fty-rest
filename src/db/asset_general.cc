@@ -19,12 +19,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "db/assets.h"
 
 #include <tntdb/transaction.h>
-#include <locale.h>
 
 #include "log.h"
 #include "asset_types.h"
 #include "defs.h"
-#include "ic.h"
 
 namespace persist {
 
@@ -238,9 +236,7 @@ db_reply_t
     auto element_id = reply_insert1.rowid;
     
     //generate unique name
-    setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name (strdup (element_name));
-    std::string name (transliterated + std::to_string (element_id));
+    std::string name (element_name + std::to_string (element_id));
     if ( extattributes != NULL )
         zhash_insert (extattributes, "name", (void *) name.c_str ());
     else {
@@ -297,7 +293,6 @@ db_reply_t
 
     trans.commit();
     LOG_END;
-    free (transliterated);
     return reply_insert1;
 }
 
@@ -334,9 +329,7 @@ db_reply_t
     std::string err = "";
    
     //generate unique name
-    setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name (strdup (element_name));
-    std::string name(transliterated  + std::to_string (element_id));
+    std::string name (element_name + std::to_string (element_id));
     if ( extattributes != NULL )
         zhash_insert (extattributes, "name", (void *) name.c_str ());
     else {
@@ -418,7 +411,6 @@ db_reply_t
     }
     trans.commit();
     LOG_END;
-    free (transliterated);
     return reply_insert1;
 }
 //=============================================================================
