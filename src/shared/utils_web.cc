@@ -186,7 +186,7 @@ create_error_json (std::vector <std::tuple<uint32_t, std::string, std::string>> 
 
 std::string jsonify (double t)
 {
-    if (isnan(t))
+    if (std::isnan(t))
         return "null";
     return std::to_string (t);
 }
