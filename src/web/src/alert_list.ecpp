@@ -335,8 +335,8 @@ if (streq (part, "LIST")) {
 %       frame = zmsg_pop (recv_msg);
 %       continue;
 %   }
-%   if ((!checked_asset.empty () && desired_elements.find (fty_proto_element_src (decoded)) == desired_elements.end ())) {
-%       log_debug ("skipping due to element_src '%s' not being in the list", fty_proto_element_src (decoded));
+%   if ((!checked_asset.empty () && desired_elements.find (fty_proto_name (decoded)) == desired_elements.end ())) {
+%       log_debug ("skipping due to element_src '%s' not being in the list", fty_proto_name (decoded));
 %       fty_proto_destroy (&decoded);
 %       frame = zmsg_pop (recv_msg);
 %       continue;
@@ -355,8 +355,8 @@ if (streq (part, "LIST")) {
 %       frame = zmsg_pop (recv_msg);
 %       continue;
 %   }
-%   log_debug ("persist::select_asset_element_web_byName ('%s')", fty_proto_element_src (decoded));
-%   auto asset_element = persist::select_asset_element_web_byName (connection, fty_proto_element_src (decoded));
+%   log_debug ("persist::select_asset_element_web_byName ('%s')", fty_proto_name (decoded));
+%   auto asset_element = persist::select_asset_element_web_byName (connection, fty_proto_name (decoded));
 %   if (asset_element.status != 1) {
 %       log_error ("%s", asset_element.msg.c_str ());
 %       fty_proto_destroy (&decoded);
@@ -369,7 +369,7 @@ if (streq (part, "LIST")) {
         <$$ utils::json::jsonify ("timestamp", buff) $>,
         <$$ utils::json::jsonify ("rule_name", fty_proto_rule (decoded)) $>,
         <$$ utils::json::jsonify ("element_id", std::to_string (asset_element.item.id)) $>,
-        <$$ utils::json::jsonify ("element_name", fty_proto_element_src (decoded)) $>,
+        <$$ utils::json::jsonify ("element_name", fty_proto_name (decoded)) $>,
         <$$ utils::json::jsonify ("element_type", asset_element.item.type_name) $>,
         <$$ utils::json::jsonify ("element_sub_type", asset_element.item.subtype_name) $>,
         <$$ utils::json::jsonify ("state", fty_proto_state (decoded)) $>,
@@ -383,7 +383,7 @@ if (streq (part, "LIST")) {
         <$$ utils::json::jsonify ("timestamp", buff) $>,
         <$$ utils::json::jsonify ("rule_name", fty_proto_rule (decoded)) $>,
         <$$ utils::json::jsonify ("element_id", std::to_string (asset_element.item.id)) $>,
-        <$$ utils::json::jsonify ("element_name", fty_proto_element_src (decoded)) $>,
+        <$$ utils::json::jsonify ("element_name", fty_proto_name (decoded)) $>,
         <$$ utils::json::jsonify ("element_type", asset_element.item.type_name) $>,
         <$$ utils::json::jsonify ("element_sub_type", asset_element.item.subtype_name) $>,
         <$$ utils::json::jsonify ("state", fty_proto_state (decoded)) $>,
