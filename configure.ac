@@ -400,12 +400,31 @@ AS_CASE(["x$CC"],
 	)
 AS_IF([test -n "$_CC_ORIG"], [AC_MSG_NOTICE([NOTE: Temporarily made the compiler more picky: $CC])])
 AC_CHECK_HEADERS([string.h], [], AC_MSG_ERROR([cannot find required header string.h]))
-AC_MSG_CHECKING([strdup() with default env])
-AC_TRY_LINK([#include <string.h>], [char *s; s = strdup("123"); if (s) {;}],
-	[AC_MSG_RESULT([yes])
-	 AC_DEFINE([HAVE_STRDUP], [1], [Define to 1 if you have the `strdup' function.])],
+# Note: dummy code below is wrong and leaky, but we just want it compiled
+my_try_includes='#include <string.h>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>'
+my_try_code='char *s; int i; struct tm t;
+s = strdup("123"); if (s) {;}
+s = strndup("123",4); if (s) {;}
+i = setenv("TZ", "", 1); if (i) {;}
+i = unsetenv("TZ"); if (i) {;}
+i = asprintf(&s, "%d", 1); if (i) {;}
+s = strptime("1970-01-01", "%s", &t); if (t.tm_sec) {;}
+tzset();'
+my_msg_funcnames='strdup() strndup() asprintf() setenv() unsetenv() tzset()'
+AC_MSG_CHECKING([${my_msg_funcnames} with your default env])
+AC_TRY_LINK([${my_try_includes}], [${my_try_code}],
+	[AC_DEFINE([HAVE_STRDUP], [1], [Define to 1 if you have the `strdup' function.])
+	 AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you have the `strndup' function.])
+	 AC_DEFINE([HAVE_ASPRINTF], [1], [Define to 1 if you have the `asprintf' function.])
+	 AC_DEFINE([HAVE_TZSET], [1], [Define to 1 if you have the `tzset' function.])
+	 AC_DEFINE([HAVE_SETENV], [1], [Define to 1 if you have the `setenv' function.])
+	 AC_DEFINE([HAVE_UNSETENV], [1], [Define to 1 if you have the `unsetenv' function.])
+	 AC_MSG_RESULT([yes])],
 	[AC_MSG_RESULT([no])
-	 AC_MSG_CHECKING([strdup() with -D_GNU_SOURCE])
+	 AC_MSG_CHECKING([${my_msg_funcnames} with -D_GNU_SOURCE])
 	 my_save_CFLAGS="$my_CFLAGS"
 	 my_save_CPPFLAGS="$my_CPPFLAGS"
 	 my_save_CXXFLAGS="$my_CXXFLAGS"
@@ -413,20 +432,45 @@ AC_TRY_LINK([#include <string.h>], [char *s; s = strdup("123"); if (s) {;}],
 	 my_CPPFLAGS="$my_save_CPPFLAGS -D_GNU_SOURCE"
 	 my_CXXFLAGS="$my_save_CXXFLAGS -D_GNU_SOURCE"
 	 AC_DEFINE([_GNU_SOURCE], [1], [Define this if needed to compile POSIX code])
-	 AC_TRY_LINK([#include <string.h>], [char *s; s = strdup("123"); if (s) {;}],
+	 AC_TRY_LINK([${my_try_includes}], [${my_try_code}],
 		[AC_DEFINE([HAVE_STRDUP], [1], [Define to 1 if you have the `strdup' function.])
+		 AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you have the `strndup' function.])
+		 AC_DEFINE([HAVE_ASPRINTF], [1], [Define to 1 if you have the `asprintf' function.])
+		 AC_DEFINE([HAVE_TZSET], [1], [Define to 1 if you have the `tzset' function.])
+		 AC_DEFINE([HAVE_SETENV], [1], [Define to 1 if you have the `setenv' function.])
+		 AC_DEFINE([HAVE_UNSETENV], [1], [Define to 1 if you have the `unsetenv' function.])
 		 AC_MSG_RESULT([yes])],
 		[AC_MSG_RESULT([no])
-		 AC_MSG_CHECKING([strdup() with -D__EXTENSIONS__])
-		 my_CFLAGS="$my_save_CFLAGS -D_GNU_SOURCE"
-		 my_CPPFLAGS="$my_save_CPPFLAGS -D_GNU_SOURCE"
-		 my_CXXFLAGS="$my_save_CXXFLAGS -D_GNU_SOURCE"
+		 AC_MSG_CHECKING([${my_msg_funcnames} with -D__EXTENSIONS__ also enabled])
+		 my_CFLAGS="$my_save_CFLAGS -D_GNU_SOURCE -D__EXTENSIONS__"
+		 my_CPPFLAGS="$my_save_CPPFLAGS -D_GNU_SOURCE -D__EXTENSIONS__"
+		 my_CXXFLAGS="$my_save_CXXFLAGS -D_GNU_SOURCE -D__EXTENSIONS__"
 		 AC_DEFINE([__EXTENSIONS__], [1], [Define this if needed to compile POSIX code])
-		 AC_TRY_LINK([#include <string.h>], [char *s; s = strdup("123"); if (s) {;}],
+		 AC_TRY_LINK([${my_try_includes}], [${my_try_code}],
 			[AC_DEFINE([HAVE_STRDUP], [1], [Define to 1 if you have the `strdup' function.])
+			 AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you have the `strndup' function.])
+			 AC_DEFINE([HAVE_ASPRINTF], [1], [Define to 1 if you have the `asprintf' function.])
+			 AC_DEFINE([HAVE_TZSET], [1], [Define to 1 if you have the `tzset' function.])
+			 AC_DEFINE([HAVE_SETENV], [1], [Define to 1 if you have the `setenv' function.])
+			 AC_DEFINE([HAVE_UNSETENV], [1], [Define to 1 if you have the `unsetenv' function.])
 			 AC_MSG_RESULT([yes])],
 			[AC_MSG_RESULT([no])
-			 AC_MSG_ERROR([cannot find strdup(), not even with -D__EXTENSIONS__])])]
+			 AC_MSG_CHECKING([${my_msg_funcnames} with -D_XOPEN_SOURCE=700 also enabled])
+			 my_CFLAGS="$my_save_CFLAGS -D_GNU_SOURCE -D__EXTENSIONS__ -D_XOPEN_SOURCE=700"
+			 my_CPPFLAGS="$my_save_CPPFLAGS -D_GNU_SOURCE -D__EXTENSIONS__ -D_XOPEN_SOURCE=700"
+			 my_CXXFLAGS="$my_save_CXXFLAGS -D_GNU_SOURCE -D__EXTENSIONS__ -D_XOPEN_SOURCE=700"
+			 AC_DEFINE([_XOPEN_SOURCE], [700], [Define this if needed to compile POSIX code])
+			 AC_TRY_LINK([${my_try_includes}], [${my_try_code}],
+				[AC_DEFINE([HAVE_STRDUP], [1], [Define to 1 if you have the `strdup' function.])
+				 AC_DEFINE([HAVE_STRNDUP], [1], [Define to 1 if you have the `strndup' function.])
+				 AC_DEFINE([HAVE_ASPRINTF], [1], [Define to 1 if you have the `asprintf' function.])
+				 AC_DEFINE([HAVE_TZSET], [1], [Define to 1 if you have the `tzset' function.])
+				 AC_DEFINE([HAVE_SETENV], [1], [Define to 1 if you have the `setenv' function.])
+				 AC_DEFINE([HAVE_UNSETENV], [1], [Define to 1 if you have the `unsetenv' function.])
+				 AC_MSG_RESULT([yes])],
+				[AC_MSG_RESULT([no])
+				 AC_MSG_ERROR([cannot find at least one of: ${my_msg_funcnames}, not even with -D_GNU_SOURCE -D__EXTENSIONS__ -D_XOPEN_SOURCE=700])])]
+			)]
 		)]
 	)
 AS_IF([test -n "$_CC_ORIG"], [
