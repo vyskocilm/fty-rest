@@ -125,6 +125,9 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     CONFIG_OPTS+=("--with-systemdsystempresetdir=${BUILD_PREFIX}/usr/lib/systemd/system-preset")
     CONFIG_OPTS+=("--with-systemdsystemunitdir=${BUILD_PREFIX}/usr/lib/systemd/system")
 
+    # fty-rest itself has no notion of drafts, and from Z ecosystem we want stable APIs
+    CONFIG_OPTS+=("--enable-drafts=no")
+
     if [ "$HAVE_CCACHE" = yes ] && [ "${COMPILER_FAMILY}" = GCC ]; then
         PATH="/usr/lib/ccache:$PATH"
         export PATH
@@ -508,14 +511,14 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     echo ""
     echo "=== LIBCIDR.PC"
     cat "${BUILD_PREFIX}"/lib/pkgconfig/libcidr.pc || true
-    echo "`date`: INFO: Starting build of currently tested project with DRAFT APIs..."
+    echo "`date`: INFO: Starting build of currently tested project..."
     CCACHE_BASEDIR=${PWD}
     export CCACHE_BASEDIR
     # Only use --enable-Werror on projects that are expected to have it
     # (and it is not our duty to check prerequisite projects anyway)
     CONFIG_OPTS+=("${CONFIG_OPT_WERROR}")
     $CI_TIME ./autogen.sh 2> /dev/null
-    $CI_TIME ./configure --enable-drafts=yes "${CONFIG_OPTS[@]}"
+    $CI_TIME ./configure "${CONFIG_OPTS[@]}"
     if [ "$BUILD_TYPE" == "valgrind" ] ; then
         # Build and check this project
         $CI_TIME make VERBOSE=1 memcheck
@@ -523,40 +526,18 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     fi
     $CI_TIME make VERBOSE=1 all
 
-    echo "=== Are GitIgnores good after 'make all' with drafts? (should have no output below)"
+    echo "=== Are GitIgnores good after 'make all'? (should have no output below)"
     git status -s || true
     echo "==="
 
     (
-        export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=yes ${CONFIG_OPTS[@]}"
+        export DISTCHECK_CONFIGURE_FLAGS="${CONFIG_OPTS[@]}"
         $CI_TIME make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
 
-        echo "=== Are GitIgnores good after 'make distcheck' with drafts? (should have no output below)"
+        echo "=== Are GitIgnores good after 'make distcheck'? (should have no output below)"
         git status -s || true
         echo "==="
     )
-
-    # Build and check this project without DRAFT APIs
-    echo ""
-    echo "`date`: INFO: Starting build of currently tested project without DRAFT APIs..."
-    make distclean
-
-    git clean -f
-    git reset --hard HEAD
-    (
-        $CI_TIME ./autogen.sh 2> /dev/null
-        $CI_TIME ./configure --enable-drafts=no "${CONFIG_OPTS[@]}" --with-docs=yes
-        $CI_TIME make VERBOSE=1 all || exit $?
-        (
-            export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]} --with-docs=yes" && \
-            $CI_TIME make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck || exit $?
-        )
-    ) || exit 1
-    [ -z "$CI_TIME" ] || echo "`date`: Builds completed without fatal errors!"
-
-    echo "=== Are GitIgnores good after 'make distcheck' without drafts? (should have no output below)"
-    git status -s || true
-    echo "==="
 
     if [ "$HAVE_CCACHE" = yes ]; then
         echo "CCache stats after build:"
