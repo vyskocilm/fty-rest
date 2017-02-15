@@ -95,7 +95,8 @@ int main()
                     name.c_str (),
                     std::to_string (day_diff).c_str(),
                     "day",
-                    TTL);
+                    TTL,
+                    ::time (NULL));
             assert (msg);
             std::string subject = keytag.append ("@").append (name);
             mlm_client_send (client, subject.c_str (), &msg);
