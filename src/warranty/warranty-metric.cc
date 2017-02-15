@@ -91,12 +91,12 @@ int main()
             log_debug ("name: %s, keytag: %s, date: %s", name.c_str(), keytag.c_str(), date.c_str());
             zmsg_t *msg = fty_proto_encode_metric (
                     NULL,
+                    ::time (NULL),
+                    3 * TTL,
                     keytag.c_str(),
                     name.c_str (),
                     std::to_string (day_diff).c_str(),
-                    "day",
-                    TTL,
-                    ::time (NULL));
+                    "day");
             assert (msg);
             std::string subject = keytag.append ("@").append (name);
             mlm_client_send (client, subject.c_str (), &msg);
