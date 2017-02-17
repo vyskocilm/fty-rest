@@ -99,10 +99,6 @@ var/
 build/
 build-*/
 
-fty-rest-*.*/
-fty-rest-*.*.tar.?z
-fty-rest-*.deb
-
 src/utils/messages/json_schemas.h
 tools/bios-passwd
 !tools/bios-passwd.in
