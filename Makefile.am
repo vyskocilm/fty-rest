@@ -443,9 +443,6 @@ libpriv_db_measurements_la_CPPFLAGS = $(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/db \
 			-I$(abs_top_builddir)/tools
 
-#libpriv_db_measurements_la_LIBADD =	libpriv-utils.la
-
-
 noinst_LTLIBRARIES += 	libpriv-db-assets.la
 
 HEADERS_ASSETS = \
@@ -750,42 +747,6 @@ test_libbiosapiut_DEPENDENCIES = \
 				libpriv-proto.la \
 				libbiosapi.la
 
-### agent autoconfig tests
-
-check_PROGRAMS += 	test-autoconfig
-test_autoconfig_SOURCES = tests/agents/autoconfig/test-autoconfig.cc \
-						  src/agents/autoconfig/Configurator.h \
-						  src/agents/autoconfig/RuleConfigurator.h \
-						  src/agents/autoconfig/RuleConfigurator.cc
-
-
-test_autoconfig_LDADD = \
-			libpriv-defs.la \
-			libpriv-log.la \
-			libpriv-test-run.la \
-			libpriv-utils.la \
-			libpriv-utils-web.la \
-			libpriv-subprocess.la \
-			libpriv-utils-plusplus.la
-
-test_autoconfig_LDFLAGS = $(LIBCZMQ_LIBS) $(CXXTOOLS_LIBS) ${LIBMLM_LIBS} -lbiosapi -ltntdb
-
-test_autoconfig_DEPENDENCIES = $(test_autoconfig_LDADD) \
-				libbiosapi.la
-
-test_autoconfig_CPPFLAGS = $(AM_CPPFLAGS) \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/shared \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_srcdir)/tests/include/ \
-			-I$(abs_top_srcdir)/src/agents/autoconfig/ \
-			-DTDIR=$(abs_top_srcdir)/tests/agents/autoconfig/
-
-
-###
-
-
 #----------------------------------------------------------------------
 #                        CI tests
 #----------------------------------------------------------------------
@@ -984,78 +945,6 @@ bios_csv_LDADD = \
 						 libpriv-csv.la
 bios_csv_LDFLAGS = \
 						 ${CXXTOOLS_LIBS} -ltntdb
-
-
-client_PROGRAMS +=	fty-autoconfig
-
-fty_autoconfig_SOURCES = \
-			src/agents/autoconfig/fty-autoconfig.cc \
-			src/agents/autoconfig/fty-autoconfig.h \
-			src/agents/autoconfig/Configurator.h \
-			src/agents/autoconfig/ConfiguratorFactory.h \
-			src/agents/autoconfig/ConfiguratorFactory.cc \
-			src/agents/autoconfig/RuleConfigurator.h \
-			src/agents/autoconfig/RuleConfigurator.cc \
-			src/agents/autoconfig/TemplateRuleConfigurator.h \
-			src/agents/autoconfig/TemplateRuleConfigurator.cc 
-
-fty_autoconfig_LDADD = \
-			libpriv-log.la \
-			libpriv-db.la \
-			libpriv-proto.la \
-			libbiosapi.la \
-			libpriv-log.la \
-			libpriv-cidr.la \
-			libpriv-defs.la \
-			libpriv-utils-web.la \
-			libpriv-subprocess.la \
-			libpriv-utils-ymsg.la \
-			libpriv-utils-plusplus.la
-
-# FIXME remove utils ymsg
-
-fty_autoconfig_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} -lcidr -lbiosapi -ltntdb
-
-fty_autoconfig_CPPFLAGS =	$(AM_CPPFLAGS) \
-				-I$(abs_top_srcdir)/tools \
-				-I$(abs_top_srcdir)/src/persist \
-				-I$(abs_top_srcdir)/src/shared \
-				-I$(abs_top_srcdir)/src/db \
-				-I$(abs_top_builddir)/tools
-
-#XXX: $(localstatedir) did not worked
-#FIXME: installing things to /var is not a good idea according FHS or GNU standards
-#		so this needs to be reconsidered later on (datadir is preffered location)
-template_ruledir = $(datadir)/$(PACKAGE)/fty-autoconfig
-RULE_TEMPLATES = \
-			src/agents/autoconfig/rule_templates/average.humidity@__datacenter__.rule \
-			src/agents/autoconfig/rule_templates/average.temperature@__datacenter__.rule \
-			src/agents/autoconfig/rule_templates/average.humidity@__rack__.rule \
-			src/agents/autoconfig/rule_templates/average.temperature@__rack__.rule \
-			src/agents/autoconfig/rule_templates/average.humidity@__row__.rule \
-			src/agents/autoconfig/rule_templates/average.temperature@__row__.rule \
-			src/agents/autoconfig/rule_templates/charge.battery@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/load.default@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/load.input_1phase@__device_epdu__.rule \
-			src/agents/autoconfig/rule_templates/load.input_3phase@__device_epdu__.rule \
-			src/agents/autoconfig/rule_templates/lowbattery@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/onbattery@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/onbypass@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/phase_imbalance@__datacenter__.rule \
-			src/agents/autoconfig/rule_templates/phase_imbalance@__device_epdu__.rule \
-			src/agents/autoconfig/rule_templates/phase_imbalance@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/phase_imbalance@__rack__.rule \
-			src/agents/autoconfig/rule_templates/realpower.default_1phase@__rack__.rule \
-			src/agents/autoconfig/rule_templates/realpower.default@__datacenter__.rule \
-			src/agents/autoconfig/rule_templates/section_load@__device_epdu__.rule \
-			src/agents/autoconfig/rule_templates/temperature.default@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/voltage.input_1phase@__device_epdu__.rule \
-			src/agents/autoconfig/rule_templates/voltage.input_1phase@__device_ups__.rule \
-			src/agents/autoconfig/rule_templates/voltage.input_3phase@__device_epdu__.rule \
-			src/agents/autoconfig/rule_templates/voltage.input_3phase@__device_ups__.rule
-
-template_rule_DATA =	$(RULE_TEMPLATES)
-EXTRA_DIST +=		$(RULE_TEMPLATES)
 
 client_PROGRAMS += legacy-asset
 
