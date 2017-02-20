@@ -946,23 +946,6 @@ bios_csv_LDADD = \
 bios_csv_LDFLAGS = \
 						 ${CXXTOOLS_LIBS} -ltntdb
 
-client_PROGRAMS += legacy-asset
-
-legacy_asset_SOURCES = src/agents/legacy_asset/legacy_asset_server.cc \
-						src/agents/legacy_asset/legacy_asset.cc
-
-legacy_asset_LDFLAGS = ${CXXTOOLS_LIBS} -lfty_proto -lmlm
-
-legacy_asset_LDADD = \
-			libpriv-defs.la \
-			libpriv-log.la \
-			libpriv-db.la
-
-legacy_asset_CPPFLAGS =	$(AM_CPPFLAGS) \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools \
-			-I$(abs_top_srcdir)/src/db
-
 client_PROGRAMS += warranty-metric
 
 warranty_metric_SOURCES = src/warranty/warranty-metric.cc
