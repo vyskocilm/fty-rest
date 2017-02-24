@@ -118,6 +118,18 @@ a_elmnt_stp_id_t
     else if (st == "sensor") {
         return asset_subtype::SENSOR;
     }
+    else if (st == "appliance") {
+        return asset_subtype::APPLIANCE;
+    }
+    else if (st == "chassis") {
+        return asset_subtype::CHASSIS;
+    }
+    else if (st == "patch panel") {
+        return asset_subtype::PATCHPANEL;
+    }
+    else if (st == "other") {
+        return asset_subtype::OTHER;
+    }
     else if(st == "n_a") {
         return asset_subtype::N_A;
     }
@@ -157,6 +169,14 @@ std::string
             return "rack controller";
         case asset_subtype::SENSOR:
             return "sensor";
+        case asset_subtype::APPLIANCE:
+            return "appliance";
+        case asset_subtype::CHASSIS:
+            return "chassis";
+        case asset_subtype::PATCHPANEL:
+            return "patch panel";
+        case asset_subtype::OTHER:
+            return "other";
         case asset_subtype::VIRTUAL:
             return "vm";
         case asset_subtype::N_A:
