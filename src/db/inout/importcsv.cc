@@ -249,12 +249,15 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     // Business requirement: be able to write 'rack controller', 'RC', 'rc' as subtype == 'rack controller'
     std::map<std::string,int> local_SUBTYPES = SUBTYPES;
     int rack_controller_id = SUBTYPES.find ("rack controller")->second;
+    int patch_panel_id = SUBTYPES.find ("patch panel")->second;
 
     local_SUBTYPES.emplace (std::make_pair ("rackcontroller", rack_controller_id));
     local_SUBTYPES.emplace (std::make_pair ("rackcontroler", rack_controller_id));
     local_SUBTYPES.emplace (std::make_pair ("rc", rack_controller_id));
     local_SUBTYPES.emplace (std::make_pair ("RC", rack_controller_id));
     local_SUBTYPES.emplace (std::make_pair ("RC3", rack_controller_id));
+
+    local_SUBTYPES.emplace (std::make_pair ("patchpanel", patch_panel_id));
 
     auto subtype = cm.get_strip (row_i, "sub_type");
 
