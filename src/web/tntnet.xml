@@ -137,6 +137,14 @@
         </args>
     </mapping>
 
+    <!-- admin/rc_info GET rack controller info-->
+    <mapping>
+        <target>rc_info@bios_web</target>
+        <method>GET</method>
+        <url>^/api/v1/admin/rc_info$</url>
+    </mapping>
+
+
     <!-- Network configuration -->
     <mapping>
       <target>augtool@bios_web</target>
