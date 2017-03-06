@@ -108,11 +108,17 @@ if (request.getMethod () == "PUT") {
 }
 
 // is it flexible
+<<<<<<< HEAD
 cxxtools::Regex reg("^[[:blank:]]*\\{[[:blank:]]*\"flexible\"", REG_EXTENDED);
 
 const char *dest = BIOS_AGENT_NAME_ALERT_AGENT;
 if (reg.match (request.getBody ())) dest = "fty-alert-flexible";
 
+=======
+cxxtools::Regex reg( "^[[:blank:]]*\\{[[:blank:]]*\"flexible\"", REG_EXTENDED | REG_ICASE );
+const *char dest = BIOS_AGENT_NAME_ALERT_AGENT;
+if (reg.match (request.getBody ())) dest = "fty-alert-flexible"
+>>>>>>> 9a26a04bdb6a3210e297903759385c50d676d8c8
 // send it
 if (mlm_client_sendto (client, dest, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
     log_debug ("mlm_client_sendto (address = '%s', subject = '%s', tracker = NULL, timeout = '%d') failed.",
