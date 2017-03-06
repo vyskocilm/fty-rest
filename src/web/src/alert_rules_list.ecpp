@@ -24,6 +24,7 @@
 */
 #><%pre>
 #include <cxxtools/jsondeserializer.h>
+#include <cxxtools/regex.h>
 #include <vector>
 #include <string>
 #include <malamute.h>
@@ -99,10 +100,13 @@ zmsg_addstr (send_msg, "LIST");
 zmsg_addstr (send_msg, checked_type.c_str ());
 zmsg_addstr (send_msg, checked_rule_class.c_str ());
 
+const char *dest = BIOS_AGENT_NAME_ALERT_AGENT;
+if (checked_type == "flexible") dest = "fty-alert-flexible";
+
 // send it
-  if (mlm_client_sendto (client, (type == "flexible") ? "fty-alert-flexible" : BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
+  if (mlm_client_sendto (client, dest, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
     log_debug ("mlm_client_sendto (address = '%s', subject = '%s', tracker = NULL, timeout = '%d') failed.",
-        BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", 1000);
+        dest, "rfc-evaluator-rules", 1000);
     zmsg_destroy (&send_msg);
     mlm_client_destroy (&client);
     http_die ("internal-error", "mlm_client_sendto() failed.");
@@ -136,7 +140,7 @@ while (true) {
         mlm_client_destroy (&client);
         http_die ("internal-error", "mlm_client_recv() failed.");
     }
-    if (streq (mlm_client_sender (client), BIOS_AGENT_NAME_ALERT_AGENT))
+    if (streq (mlm_client_sender (client), dest))
         break;
     zmsg_destroy (&recv_msg);
 }

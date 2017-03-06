@@ -25,6 +25,7 @@
 #><%pre>
 #include <exception>
 #include <cxxtools/jsondeserializer.h>
+#include <cxxtools/regex.h>
 #include <vector>
 #include <string>
 #include <malamute.h>
@@ -107,9 +108,11 @@ if (request.getMethod () == "PUT") {
 }
 
 // is it flexible
-cxxtools::Regex reg( "^[[:blank:]]*\\{[[:blank:]]*\"flexible\"", REG_EXTENDED | REG_ICASE );
-const *char dest = BIOS_AGENT_NAME_ALERT_AGENT;
-if (reg.match (request.getBody ())) dest = "fty-alert-flexible"
+cxxtools::Regex reg("^[[:blank:]]*\\{[[:blank:]]*\"flexible\"", REG_EXTENDED);
+
+const char *dest = BIOS_AGENT_NAME_ALERT_AGENT;
+if (reg.match (request.getBody ())) dest = "fty-alert-flexible";
+
 // send it
 if (mlm_client_sendto (client, dest, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
     log_debug ("mlm_client_sendto (address = '%s', subject = '%s', tracker = NULL, timeout = '%d') failed.",
