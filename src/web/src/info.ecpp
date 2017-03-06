@@ -18,7 +18,7 @@
  #
  #><#
 /*!
- * \file    rc_info.ecpp
+ * \file    info.ecpp
  * \author  Barbora Stepankova <BarboraStepankova@Eaton.com>
  * \brief   This call provides information about rack controller.
  */
@@ -54,7 +54,7 @@ get_rc_info (std::string &output)
             
     zuuid_t *uuid = zuuid_new ();
     zmsg_t *send = req_info (uuid);
-    int rv = client->sendto ("fty-info", "fty-info", 1000, &send);  // subject TODO
+    int rv = client->sendto ("fty-info", "info", 1000, &send);  
 
     if (rv == -1)
     {
@@ -75,6 +75,7 @@ get_rc_info (std::string &output)
     char *product_name = zmsg_popstr (resp);
     char *location = zmsg_popstr (resp);
     char *version = zmsg_popstr (resp);
+    char *rest_root = zmsg_popstr (resp);
     char *rest_port = zmsg_popstr (resp);        
        
     output += "{\n";
@@ -90,7 +91,9 @@ get_rc_info (std::string &output)
     output += ",\n";        
     output += utils::json::jsonify("version", version);
     output += ",\n";        
-    output += utils::json::jsonify("rest_port", rest_port);       
+    output += utils::json::jsonify("rest_root_path", rest_root);        
+    output += ",\n";        
+    output += utils::json::jsonify("rest_api_port", rest_port);       
     output += "\n}";        
 
     zuuid_destroy (&uuid);
