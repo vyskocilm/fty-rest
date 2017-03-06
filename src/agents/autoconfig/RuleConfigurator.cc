@@ -28,6 +28,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "preproc.h"
 
 #include "RuleConfigurator.h"
+#include <cxxtools/regex.h>
 
 using namespace utils::json;
 
@@ -38,9 +39,16 @@ bool RuleConfigurator::sendNewRule (const std::string& rule, mlm_client_t *clien
     zmsg_t *message = zmsg_new ();
     zmsg_addstr (message, "ADD");
     zmsg_addstr (message, rule.c_str());
-    if (mlm_client_sendto (client, BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", NULL, 5000, &message) != 0) {
+    
+    // is it flexible?
+    cxxtools::Regex reg("^[[:blank:][:cntrl:]]*\\{[[:blank:][:cntrl:]]*\"flexible\"", REG_EXTENDED);
+
+    const char *dest = BIOS_AGENT_NAME_ALERT_AGENT;
+    if (reg.match (rule) dest = "fty-alert-flexible";
+
+    if (mlm_client_sendto (client, dest, "rfc-evaluator-rules", NULL, 5000, &message) != 0) {
         log_error ("mlm_client_sendto (address = '%s', subject = '%s', timeout = '5000') failed.",
-                BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules");
+                dest, "rfc-evaluator-rules");
         return false;
     }
     return true;
