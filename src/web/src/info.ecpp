@@ -1,0 +1,126 @@
+<#
+ #
+ # Copyright (C) 2015-2016 Eaton
+ #
+ # This program is free software; you can redistribute it and/or modify
+ # it under the terms of the GNU General Public License as published by
+ # the Free Software Foundation; either version 2 of the License, or
+ # (at your option) any later version.
+ #
+ # This program is distributed in the hope that it will be useful,
+ # but WITHOUT ANY WARRANTY; without even the implied warranty of
+ # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ # GNU General Public License for more details.
+ #
+ # You should have received a copy of the GNU General Public License along
+ # with this program; if not, write to the Free Software Foundation, Inc.,
+ # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ #
+ #><#
+/*!
+ * \file    rc_info.ecpp
+ * \author  Barbora Stepankova <BarboraStepankova@Eaton.com>
+ * \brief   This call provides information about rack controller.
+ */
+ #><%pre>
+#include <string>        
+#include "tntmlm.h"
+#include "helpers.h"
+#include "utils_web.h"
+
+// info request       
+static zmsg_t *
+req_info (zuuid_t *uuid)
+{
+    zmsg_t *msg = zmsg_new ();
+    zmsg_addstr (msg, "INFO");     
+    zmsg_addstr (msg, zuuid_str_canonical (uuid));
+    return msg;
+}
+        
+// fty-info data
+int
+get_rc_info (std::string &output)
+{
+    output.clear();
+    
+    // connect to mlm client
+    MlmClientPool::Ptr client = mlm_pool.get ();
+    if (!client.getPointer ())
+    {
+        log_critical ("sysinfo: mlm_pool.get () failed.");
+        return -1;
+    }
+            
+    zuuid_t *uuid = zuuid_new ();
+    zmsg_t *send = req_info (uuid);
+    int rv = client->sendto ("fty-info", "info", 1000, &send);  
+
+    if (rv == -1)
+    {
+        log_critical ("sysinfo: client->sendto (address = '%s') failed.", "fty-info");
+        return -2;
+    }
+
+    zmsg_t *resp = client->recv (zuuid_str_canonical (uuid), 5);    
+    if (!resp)
+    {
+        log_critical ("sysinfo: client->recv (timeout = '5') returned NULL");
+        return -3;
+    }
+        
+    char *uuiddb = zmsg_popstr (resp);
+    char *hostname = zmsg_popstr (resp);
+    char *name = zmsg_popstr (resp);
+    char *product_name = zmsg_popstr (resp);
+    char *location = zmsg_popstr (resp);
+    char *version = zmsg_popstr (resp);
+    char *rest_root = zmsg_popstr (resp);
+    char *rest_port = zmsg_popstr (resp);        
+       
+    output += "{\n";
+    output += utils::json::jsonify("uuid", uuiddb);        
+    output += ",\n";
+    output += utils::json::jsonify("hostname", hostname);
+    output += ",\n";        
+    output += utils::json::jsonify("name", name);
+    output += ",\n";        
+    output += utils::json::jsonify("product_name", product_name);
+    output += ",\n";        
+    output += utils::json::jsonify("location", location);
+    output += ",\n";        
+    output += utils::json::jsonify("version", version);
+    output += ",\n";        
+    output += utils::json::jsonify("rest_root_path", rest_root);        
+    output += ",\n";        
+    output += utils::json::jsonify("rest_api_port", rest_port);       
+    output += "\n}";        
+
+    zuuid_destroy (&uuid);
+    zmsg_destroy(&resp);
+    return 0;
+}
+</%pre>
+<%request scope="global">
+UserInfo user;
+</%request>
+<%cpp>
+    // permission check
+    static const std::map <BiosProfile, std::string> PERMISSIONS = {
+            {BiosProfile::Anonymous, "R"},
+            {BiosProfile::Dashboard, "R"},
+            {BiosProfile::Admin,     "R"}
+            };
+    CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
+
+    std::string output;
+    int rv = get_rc_info (output);
+    if (rv == -1)
+        http_die ("internal-error", "mlmpool.get () failed.");
+    else
+    if (rv == -2)
+        http_die ("internal-error", "client->sendto () failed.");  
+    else
+        http_die ("internal-error", "client->recv () failed.");
+</%cpp> 
+<$$ output $>  
