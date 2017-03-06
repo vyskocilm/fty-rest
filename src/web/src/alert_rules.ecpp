@@ -108,7 +108,7 @@ if (request.getMethod () == "PUT") {
 }
 
 // is it flexible
-cxxtools::Regex reg("^[[:blank:]]*\\{[[:blank:]]*\"flexible\"", REG_EXTENDED);
+cxxtools::Regex reg("^[[:blank:][:cntrl:]]*\\{[[:blank:][:cntrl:]]*\"flexible\"", REG_EXTENDED);
 
 const char *dest = BIOS_AGENT_NAME_ALERT_AGENT;
 if (reg.match (request.getBody ())) dest = "fty-alert-flexible";
