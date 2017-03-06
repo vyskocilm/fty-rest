@@ -25,6 +25,7 @@
 #><%pre>
 #include <exception>
 #include <cxxtools/jsondeserializer.h>
+#include <cxxtools/regex.h>
 #include <vector>
 #include <string>
 #include <malamute.h>
@@ -106,10 +107,16 @@ if (request.getMethod () == "PUT") {
     zmsg_addstr (send_msg, checked_name.c_str ());
 }
 
+// is it flexible
+cxxtools::Regex reg("^[[:blank:]]*\\{[[:blank:]]*\"flexible\"", REG_EXTENDED);
+
+const char *dest = BIOS_AGENT_NAME_ALERT_AGENT;
+if (reg.match (request.getBody ())) dest = "fty-alert-flexible";
+
 // send it
-if (mlm_client_sendto (client, BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
+if (mlm_client_sendto (client, dest, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
     log_debug ("mlm_client_sendto (address = '%s', subject = '%s', tracker = NULL, timeout = '%d') failed.",
-        BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", 1000);
+        dest, "rfc-evaluator-rules", 1000);
     zmsg_destroy (&send_msg);
     mlm_client_destroy (&client);
     http_die ("internal-error", "mlm_client_sendto() failed.");
@@ -149,7 +156,7 @@ while (true) {
         mlm_client_destroy (&client);
         http_die ("internal-error", "mlm_client_recv() failed.");
     }
-    if (streq (mlm_client_sender (client), BIOS_AGENT_NAME_ALERT_AGENT))
+    if (streq (mlm_client_sender (client), dest))
         break;
     zmsg_destroy (&recv_msg);
 }
