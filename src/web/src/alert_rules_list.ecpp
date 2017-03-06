@@ -56,9 +56,9 @@ UserInfo user;
         if (type.empty ()) {
             type = "all";
         }
-        if (type != "threshold" && type != "single" && type != "pattern" && type != "all") { // unknown parameter 'type'
+        if (type != "threshold" && type != "single" && type != "pattern" && type != "all" && type != "flexible") { // unknown parameter 'type'
             http_die ("request-param-bad", "type", std::string ("'").append (type).append ("'").c_str (),
-                    "one of the following values ['threshold', 'single', 'pattern', 'all']");
+                    "one of the following values ['threshold', 'single', 'pattern', 'all', 'flexible']");
         }
         checked_type = type;
 
@@ -100,7 +100,7 @@ zmsg_addstr (send_msg, checked_type.c_str ());
 zmsg_addstr (send_msg, checked_rule_class.c_str ());
 
 // send it
-if (mlm_client_sendto (client, BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
+  if (mlm_client_sendto (client, (type == "flexible") ? "fty-alert-flexible" : BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", NULL, 1000, &send_msg) != 0) {
     log_debug ("mlm_client_sendto (address = '%s', subject = '%s', tracker = NULL, timeout = '%d') failed.",
         BIOS_AGENT_NAME_ALERT_AGENT, "rfc-evaluator-rules", 1000);
     zmsg_destroy (&send_msg);
