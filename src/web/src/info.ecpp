@@ -62,10 +62,10 @@ get_rc_info (std::string &output)
         return -2;
     }
 
-    zmsg_t *resp = client->recv (zuuid_str_canonical (uuid), 30);    
+    zmsg_t *resp = client->recv (zuuid_str_canonical (uuid), 5);    
     if (!resp)
     {
-        log_critical ("sysinfo: client->recv (timeout = '30') returned NULL");
+        log_critical ("sysinfo: client->recv (timeout = '5') returned NULL");
         return -3;
     }
         
