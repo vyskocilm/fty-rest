@@ -976,7 +976,10 @@ RULE_TEMPLATES = \
 	                       src/agents/autoconfig/rule_templates/voltage.input_1phase@__device_epdu__.rule \
 	                       src/agents/autoconfig/rule_templates/voltage.input_1phase@__device_ups__.rule \
 	                       src/agents/autoconfig/rule_templates/voltage.input_3phase@__device_epdu__.rule \
-	                       src/agents/autoconfig/rule_templates/voltage.input_3phase@__device_ups__.rule
+	                       src/agents/autoconfig/rule_templates/voltage.input_3phase@__device_ups__.rule \
+	                       src/agents/autoconfig/rule_templates/sts-frequency@__device_sts__.rule \
+	                       src/agents/autoconfig/rule_templates/sts-preferred-source@__device_sts__.rule \
+	                       src/agents/autoconfig/rule_templates/sts-voltage@__device_sts__.rule
 
 template_rule_DATA =   $(RULE_TEMPLATES)
 EXTRA_DIST +=          $(RULE_TEMPLATES)
