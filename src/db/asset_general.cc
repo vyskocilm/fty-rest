@@ -176,8 +176,7 @@ int
         return 5;
     }
 
-    // u links, neni definovan dest, prortoze to jeste neni znamo, tak musime
-    // uvnitr funkce to opravit
+    // links don't have 'dest' defined - it was not known until now; we have to fix it
     for ( auto &one_link: links )
     {
         one_link.dest = element_id;
@@ -235,25 +234,34 @@ db_reply_t
         return reply_insert1;
     }
     auto element_id = reply_insert1.rowid;
-    std::string err = "";
+    
+    //generate unique name
+    std::string name (element_name + std::to_string (element_id));
     if ( extattributes != NULL )
-    {
-        int reply_insert2 = insert_into_asset_ext_attributes
-            (conn, element_id, extattributes, false, err);
-        if ( reply_insert2 != 0 )
-        {
-            trans.rollback();
-            log_error ("end: device was not inserted (fail in ext_attributes)");
-            db_reply_t ret;
-            ret.status     = 0;
-            ret.errtype    = DB_ERR;
-            ret.errsubtype = DB_ERROR_BADINPUT;
-            // too complicated, to transform from one format to onother
-            ret.rowid      = -reply_insert2;
-            ret.msg        = err;
-            return ret;
-        }
+        zhash_insert (extattributes, "name", (void *) name.c_str ());
+    else {
+        extattributes = zhash_new ();
+        zhash_insert (extattributes, "name", (void *) name.c_str ());
     }
+
+    std::string err = "";
+
+    int reply_insert2 = insert_into_asset_ext_attributes
+        (conn, element_id, extattributes, false, err);
+    if ( reply_insert2 != 0 )
+    {
+        trans.rollback();
+        log_error ("end: device was not inserted (fail in ext_attributes)");
+        db_reply_t ret;
+        ret.status     = 0;
+        ret.errtype    = DB_ERR;
+        ret.errsubtype = DB_ERROR_BADINPUT;
+        // too complicated, to transform from one format to onother
+        ret.rowid      = -reply_insert2;
+        ret.msg        = err;
+        return ret;
+    }
+
     auto reply_insert3 = insert_element_into_groups (conn, groups, element_id);
     if ( ( reply_insert3.status == 0 ) && ( reply_insert3.affected_rows != groups.size() ) )
     {
@@ -288,7 +296,7 @@ db_reply_t
     return reply_insert1;
 }
 
-// because of transactions, previos function is not used here!
+// because of transactions, previous function is not used here!
 db_reply_t
     insert_device
        (tntdb::Connection &conn,
@@ -319,23 +327,30 @@ db_reply_t
     }
     auto element_id = reply_insert1.rowid;
     std::string err = "";
+   
+    //generate unique name
+    std::string name (element_name + std::to_string (element_id));
     if ( extattributes != NULL )
+        zhash_insert (extattributes, "name", (void *) name.c_str ());
+    else {
+        extattributes = zhash_new ();
+        zhash_insert (extattributes, "name", (void *) name.c_str ());
+    }
+   
+    int reply_insert2 = insert_into_asset_ext_attributes
+        (conn, element_id, extattributes, false, err);
+    if ( reply_insert2 != 0 )
     {
-        int reply_insert2 = insert_into_asset_ext_attributes
-            (conn, element_id, extattributes, false, err);
-        if ( reply_insert2 != 0 )
-        {
-            trans.rollback();
-            log_error ("end: device was not inserted (fail in ext_attributes)");
-            db_reply_t ret;
-            ret.status     = 0;
-            ret.errtype    = DB_ERR;
-            ret.errsubtype = DB_ERROR_BADINPUT;
-            // too complicated, to transform from one format to onother
-            ret.rowid      = -reply_insert2;
-            ret.msg        = err;
-            return ret;
-        }
+        trans.rollback();
+        log_error ("end: device was not inserted (fail in ext_attributes)");
+        db_reply_t ret;
+        ret.status     = 0;
+        ret.errtype    = DB_ERR;
+        ret.errsubtype = DB_ERROR_BADINPUT;
+        // too complicated, to transform from one format to onother
+        ret.rowid      = -reply_insert2;
+        ret.msg        = err;
+        return ret;
     }
 
     auto reply_insert3 = insert_element_into_groups (conn, groups, element_id);
@@ -346,8 +361,7 @@ db_reply_t
         return reply_insert3;
     }
 
-    // u links, neni definovan dest, prortoze to jeste neni znamo, tak musime
-    // uvnitr funkce to opravit
+    // links don't have 'dest' defined - it was not known until now; we have to fix it
     for ( auto &one_link: links )
     {
         one_link.dest = element_id;
