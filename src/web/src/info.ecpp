@@ -43,29 +43,29 @@ int
 get_rc_info (std::string &output)
 {
     output.clear();
-    
+     
     // connect to mlm client
     MlmClientPool::Ptr client = mlm_pool.get ();
     if (!client.getPointer ())
     {
-        log_critical ("sysinfo: mlm_pool.get () failed.");
+        log_critical ("info: mlm_pool.get () failed.");
         return -1;
     }
-            
+
     zuuid_t *uuid = zuuid_new ();
     zmsg_t *send = req_info (uuid);
     int rv = client->sendto ("fty-info", "info", 1000, &send);  
 
     if (rv == -1)
     {
-        log_critical ("sysinfo: client->sendto (address = '%s') failed.", "fty-info");
+        log_critical ("info: client->sendto (address = '%s') failed.", "fty-info");
         return -2;
     }
-
+        
     zmsg_t *resp = client->recv (zuuid_str_canonical (uuid), 5);    
     if (!resp)
     {
-        log_critical ("sysinfo: client->recv (timeout = '5') returned NULL");
+        log_critical ("info: client->recv (timeout = '5') returned NULL");
         return -3;
     }
         
@@ -96,7 +96,6 @@ get_rc_info (std::string &output)
     output += utils::json::jsonify("rest_api_port", rest_port);       
     output += "\n}";        
 
-    zuuid_destroy (&uuid);
     zmsg_destroy(&resp);
     return 0;
 }
@@ -121,6 +120,8 @@ UserInfo user;
     if (rv == -2)
         http_die ("internal-error", "client->sendto () failed.");  
     else
+    if (rv == -3)        
         http_die ("internal-error", "client->recv () failed.");
+    else
 </%cpp> 
 <$$ output $>  
