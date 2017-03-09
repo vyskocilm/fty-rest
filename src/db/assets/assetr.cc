@@ -30,12 +30,85 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <tntdb/row.h>
 #include <tntdb/result.h>
 #include <tntdb/error.h>
-
+#include "dbpath.h"
 #include "log.h"
 #include "defs.h"
 
 
 namespace persist{
+
+
+std::pair <std::string, std::string>
+id_to_name_ext_name (uint32_t asset_id)
+{
+    try
+    {
+        std::string name = NULL;
+        std::string ext_name = NULL;
+        
+        tntdb::Connection conn = tntdb::connectCached(url);
+        tntdb::Statement st = conn.prepareCached(
+        " SELECT name"
+        " FROM"
+        "   t_bios_asset_element"
+        " WHERE id_asset_element = :asset_id"
+        );
+        
+        tntdb::Row row = st.set("asset_id", asset_id).selectRow();
+        log_debug("[t_bios_asset_element]: were selected %" PRIu32 " rows", 1);
+
+        row [0].get (name);
+        
+        st = conn.prepareCached(
+        " SELECT value"
+        " FROM"
+        "   t_bios_asset_ext_attributes"
+        " WHERE id_asset_element = :asset_id"
+        );
+
+        row = st.set("asset_id", asset_id).selectRow();
+        log_debug("[t_bios_asset_ext_attributes]: were selected %" PRIu32 " rows", 1);
+
+        row [0].get (ext_name);
+                
+        return make_pair (name, ext_name);
+    }
+    catch (const std::exception &e)
+    {
+        log_error ("exception caught %s", e.what ());
+    }    
+}
+
+uint32_t
+name_to_asset_id (std::string asset_name)
+{
+    try
+    {
+        uint32_t id = 0;
+        
+        tntdb::Connection conn = tntdb::connectCached(url);
+        tntdb::Statement st = conn.prepareCached(
+        " SELECT id_asset_element"
+        " FROM"
+        "   t_bios_asset_element"
+        " WHERE name = :asset_name"
+        );
+
+        tntdb::Row row = st.set("asset_name", asset_name).selectRow();
+        log_debug("[t_bios_asset_element]: were selected %" PRIu32 " rows", 1);
+
+        row [0].get(id);
+        return id;
+    }
+    catch (const std::exception &e)
+    {
+        log_error ("exception caught %s", e.what ());
+        return -1;
+    }    
+}
+
+
+
 
 db_reply <db_web_basic_element_t>
     select_asset_element_web_byId
@@ -64,7 +137,7 @@ db_reply <db_web_basic_element_t>
 
         tntdb::Row row = st.set("id", element_id).
                             selectRow();
-        log_debug("[v_web_element]: were selected %" PRIu32 " rows", 1);
+        log_debug ("[v_web_element]: were selected %" PRIu32 " rows", 1);
 
         row[0].get(ret.item.id);
         row[1].get(ret.item.name);

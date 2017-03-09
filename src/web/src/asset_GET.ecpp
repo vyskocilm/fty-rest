@@ -35,6 +35,7 @@
 
 #include "data.h"
 #include "asset_types.h"
+#include "assets.h"        
 #include "defs.h"
 #include "utils_web.h"
 #include "asset_computed_impl.h"
@@ -152,7 +153,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    uint32_t checked_id = 0;
+    std::string checked_name = NULL;                       
     std::string checked_type;
 
     // ##################################################
@@ -162,13 +163,13 @@ UserInfo user;
         // dirty parameters
         // Arguments parsed from URL: -> request.getArg("agrgumentName")
         // Real parameters  in URL (after '?': -> qparam.param("parameterName")
-        std::string id = request.getArg("id");
+        std::string name = request.getArg("name");
         std::string type = request.getArg("type");
-        log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
-                id.c_str (), type.c_str ());
-
+        log_debug ("Request parameters - Initial tainted values received:\n\tname = '%s'\n\ttype = '%s'\n",
+                name.c_str (), type.c_str ());
+        
         http_errors_t errors;
-        if (!check_element_identifier ("id", id, checked_id, errors)) {
+        if (!check_asset_name ("name", name, errors)) {
             http_die_error (errors);
         }
 
@@ -184,17 +185,18 @@ UserInfo user;
     // ##################################################
     // BLOCK 2
     // Receive data and check arguments
-    if ( checked_id == 0 ) {
-        http_die("request-param-required", "id");
+  if ( checked_name.empty() ) {
+        http_die("request-param-required", "name");
     }
-
-    auto tmp = asset_mgr.get_item1 (checked_id);
+  
+    uint32_t asset_id = persist::name_to_asset_id (checked_name);    
+    auto tmp = asset_mgr.get_item1 (asset_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
         {
             case DB_ERROR_NOTFOUND:
-                http_die("element-not-found", std::to_string (checked_id).c_str());
+                http_die("element-not-found", std::to_string (asset_id).c_str());
             case DB_ERROR_BADINPUT:
             case DB_ERROR_INTERNAL:
             default:
@@ -233,12 +235,15 @@ UserInfo user;
     }
     // end connect to malamute
 
+    std::string parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).first;
+    std::string ext_parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).second;
+        
 // Prepare the reply
 </%cpp>
 {
-      "id": "<$$ tmp.item.basic.id $>"
-    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.id $>&sub_type=epdu,pdu,feed,genset,ups,sts"
-    , "name": "<$$ utils::json::escape (tmp.item.basic.name) $>"
+      "name": "<$$ tmp.item.basic.name $>"
+    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.name $>&sub_type=epdu,pdu,feed,genset,ups,sts"
+    , "ext_name": "<$$ utils::json::escape (tmp.item.basic.name) $>"  /// ext_name
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
     , "type": "<$$ tmp.item.basic.type_name $>"
@@ -247,10 +252,10 @@ UserInfo user;
 if ( tmp.item.basic.parent_id != 0 ) {
 </%cpp>
     , "location_uri":"<$$ "/api/v1/asset/" +
-           persist::typeid_to_type(tmp.item.basic.parent_type_id) + "/" +
-           std::to_string (tmp.item.basic.parent_id) $>"
-    , "location_id":"<$$ tmp.item.basic.parent_id $>"
-    , "location":"<$$ utils::json::escape (tmp.item.basic.parent_name) $>"
+           persist::typeid_to_type(tmp.item.basic.parent_type_id) + "/" +      
+           parent_name $>"
+    , "location_name":"<$$ parent_name $>"
+    , "location":"<$$ utils::json::escape (ext_parent_name) $>" // parrent ext.
 <%cpp>
 }
 else {
@@ -337,8 +342,8 @@ else {
 %for (const auto& it: tmp.item.parents) {
 %   char comma = i != tmp.item.parents.size () ? ',' : ' ';
     {
-        "id" : <$$ std::get<0> (it) $>,
-        "name" : "<$$ utils::json::escape (std::get<1> (it)) $>",
+        "name" : <$$ std::get<1> (it) $>,
+        "ext_name" : "<$$ utils::json::escape (std::get<1> (it)) $>",    // tady bude extended
         "type" : "<$$ std::get<2> (it) $>",
         "sub_type" : "<$$ std::get<3> (it) $>"
     }<$$ comma $>

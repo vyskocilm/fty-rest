@@ -76,6 +76,14 @@ struct db_web_element_t{
 
 namespace persist{
 
+// returns asset id from database for given asset name  
+uint32_t
+    name_to_asset_id (std::string asset_name);
+
+// <name, ext_name> 
+std::pair <std::string, std::string>
+    id_to_name_ext_name (uint32_t asset_id);
+    
 db_reply <db_web_basic_element_t>
     select_asset_element_web_byId
         (tntdb::Connection &conn,
