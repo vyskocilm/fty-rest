@@ -59,12 +59,7 @@ install: build
 	# -dev package
 	mkdir -p /usr/src/packages/BUILD/debian/fty-rest-dev/usr/lib
 	mkdir -p /usr/src/packages/BUILD/debian/fty-rest-dev/usr/include
-	mv /usr/src/packages/BUILD/debian/fty-rest/usr/include/bios \
-		/usr/src/packages/BUILD/debian/fty-rest-dev/usr/include/
-	mv /usr/src/packages/BUILD/debian/fty-rest/usr/lib/libbiosapi.so \
-		/usr/src/packages/BUILD/debian/fty-rest-dev/usr/lib/
-	mv /usr/src/packages/BUILD/debian/fty-rest/usr/lib/pkgconfig \
-		/usr/src/packages/BUILD/debian/fty-rest-dev/usr/lib/
+
 	# --- end custom part for installing
 
 # Build architecture-independent files here.
