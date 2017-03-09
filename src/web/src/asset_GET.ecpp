@@ -153,7 +153,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    std::string checked_id = NULL;                       
+    uint32_t checked_id = 0;                       
     std::string checked_type;
 
     // ##################################################
@@ -165,11 +165,11 @@ UserInfo user;
         // Real parameters  in URL (after '?': -> qparam.param("parameterName")
         std::string id  = request.getArg("id");
         std::string type = request.getArg("type");
-        log_debug ("Request parameters - Initial tainted values received:\n\tname = '%s'\n\ttype = '%s'\n",
+        log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
                 id.c_str (), type.c_str ());
         
         http_errors_t errors;
-        if (!check_asset_name ("id", id, errors)) {
+        if (!check_element_identifier ("id", id, checked_id, errors)) {
             http_die_error (errors);
         }
 
@@ -185,18 +185,18 @@ UserInfo user;
     // ##################################################
     // BLOCK 2
     // Receive data and check arguments
-  if ( checked_id.empty() ) {
+  if ( checked_id == 0 ) {
         http_die("request-param-required", "id");
     }
   
-    uint32_t asset_id = persist::name_to_asset_id (checked_id);    
-    auto tmp = asset_mgr.get_item1 (asset_id);
+
+    auto tmp = asset_mgr.get_item1 (checked_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
         {
             case DB_ERROR_NOTFOUND:
-                http_die("element-not-found", checked_id.c_str());
+                http_die("element-not-found", checked_id);
             case DB_ERROR_BADINPUT:
             case DB_ERROR_INTERNAL:
             default:
@@ -243,7 +243,7 @@ UserInfo user;
 </%cpp>
 {
       "id": "<$$ tmp.item.basic.name $>"
-    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.name $>&sub_type=epdu,pdu,feed,genset,ups,sts"
+    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.id $>&sub_type=epdu,pdu,feed,genset,ups,sts"
     , "name": "<$$ utils::json::escape (asset_ext_name) $>"  
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
