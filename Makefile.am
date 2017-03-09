@@ -236,65 +236,6 @@ endef
 	 $(call process-in-file,$<,$@) ; \
 	 for F in $(GENERATEDSCRIPTS) ; do case "$@" in "$$F"|*/"$$F") echo "  CHMOD+X  $@"; chmod +x "$@" || exit $? ;; esac ; done ; true
 
-# Note the public API binary library files are installed to the system
-# common $(libdir), not private $(pkglibdir) like e.g. REST API module
-lib_LTLIBRARIES +=		libbiosapi.la
-
-libbiosapi_la_HEADERS_noinst = \
-				$(top_srcdir)/include/app.h \
-				$(top_srcdir)/include/bios_agent.h \
-				$(top_srcdir)/include/bios_export.h \
-				$(top_srcdir)/include/agents.h \
-				$(top_srcdir)/include/ymsg.h
-
-# where to install the headers on the system
-libbiosapi_ladir =		$(includedir)/@PACKAGE@
-
-libbiosapi_la_SOURCES = \
-				src/api/app.c \
-				src/api/bios_agent.c \
-				src/api/agents.c \
-				src/api/ymsg.c \
-				src/include/defs.h \
-				$(libbiosapi_la_HEADERS_noinst)
-
-libbiosapi_la_LIBADD = \
-				libpriv-utils-ymsg.la
-
-libbiosapi_la_CPPFLAGS = \
-		$(AM_CPPFLAGS) -DBUILDING_LIBBIOSAPI=1
-
-libbiosapi_la_LDFLAGS = \
-		$(AM_LDFLAGS) \
-		-fPIC -shared \
-		${LIBZMQ_LIBS} ${LIBCZMQ_LIBS} ${LIBMLM_LIBS} \
-		-version-info $(LIBBIOSAPI_CURRENT):$(LIBBIOSAPI_REVISION):$(LIBBIOSAPI_AGE) \
-		$(LDFLAGS_NO_UNDEFS)
-
-if HAVE_LD_VERSION_SCRIPT
-libbiosapi_la_LDFLAGS += \
-		-Wl,--version-script=$(top_srcdir)/src/api/libbiosapi.sym
-else
-libbiosapi_la_LDFLAGS += \
-		-export-symbols $(top_srcdir)/src/api/libbiosapi.sym
-endif
-
-libbiosapi_la_DEPENDENCIES =	$(top_srcdir)/src/api/libbiosapi.sym libpriv-utils-ymsg.la
-EXTRA_DIST +=			src/api/libbiosapi.sym
-
-pkgconfig_DATA +=		src/api/libbiosapi.pc
-EXTRA_DIST +=			src/api/libbiosapi.pc.in  src/api/libbiosapi.pc
-DISTCLEANFILES +=		src/api/libbiosapi.pc
-
-pkginclude_HEADERS += 		$(libbiosapi_la_HEADERS_noinst)
-dist_noinst_HEADERS +=		$(libbiosapi_la_HEADERS_noinst)
-
-include/bios_agent++.h: tools/bios_agent++.h.sh tools/bios_agent++.h.in include/bios_agent.h
-	abs_top_srcdir=$(abs_top_srcdir) abs_top_builddir=$(abs_top_builddir) "$<"
-
-BUILT_SOURCES += include/bios_agent++.h
-EXTRA_DIST += tools/bios_agent++.h.sh tools/bios_agent++.h.in
-
 #----------------------------------------------------------------------
 # Some of our code is arranged into private libraries used during
 # build, but not published or distributed outside the build-tree.
@@ -324,19 +265,6 @@ libpriv_utils_plusplus_la_SOURCES = \
 				src/shared/utils++.h \
 				src/shared/filesystem.h \
 				src/shared/filesystem.cc
-
-noinst_LTLIBRARIES += 		libpriv-utils-ymsg.la
-
-libpriv_utils_ymsg_la_SOURCES = \
-				src/shared/utils_ymsg.c \
-				src/shared/utils_ymsg.h \
-				src/shared/utils_ymsg++.cc \
-				src/shared/utils_ymsg++.h \
-				src/shared/utils_app.c \
-				src/shared/utils_app.h \
-				src/include/cleanup.h
-
-libpriv_utils_ymsg_la_LIBADD =  libpriv-utils.la
 
 noinst_LTLIBRARIES += 		libpriv-defs.la
 
@@ -410,8 +338,6 @@ libpriv_db_la_SOURCES = \
 			src/persist/monitor.h \
 			src/persist/dbhelpers.cc \
 			src/db/dbhelpers.h \
-			src/persist/ymsg-asset.h \
-			src/persist/ymsg-asset.cc \
 			src/db/agentstate/agentstate.cc \
 			src/db/agentstate/agentstate.h \
 			src/db/agentstate.h \
@@ -430,7 +356,7 @@ libpriv_db_la_CPPFLAGS = $(AM_CPPFLAGS) \
 			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_builddir)/src/persist
 
-libpriv_db_la_LIBADD =	libbiosapi.la \
+libpriv_db_la_LIBADD =	\
 			libpriv-log.la \
 			libpriv-csv.la \
 			libpriv-db-assets.la \
@@ -490,7 +416,7 @@ libpriv_proto_la_SOURCES = \
 			src/msg/common_msg.c \
 			src/msg/common_msg.h
 
-libpriv_proto_la_LIBADD = ${CXXTOOLS_LIBS} libbiosapi.la
+libpriv_proto_la_LIBADD = ${CXXTOOLS_LIBS}
 
 noinst_LTLIBRARIES +=	libpriv-magic.la
 libpriv_magic_la_SOURCES = \
@@ -719,43 +645,6 @@ test_csv_CPPFLAGS =		$(AM_CPPFLAGS) \
 
 test_csv_LDFLAGS =		${CXXTOOLS_LIBS}  -ltntdb
 
-check_PROGRAMS += 	test-agents
-
-test_agents_SOURCES = \
-			tests/api/test-agents.cc
-
-test_agents_LDADD = \
-			libpriv-proto.la \
-			libpriv-test-run.la \
-			libpriv-log.la \
-			libpriv-utils.la \
-			libpriv-defs.la \
-			libpriv-utils-ymsg.la
-
-test_agents_CPPFLAGS = \
-			$(AM_CPPFLAGS) \
-			-I$(abs_top_srcdir)/tests/include/ \
-			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools
-
-test_agents_LDFLAGS = \
-			${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
-
-### The unit-tester for some routines from libbiosapi
-check_PROGRAMS +=		test-libbiosapiut
-test_libbiosapiut_SOURCES =	tests/api/test-libbiosapiut.cc
-test_libbiosapiut_CPPFLAGS = \
-			-I$(abs_top_srcdir)/tests/include \
-			-I$(abs_top_srcdir)/include \
-			-I$(abs_top_srcdir)/src/msg \
-			-I$(abs_top_srcdir)/src/include
-test_libbiosapiut_LDADD =	libpriv-test-run.la libpriv-proto.la -lbiosapi
-test_libbiosapiut_DEPENDENCIES = \
-				libpriv-test-run.la \
-				libpriv-proto.la \
-				libbiosapi.la
-
 #----------------------------------------------------------------------
 #                        CI tests
 #----------------------------------------------------------------------
@@ -784,7 +673,7 @@ test_loadcsv_CPPFLAGS = \
 			-I$(abs_top_srcdir)/tools \
 			-I$(abs_top_builddir)/tools
 
-test_loadcsv_LDFLAGS =	-ltntdb ${CXXTOOLS_LIBS}
+test_loadcsv_LDFLAGS =	-ltntdb ${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 
 
 cibin_programs += 	test-db2
@@ -799,8 +688,7 @@ test_db2_LDADD = \
 			libpriv-db-measurements.la \
 			libpriv-utils.la \
 			libpriv-defs.la \
-			libpriv-test-run.la \
-			libpriv-utils-ymsg.la
+			libpriv-test-run.la
 
 test_db2_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/ \
@@ -953,7 +841,7 @@ bios_csv_LDADD = \
 						 libpriv-utils-plusplus.la \
 						 libpriv-csv.la
 bios_csv_LDFLAGS = \
-						 ${CXXTOOLS_LIBS} -ltntdb
+						 ${CXXTOOLS_LIBS} -ltntdb $(LIBCZMQ_LIBS)
 
 #XXX: $(localstatedir) did not worked
 #FIXME: installing things to /var is not a good idea according FHS or GNU standards
@@ -993,8 +881,6 @@ client_PROGRAMS += warranty-metric
 
 warranty_metric_SOURCES = src/warranty/warranty-metric.cc
 
-warranty_metric_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb -lfty_proto -lmlm
-
 warranty_metric_LDADD = \
 			libpriv-log.la \
 			libpriv-db.la
@@ -1003,6 +889,8 @@ warranty_metric_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tools \
 			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_srcdir)/src/db
+
+warranty_metric_LDFLAGS = ${LIBCZMQ_LIBS} ${LIBMLM_LIBS} -ltntdb ${CXXTOOLS_LIBS} -lfty_proto
 
 ###################################################################
 # Web Library (tntnet dynamic module for $BIOS REST API)
@@ -1085,13 +973,13 @@ bios_web_la_LDFLAGS = 	${LIBCZMQ_LIBS}	${CXXTOOLS_LIBS} \
 			${LIBSODIUM_LIBS} ${LIBSASL2_LIBS} \
 			${LIBBIOSPROTO_LIBS} \
 			$(LDFLAGS_NO_UNDEFS) \
-			-module -lm -ltntdb -ltntnet -lcidr -lmagic -lbiosapi -lfty_proto -lz
+			-module -lm -ltntdb -ltntnet -lcidr -lmagic ${LIBMLM_LIBS} -lfty_proto -lz
 
 bios_web_la_LIBADD = \
 			libpriv-db.la libpriv-cidr.la libpriv-proto.la \
 			libpriv-git-details-override.la \
+			libpriv-utils.la \
 			libpriv-subprocess.la \
-			libpriv-utils-ymsg.la \
 			libpriv-db-measurements.la \
 			libpriv-magic.la \
 			libpriv-configure-inform.la \
@@ -1303,11 +1191,10 @@ MAPPED_TXT_DOCS_ASCIIDOC = \
 # Just in case we don't have all dependencies properly spelled out,
 # try to ensure that certain files are built early in the process
 all-local: $(abs_top_builddir)/src/include/git_details_override.c \
-            libbiosapi.la bios_web.la $(client_PROGRAMS) \
-            sdk
+            bios_web.la $(client_PROGRAMS)
 
 # Try to build everything buildable, e.g. for further warning counters
-all-buildproducts: all-local all sdk-tests web-test-deps \
+all-buildproducts: all-local all  web-test-deps \
             $(check_LTLIBRARIES) $(check_PROGRAMS) $(check_SCRIPTS) \
             $(cibin_programs_list)
 
@@ -1327,7 +1214,7 @@ cibin_programs: $(cibin_programs_list)
 # Run compile/link tests defined in this Makefile
 # Note that check-gitignore should be the last target
 # FIXME: "check-pool" temporarily not included into "check-local", see below
-check-local: web-link-test check-sdk \
+check-local: web-link-test \
         check-gitignore run-test-subprocess
 
 # If git repo details are not available, or git program does not exist,
@@ -1344,19 +1231,6 @@ check-gitignore: all-buildproducts
 	    fi ; \
 	    echo "SKIP: $@ (no git)"; exit 0 ; \
 	  fi )
-
-#----------------------------------------------------------------------
-#                        SDK - currently it is the public API library
-#----------------------------------------------------------------------
-
-sdk: libbiosapi.la
-
-sdk-link-test: sdk test-libbiosapiut
-
-sdk-tests: sdk sdk-link-test
-
-check-sdk: sdk sdk-tests
-	cd $(abs_top_builddir) && ./test-libbiosapiut
 
 run-test-subprocess: test-subprocess
 	cd $(abs_top_builddir) && ./test-subprocess

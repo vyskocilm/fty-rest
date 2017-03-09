@@ -33,8 +33,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <stdint.h>
 #include <errno.h>
 
-#include "agents.h" //definitions of common data types
-
 // Macros
 #define STR(X) #X
 

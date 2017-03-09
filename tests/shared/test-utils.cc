@@ -25,13 +25,14 @@
  * \author Alena Chernikava <AlenaChernikava@Eaton.com>
  * \brief Not yet documented file
  */
+#include <czmq.h>
 #include <catch.hpp>
 
 #include "defs.h"
 #include "utils.h"
 #include "filesystem.h"
 
-TEST_CASE("str_eq","[utils][streq]"){
+TEST_CASE("str_eq","[utils][str_eq]"){
     CHECK(str_eq(NULL, NULL));
     CHECK_FALSE(str_eq("a", NULL));
     CHECK_FALSE(str_eq(NULL, "b"));
@@ -263,61 +264,61 @@ TEST_CASE("sanitize_date", "[utils][sanitize_date]") {
     // ISO date
     r = sanitize_date ("2010-02-15");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // ISO date w/0 zeros
     r = sanitize_date ("2010-2-15");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // Excell date
     r = sanitize_date ("15-Feb-10");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // European date
     r = sanitize_date ("15.02.2010");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // ISO date
     r = sanitize_date ("2010-2-2");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-02"));
+    CHECK (str_eq (r, "2010-02-02"));
     zstr_free (&r);
 
     // European date
     r = sanitize_date ("15 02 2010");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // European date
     r = sanitize_date ("15 2 2010");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // US date
     r = sanitize_date ("02/15/2010");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // US date
     r = sanitize_date ("2/15/2010");
     CHECK (r != NULL);
-    CHECK (streq (r, "2010-02-15"));
+    CHECK (str_eq (r, "2010-02-15"));
     zstr_free (&r);
 
     // Date provided by Yves
     r = sanitize_date ("20-09-2016");
     CHECK (r != NULL);
-    CHECK (streq (r, "2016-09-20"));
+    CHECK (str_eq (r, "2016-09-20"));
 
     //reject date where we can't disntiguish order
     r = sanitize_date ("20-09-16");
