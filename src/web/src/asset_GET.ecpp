@@ -153,7 +153,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    std::string checked_name = NULL;                       
+    std::string checked_id = NULL;                       
     std::string checked_type;
 
     // ##################################################
@@ -163,13 +163,13 @@ UserInfo user;
         // dirty parameters
         // Arguments parsed from URL: -> request.getArg("agrgumentName")
         // Real parameters  in URL (after '?': -> qparam.param("parameterName")
-        std::string name = request.getArg("name");
+        std::string id  = request.getArg("id");
         std::string type = request.getArg("type");
         log_debug ("Request parameters - Initial tainted values received:\n\tname = '%s'\n\ttype = '%s'\n",
-                name.c_str (), type.c_str ());
+                id.c_str (), type.c_str ());
         
         http_errors_t errors;
-        if (!check_asset_name ("name", name, errors)) {
+        if (!check_asset_name ("id", id, errors)) {
             http_die_error (errors);
         }
 
@@ -185,18 +185,18 @@ UserInfo user;
     // ##################################################
     // BLOCK 2
     // Receive data and check arguments
-  if ( checked_name.empty() ) {
-        http_die("request-param-required", "name");
+  if ( checked_id.empty() ) {
+        http_die("request-param-required", "id");
     }
   
-    uint32_t asset_id = persist::name_to_asset_id (checked_name);    
+    uint32_t asset_id = persist::name_to_asset_id (checked_id);    
     auto tmp = asset_mgr.get_item1 (asset_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
         {
             case DB_ERROR_NOTFOUND:
-                http_die("element-not-found", std::to_string (asset_id).c_str());
+                http_die("element-not-found", checked_id.c_str());
             case DB_ERROR_BADINPUT:
             case DB_ERROR_INTERNAL:
             default:
@@ -237,13 +237,14 @@ UserInfo user;
 
     std::string parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).first;
     std::string ext_parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).second;
-        
+    std::string asset_ext_name = persist::id_to_name_ext_name (tmp.item.basic.id).second;
+  
 // Prepare the reply
 </%cpp>
 {
-      "name": "<$$ tmp.item.basic.name $>"
+      "id": "<$$ tmp.item.basic.name $>"
     , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.name $>&sub_type=epdu,pdu,feed,genset,ups,sts"
-    , "ext_name": "<$$ utils::json::escape (tmp.item.basic.name) $>"  /// ext_name
+    , "name": "<$$ utils::json::escape (asset_ext_name) $>"  
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
     , "type": "<$$ tmp.item.basic.type_name $>"
@@ -254,8 +255,8 @@ if ( tmp.item.basic.parent_id != 0 ) {
     , "location_uri":"<$$ "/api/v1/asset/" +
            persist::typeid_to_type(tmp.item.basic.parent_type_id) + "/" +      
            parent_name $>"
-    , "location_name":"<$$ parent_name $>"
-    , "location":"<$$ utils::json::escape (ext_parent_name) $>" // parrent ext.
+    , "location_id":"<$$ parent_name $>"
+    , "location":"<$$ utils::json::escape (ext_parent_name) $>" 
 <%cpp>
 }
 else {
@@ -271,12 +272,14 @@ if ( !tmp.item.groups.empty() )
 {
     uint32_t group_count = tmp.item.groups.size();
     uint32_t i = 1;
+    std::string ext_name = NULL;
     for ( auto &oneGroup : tmp.item.groups )
     {
+        ext_name = persist::id_to_name_ext_name (oneGroup.first).second;
 </%cpp>
 {
-    "id"  : "<$$ oneGroup.first $>",
-    "name": "<$$ oneGroup.second $>"
+    "id"  : "<$$ oneGroup.second $>",
+    "name": "<$$ ext_name $>"
 } <? i != group_count ? "," ?>
 <%cpp>
         i++;
@@ -339,11 +342,13 @@ else {
 , "sub_type": "<$$ tmp.item.basic.subtype_name $>"
 , "parents" : [
 %size_t i = 1;
+%std::string ext_name = NULL;  
 %for (const auto& it: tmp.item.parents) {
 %   char comma = i != tmp.item.parents.size () ? ',' : ' ';
+%   ext_name = persist::id_to_name_ext_name (std::get<0> (it)).second   ;
     {
-        "name" : <$$ std::get<1> (it) $>,
-        "ext_name" : "<$$ utils::json::escape (std::get<1> (it)) $>",    // tady bude extended
+        "id" : <$$ std::get<1> (it) $>,
+        "name" : "<$$ utils::json::escape (ext_name) $>",   
         "type" : "<$$ std::get<2> (it) $>",
         "sub_type" : "<$$ std::get<3> (it) $>"
     }<$$ comma $>
