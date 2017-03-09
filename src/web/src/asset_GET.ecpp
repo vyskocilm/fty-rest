@@ -189,8 +189,8 @@ UserInfo user;
         http_die("request-param-required", "id");
     }
   
-    uint32_t asset_id = persist::name_to_asset_id (std::to_string (checked_id));    
-    auto tmp = asset_mgr.get_item1 (asset_id);
+
+    auto tmp = asset_mgr.get_item1 (checked_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
