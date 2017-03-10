@@ -271,7 +271,7 @@ if ( !tmp.item.groups.empty() )
 {
     uint32_t group_count = tmp.item.groups.size();
     uint32_t i = 1;
-    std::string ext_name = NULL;
+    std::string ext_name = "";
     for ( auto &oneGroup : tmp.item.groups )
     {
         ext_name = persist::id_to_name_ext_name (oneGroup.first).second;
@@ -341,7 +341,7 @@ else {
 , "sub_type": "<$$ tmp.item.basic.subtype_name $>"
 , "parents" : [
 %size_t i = 1;
-%std::string ext_name = NULL;  
+%std::string ext_name = "";  
 %for (const auto& it: tmp.item.parents) {
 %   char comma = i != tmp.item.parents.size () ? ',' : ' ';
 %   ext_name = persist::id_to_name_ext_name (std::get<0> (it)).second   ;
