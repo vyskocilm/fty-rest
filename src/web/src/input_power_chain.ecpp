@@ -28,7 +28,8 @@
 #include <utility>
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>
-#include "utils_web.h"        
+#include "utils_web.h"
+#include "assets.h"                
 #include "helpers.h"
 #include "dbpath.h"
 #include "assettopology.h"
@@ -92,13 +93,14 @@ fill_array_devices (const std::map <std::string,
                           std::vector <Array_devices>& devices_vector)
 {
     Array_devices array_devices;
-    for (const auto& device : map_devices)
+    std::map <std::string, std::pair <std::string, std::string>> _map_devices = map_devices;    
+    for (const auto& device : _map_devices)
     {
-        array_devices.id = device.first;
-        array_devices.name = device.second.first;
+        array_devices.id = device.second.first;
+        array_devices.name = persist::id_to_name_ext_name (atoi (device.first.c_str())).second;
         array_devices.sub_type = device.second.second;
         
-        devices_vector.push_back(array_devices);
+        devices_vector.push_back (array_devices);
     }
     
 }
@@ -117,8 +119,9 @@ fill_array_powerchains (std::vector <std::tuple
             
             array_powerchains.src_socket = std::get <3> (chain).c_str();
             array_powerchains.dst_socket = std::get <1> (chain).c_str();
-            array_powerchains.src_id = std::get <2> (chain);
-            array_powerchains.dst_id = std::get <0> (chain);
+            
+            array_powerchains.src_id = std::get <2> (chain).c_str();
+            array_powerchains.dst_id = std::get <0> (chain).c_str ();
             
             powerchains_vector.push_back (array_powerchains);
         }
@@ -144,6 +147,7 @@ fill_array_powerchains (std::vector <std::tuple
   
     // test data for powerchains -- dst-id, dst-socket, src-id, src-socket
     std::vector <std::tuple <std::string, std::string, std::string, std::string>> powerchains_data;
+   //  device_id -- <device name, device subtype>
     std::map <std::string, std::pair <std::string, std::string>> devices_data;
 
     // id of datacenter retrieved from url
@@ -154,7 +158,12 @@ fill_array_powerchains (std::vector <std::tuple
         http_die ("request-param-bad", dc_id.c_str ());
 
     int rv = -1;
-    rv = input_power_group_response (url, atoi (dc_id.c_str ()), devices_data, powerchains_data);
+    int64_t num_dc_id = persist::name_to_asset_id (dc_id);
+  
+    if ( num_dc_id == -1 )
+        http_die ("not-found", "dc_id ", dc_id.c_str ());
+  
+    rv = input_power_group_response (url, num_dc_id, devices_data, powerchains_data);
   
     if (rv == -1)    
     {    
