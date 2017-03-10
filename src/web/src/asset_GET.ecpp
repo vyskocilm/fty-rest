@@ -189,7 +189,6 @@ UserInfo user;
         http_die("request-param-required", "id");
     }
   
-
     auto tmp = asset_mgr.get_item1 (checked_id);
     if ( tmp.status == 0 )
     {
@@ -347,7 +346,7 @@ else {
 %   char comma = i != tmp.item.parents.size () ? ',' : ' ';
 %   ext_name = persist::id_to_name_ext_name (std::get<0> (it)).second   ;
     {
-        "id" : <$$ std::get<1> (it) $>,
+        "id" : "<$$ std::get<1> (it) $>",
         "name" : "<$$ utils::json::escape (ext_name) $>",   
         "type" : "<$$ std::get<2> (it) $>",
         "sub_type" : "<$$ std::get<3> (it) $>"
