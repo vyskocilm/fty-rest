@@ -168,7 +168,6 @@ UserInfo user;
         log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
                 id.c_str (), type.c_str ());
         
-        http_errors_t errors;
         if (!is_ok_name (id.c_str())) {
             http_die ("request-param-bad", "asset id", id.c_str ());
         }
