@@ -77,17 +77,16 @@ id_to_name_ext_name (uint32_t asset_id)
         log_error ("exception caught %s", e.what ());
         name = "";
         ext_name = "";
-            
     }    
     return make_pair (name, ext_name);
 }
 
-uint32_t
+int64_t
 name_to_asset_id (std::string asset_name)
 {
     try
     {
-        uint32_t id = 0;
+        int64_t id = 0;
         
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(

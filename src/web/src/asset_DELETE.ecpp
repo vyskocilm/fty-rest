@@ -43,7 +43,7 @@ UserInfo user;
             {BiosProfile::Admin,     "D"}
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
-    a_elmnt_id_t checked_id = 0;
+    std::string checked_id = 0;
 
     // sanity check
     {
@@ -52,21 +52,27 @@ UserInfo user;
             http_die("request-param-required", "id");
         }
 
-        http_errors_t errors;
-        if ( !check_element_identifier ("id", id, checked_id, errors) ) {
-            http_die_error (errors);
+        if ( !is_ok_name (id.c_str ()) ) {
+            http_die ("request-param-bad", id.c_str ());
         }
+        checked_id = id;
     }
     // end sanity checks
 
+    // get id by name
+    int64_t dbid = persist::name_to_asset_id (checked_id);
+    if (dbid == -1) {
+        http_die ("not-found", checked_id.c_str ());
+    }
+    // delete it
     db_a_elmnt_t row;
-    auto ret = asset_mgr.delete_item (checked_id, row);
+    auto ret = asset_mgr.delete_item (dbid, row);
     if ( ret.status == 0 ) {
         if ( ret.errsubtype == DB_ERROR_NOTFOUND ) {
-            http_die("element-not-found", std::to_string (checked_id).c_str());
+            http_die("element-not-found", checked_id.c_str ());
         }
         else {
-            http_die("data-conflict",  std::to_string (checked_id).c_str(), "Asset has elements inside, DELETE them first!");
+            http_die("data-conflict",  checked_id.c_str (), "Asset has elements inside, DELETE them first!");
         }
     }
     // here we are -> delete was successful
