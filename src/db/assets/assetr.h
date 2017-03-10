@@ -76,8 +76,9 @@ struct db_web_element_t{
 
 namespace persist{
 
-// returns asset id from database for given asset name  
-uint32_t
+// returns asset id from database for given asset name
+// In case of an error it returns -1
+int64_t
     name_to_asset_id (std::string asset_name);
 
 // <name, ext_name> 
