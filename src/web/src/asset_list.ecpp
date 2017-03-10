@@ -29,6 +29,7 @@
 #include "log.h"
 #include "assetcrud.h"
 #include "helpers.h"
+#include "assets.h"                        
 </%pre>
 <%thread scope="global">
 asset_manager asset_mgr;
@@ -72,6 +73,8 @@ UserInfo user;
     }
     std::string json = "{\"" + checked_type;
     json +=  "s\":[ "; // attention. This space need to be there! for empty list!
+
+    std::string ext_name;
     for ( const auto &asset_subtype: checked_subtypes )
     {
         // Get data
@@ -81,10 +84,11 @@ UserInfo user;
         }
 
         for ( auto &oneAsset : allAssetsShort.item ) {
+            ext_name = persist::id_to_name_ext_name (oneAsset.first).second;
             json += "{";
-            json += utils::json::jsonify ("id", std::to_string(oneAsset.first));
+            json += utils::json::jsonify ("id", oneAsset.second);
             json += ",";
-            json +=  utils::json::jsonify ("name", oneAsset.second);
+            json +=  utils::json::jsonify ("name", ext_name);
             json += "},";
         }
     }
