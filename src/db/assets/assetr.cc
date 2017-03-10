@@ -41,10 +41,10 @@ namespace persist{
 std::pair <std::string, std::string>
 id_to_name_ext_name (uint32_t asset_id)
 {
+    std::string name;
+    std::string ext_name;
     try
     {
-        std::string name = NULL;
-        std::string ext_name = NULL;
         
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
@@ -71,12 +71,15 @@ id_to_name_ext_name (uint32_t asset_id)
 
         row [0].get (ext_name);
                 
-        return make_pair (name, ext_name);
     }
     catch (const std::exception &e)
     {
         log_error ("exception caught %s", e.what ());
+        name = "";
+        ext_name = "";
+            
     }    
+    return make_pair (name, ext_name);
 }
 
 uint32_t
