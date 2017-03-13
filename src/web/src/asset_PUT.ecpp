@@ -31,6 +31,7 @@
 #include "inout.h"
 #include "helpers.h"
 #include "log.h"
+#include "assets.h"
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -43,13 +44,10 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
     std::string id = request.getArg("id");
-    // convert id from string to number
-    http_errors_t errors;
-    a_elmnt_id_t asset_id = 0;
 
-    if (!check_element_identifier ("id", id, asset_id, errors)) {
-        http_die_error (errors);
-    }
+    if (id.empty () || !is_ok_name (id.c_str ()))
+        http_die ("request-param-bad", id.c_str ());    
+    
     // Read json, transform to csv, use existing functionality
     cxxtools::SerializationInfo si;
     // read json a deserialize it
