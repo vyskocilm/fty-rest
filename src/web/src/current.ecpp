@@ -145,7 +145,7 @@ UserInfo user;
 
 
 // checked parameters
-std::vector<a_elmnt_id_t> asset_ids;
+std::vector<uint32_t> asset_ids;
 
 {
 
@@ -162,7 +162,7 @@ std::vector<a_elmnt_id_t> asset_ids;
 
     for ( auto asset_id : foo ) {
         http_errors_t errors;
-        a_elmnt_id_t id = 0;
+        uint32_t id = 0;
 
         if (!check_element_identifier ("dev", asset_id, id, errors)) {
             http_die_error (errors);
@@ -302,9 +302,9 @@ std::vector<a_elmnt_id_t> asset_ids;
         // we are here -> everything is ok, need just to form
         // this is a small JSON for just ONE asset
         std::string json = "{";
-        json += utils::json::jsonify ("id", asset_id);
+        json += utils::json::jsonify ("id", asset.item.name);
         json += ",";
-        json += utils::json::jsonify ("name", asset.item.name);
+        json += utils::json::jsonify ("name", persist::id_to_name_ext_name (asset_id).second);
         json += ",";
         std::map <std::string, OutletProperties> outlet_properties;
 
