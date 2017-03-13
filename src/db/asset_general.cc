@@ -223,12 +223,16 @@ db_reply_t
      const std::string &asset_tag)
 {
     LOG_START;
-    log_debug ("  element_name = '%s'", element_name);
+
+    setlocale (LC_ALL, ""); // move this to main?
+    char *iname = ic_utf8_to_name ((char *) element_name);
+    log_debug ("  element_name = '%s/%s'", element_name, iname);
 
     tntdb::Transaction trans(conn);
     auto reply_insert1 = insert_into_asset_element
-                        (conn, element_name, element_type_id, parent_id,
+                        (conn, iname, element_type_id, parent_id,
                          status, priority, 0, asset_tag.c_str());
+    zstr_free (&iname);
     if ( reply_insert1.status == 0 )
     {
         trans.rollback();
@@ -237,17 +241,6 @@ db_reply_t
     }
     auto element_id = reply_insert1.rowid;
     
-    //generate unique name
-    setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name ((char *) element_name);
-    std::string name (transliterated + std::to_string (element_id));
-    if ( extattributes != NULL )
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    else {
-        extattributes = zhash_new ();
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    }
-
     std::string err = "";
 
     int reply_insert2 = insert_into_asset_ext_attributes
@@ -297,7 +290,6 @@ db_reply_t
 
     trans.commit();
     LOG_END;
-    free (transliterated);
     return reply_insert1;
 }
 
@@ -317,13 +309,17 @@ db_reply_t
         const std::string &asset_tag)
 {
     LOG_START;
-    log_debug ("  element_name = '%s'", element_name);
 
+    setlocale (LC_ALL, ""); // move this to main?
+    char *iname = ic_utf8_to_name ((char *)element_name);
+    log_debug ("  element_name = '%s/%s'", element_name, iname);
+    
     tntdb::Transaction trans(conn);
 
     auto reply_insert1 = insert_into_asset_element
-                        (conn, element_name, asset_type::DEVICE, parent_id,
+                        (conn, iname, asset_type::DEVICE, parent_id,
                         status, priority, asset_device_type_id, asset_tag.c_str());
+    zstr_free (&iname);
     if ( reply_insert1.status == 0 )
     {
         trans.rollback();
@@ -332,17 +328,6 @@ db_reply_t
     }
     auto element_id = reply_insert1.rowid;
     std::string err = "";
-   
-    //generate unique name
-    setlocale (LC_ALL, ""); //use the system locales
-    char *transliterated = ic_utf8_to_name (strdup (element_name));
-    std::string name(transliterated  + std::to_string (element_id));
-    if ( extattributes != NULL )
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    else {
-        extattributes = zhash_new ();
-        zhash_insert (extattributes, "name", (void *) name.c_str ());
-    }
    
     int reply_insert2 = insert_into_asset_ext_attributes
         (conn, element_id, extattributes, false, err);
@@ -418,7 +403,6 @@ db_reply_t
     }
     trans.commit();
     LOG_END;
-    free (transliterated);
     return reply_insert1;
 }
 //=============================================================================
