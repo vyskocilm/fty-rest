@@ -153,7 +153,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    uint32_t checked_id = 0;                       
+    std::string checked_id;                       
     std::string checked_type;
 
     // ##################################################
@@ -168,9 +168,11 @@ UserInfo user;
         log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
                 id.c_str (), type.c_str ());
         
-        http_errors_t errors;
-        if (!check_element_identifier ("id", id, checked_id, errors)) {
-            http_die_error (errors);
+        if (!is_ok_name (id.c_str())) {
+            http_die ("request-param-bad", "asset id", id.c_str ());
+        }
+        else {
+            checked_id = id;
         }
 
         if ( !type.empty() && !persist::type_to_typeid (type) ) {
@@ -185,18 +187,21 @@ UserInfo user;
     // ##################################################
     // BLOCK 2
     // Receive data and check arguments
-  if ( checked_id == 0 ) {
+  if ( checked_id.empty() ) {
         http_die("request-param-required", "id");
     }
-  
 
-    auto tmp = asset_mgr.get_item1 (checked_id);
+    int64_t num_id = persist::name_to_asset_id (checked_id);
+    if ( num_id == -1 )
+        http_die ("not-found", "asset id", checked_id.c_str ());
+  
+    auto tmp = asset_mgr.get_item1 (num_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
         {
             case DB_ERROR_NOTFOUND:
-                http_die("element-not-found", checked_id);
+                http_die("element-not-found", checked_id.c_str ());
             case DB_ERROR_BADINPUT:
             case DB_ERROR_INTERNAL:
             default:
@@ -272,7 +277,7 @@ if ( !tmp.item.groups.empty() )
 {
     uint32_t group_count = tmp.item.groups.size();
     uint32_t i = 1;
-    std::string ext_name = NULL;
+    std::string ext_name = "";
     for ( auto &oneGroup : tmp.item.groups )
     {
         ext_name = persist::id_to_name_ext_name (oneGroup.first).second;
@@ -342,12 +347,12 @@ else {
 , "sub_type": "<$$ tmp.item.basic.subtype_name $>"
 , "parents" : [
 %size_t i = 1;
-%std::string ext_name = NULL;  
+%std::string ext_name = "";  
 %for (const auto& it: tmp.item.parents) {
 %   char comma = i != tmp.item.parents.size () ? ',' : ' ';
 %   ext_name = persist::id_to_name_ext_name (std::get<0> (it)).second   ;
     {
-        "id" : <$$ std::get<1> (it) $>,
+        "id" : "<$$ std::get<1> (it) $>",
         "name" : "<$$ utils::json::escape (ext_name) $>",   
         "type" : "<$$ std::get<2> (it) $>",
         "sub_type" : "<$$ std::get<3> (it) $>"

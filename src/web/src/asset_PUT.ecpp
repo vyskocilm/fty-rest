@@ -31,6 +31,7 @@
 #include "inout.h"
 #include "helpers.h"
 #include "log.h"
+#include "assets.h"
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -43,13 +44,10 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
     std::string id = request.getArg("id");
-    // convert id from string to number
-    http_errors_t errors;
-    a_elmnt_id_t asset_id = 0;
 
-    if (!check_element_identifier ("id", id, asset_id, errors)) {
-        http_die_error (errors);
-    }
+    if (id.empty () || !is_ok_name (id.c_str ()))
+        http_die ("request-param-bad", id.c_str ());    
+    
     // Read json, transform to csv, use existing functionality
     cxxtools::SerializationInfo si;
     // read json a deserialize it
@@ -57,7 +55,6 @@ UserInfo user;
         std::stringstream input (request.getBody (), std::ios_base::in);
         cxxtools::JsonDeserializer deserializer (input);
         deserializer.deserialize (si);
-
         auto si_id = si.findMember("id");
         if ( si_id == NULL ) {
             si.addMember("id") <<= id;
@@ -122,7 +119,7 @@ UserInfo user;
         // no unexpected errors was detected
         // process results
 </%cpp>
-{<$$ utils::json::jsonify ("id", std::to_string(row.first.id)) $>}
+{<$$ utils::json::jsonify ("id", persist::id_to_name_ext_name (row.first.id).first) $>}
 <%cpp>
         return HTTP_OK;
     }
