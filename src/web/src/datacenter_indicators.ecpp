@@ -271,6 +271,7 @@ UserInfo user;
         http_die ("internal-error", "Error while retrieving information about datacenters.");
     }
     std::vector<std::string> DCNames;
+    std::vector<uint32_t> DCIDs;
     for (auto const& item : DCs) {
         http_errors_t errors;
         uint32_t real_id = 0;
@@ -283,6 +284,7 @@ UserInfo user;
         if (it == allDcsShort.item.end()) {
             http_die ("element-not-found", item.c_str ());
         }
+	DCIDs.push_back (real_id);
         DCNames.push_back (it->second);
     }
 
@@ -409,10 +411,10 @@ UserInfo user;
     for( size_t D = 0 ; D < DCs.size(); D++ ) {
         json += "{";
         json += "\"id\": \"";
-        json += DCs[D];
+        json += DCNames[D];
         json += "\",";
         json += "\"name\": \"";
-        json += DCNames[D];
+        json += persist::id_to_name_ext_name (DCIDs[D]).second;
         json += "\",";
         for ( const auto &row : dataDc.at(DCNames[D]) ) {
             // data contains topics and it aliases, but we need to print only aliases
