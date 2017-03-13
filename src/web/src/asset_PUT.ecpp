@@ -55,7 +55,6 @@ UserInfo user;
         std::stringstream input (request.getBody (), std::ios_base::in);
         cxxtools::JsonDeserializer deserializer (input);
         deserializer.deserialize (si);
-
         auto si_id = si.findMember("id");
         if ( si_id == NULL ) {
             si.addMember("id") <<= id;
@@ -120,7 +119,7 @@ UserInfo user;
         // no unexpected errors was detected
         // process results
 </%cpp>
-{<$$ utils::json::jsonify ("id", std::to_string(row.first.id)) $>}
+{<$$ utils::json::jsonify ("id", persist::id_to_name_ext_name (row.first.id).first) $>}
 <%cpp>
         return HTTP_OK;
     }
