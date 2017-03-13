@@ -141,6 +141,35 @@ sanitize_value_double(
         bios_throw ("request-param-bad", key.c_str(), ("'" + value + "'").c_str(), "value should be a number");
     }
 }
+
+/*
+ * \brief Replace user defined names with internal names
+ */
+std::map <std::string, std::string>sanitize_row_ext_names (
+    const CsvMap &cm,
+    size_t row_i,
+    bool sanitize
+)
+{
+    std::map <std::string, std::string> result;
+    // make copy of this one line
+    for (auto title: cm.getTitles ()) {
+        result[title] = cm.get_strip(row_i, title);
+    }
+    if (sanitize) {
+        // sanitize ext names to t_bios_asset_element.name
+        // FIXME: better walk trough powersources
+        auto sanitizeList = {"location", "power_source.1", "power_source.2" };
+        for (auto item: sanitizeList) {
+            std::string name = extname_to_asset_name (result [item]);
+            if (! name.empty ()) {
+                result [item] = name;
+            }
+        }
+    }
+    return result;
+}
+
 /*
  * \brief Processes a single row from csv file
  *
@@ -159,7 +188,8 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
          size_t row_i,
          const std::map<std::string,int> &TYPES,
          const std::map<std::string,int> &SUBTYPES,
-         std::set<a_elmnt_id_t> &ids
+         std::set<a_elmnt_id_t> &ids,
+         bool sanitize
          )
 {
     LOG_START;
@@ -167,6 +197,9 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     log_debug ("################ Row number is %zu", row_i);
     static const std::set<std::string> STATUSES = \
         {"active", "nonactive", "spare", "retired"};
+
+    // get location, powersource etc as name from ext.name
+    auto sanitizedAssetNames = sanitize_row_ext_names (cm, row_i, sanitize);
 
     // This is used to track, which columns had been already processed,
     // because if they was't processed yet,
@@ -181,10 +214,13 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     auto id_str = unused_columns.count("id") ? cm.get(row_i, "id") : "";
     unused_columns.erase("id");
     persist::asset_operation operation = persist::asset_operation::INSERT;
-    a_elmnt_id_t id = 0;
+    int64_t id = 0;
     if ( !id_str.empty() )
     {
-        id = atoi(id_str.c_str());
+        id = name_to_asset_id (id_str);
+        if (id == -1) {
+            bios_throw("not-found", id_str.c_str ());
+        }
         if ( ids.count(id) == 1 ) {
             std::string msg = "Element id '";
             msg += id_str;
@@ -195,10 +231,11 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         operation = persist::asset_operation::UPDATE;
     }
 
-    auto name = cm.get(row_i, "name");
-    log_debug ("name = '%s'", name.c_str());
-    if ( !is_ok_name(name.c_str()) ) {
-        bios_throw("request-param-bad", "name", name.empty() ? "<empty>" : name.c_str(), "<unique, non empty and not number value>");
+    auto ename = cm.get(row_i, "name");
+    auto iname = extname_to_asset_name (ename);
+    log_debug ("name = '%s/%s'", ename.c_str(), iname.c_str());
+    if (ename.empty ()) {
+        bios_throw("request-param-bad", "name", "<empty>", "<unique, non empty value>");
     }
     unused_columns.erase("name");
 
@@ -229,7 +266,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     log_debug ("priority = %d", priority);
     unused_columns.erase("priority");
 
-    auto location = cm.get(row_i, "location");
+    auto location = sanitizedAssetNames ["location"];
     log_debug ("location = '%s'", location.c_str());
     a_elmnt_id_t parent_id = 0;
     if ( !location.empty() )
@@ -290,8 +327,8 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         }
         else
         {
-            if ( element_in_db.item.name != name ) {
-                bios_throw("bad-request-document", "Renaming of asset is not supported");
+            if ( element_in_db.item.name != iname ) {
+                bios_throw("bad-request-document", "Renaming of internal asset is not supported");
             }
             if ( element_in_db.item.type_id != type_id ) {
                 bios_throw("bad-request-document", "Changing of asset type is forbidden");
@@ -354,7 +391,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
             // remove from unused
             unused_columns.erase(link_col_name);
             // take value
-            link_source = cm.get(row_i, link_col_name);
+            link_source = sanitizedAssetNames [link_col_name];
         }
         catch (const std::out_of_range &e)
         // if column doesn't exist, then break the cycle
@@ -429,6 +466,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     }
     _scoped_zhash_t *extattributes = zhash_new();
     zhash_autofree(extattributes);
+    zhash_insert (extattributes, "name", (void *) ename.c_str ());
     for ( auto &key: unused_columns )
     {
         // try is not needed, because here are keys that are definitely there
@@ -438,7 +476,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         if (is_date (key) && !value.empty()) {
             char *date = sanitize_date (value.c_str());
             if (!date) {
-                log_info ("Cannot sanitize %s '%s' for device '%s'", key.c_str(), value.c_str(), name.c_str());
+                log_info ("Cannot sanitize %s '%s' for device '%s'", key.c_str(), value.c_str(), ename.c_str());
                 bios_throw("request-param-bad", key.c_str(), value.c_str(), "ISO date");
             }
             value = date;
@@ -553,7 +591,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         if (type != "device" )
         {
             auto ret = update_dc_room_row_rack_group
-                (conn, m.id, name.c_str(), type_id, parent_id,
+                (conn, m.id, iname.c_str(), type_id, parent_id,
                  extattributes, status.c_str(), priority, groups, asset_tag, errmsg);
             if ( ( ret ) || ( !errmsg.empty() ) ) {
                 throw std::invalid_argument(errmsg);
@@ -562,7 +600,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         else
         {
             auto ret = update_device
-                (conn, m.id, name.c_str(), type_id, parent_id,
+                (conn, m.id, iname.c_str(), type_id, parent_id,
                  extattributes, status.c_str(), priority, groups, links, asset_tag, errmsg);
             if ( ( ret ) || ( !errmsg.empty() ) ) {
                 throw std::invalid_argument(errmsg);
@@ -575,7 +613,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         {
             // this is a transaction
             auto ret = insert_dc_room_row_rack_group
-                (conn, name.c_str(), type_id, parent_id,
+                (conn, ename.c_str(), type_id, parent_id,
                  extattributes, status.c_str(), priority, groups, asset_tag);
             if ( ret.status != 1 ) {
                 throw BiosError(ret.rowid, ret.msg);
@@ -585,7 +623,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         else
         {
             // this is a transaction
-            auto ret = insert_device (conn, links, groups, name.c_str(),
+            auto ret = insert_device (conn, links, groups, ename.c_str(),
                     parent_id, extattributes, subtype_id, subtype.c_str(), status.c_str(),
                     priority, asset_tag);
             if ( ret.status != 1 ) {
@@ -594,7 +632,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
             m.id = ret.rowid;
         }
     }
-    m.name = name;
+    m.name = extname_to_asset_name (ename);
     m.status = status;
     m.parent_id = parent_id;
     m.priority = priority;
@@ -706,7 +744,7 @@ std::pair<db_a_elmnt_t, persist::asset_operation>
     auto SUBTYPES = read_device_types (conn);
 
     std::set<a_elmnt_id_t> ids{};
-    auto ret = process_row(conn, cm, 1, TYPES, SUBTYPES, ids);
+    auto ret = process_row(conn, cm, 1, TYPES, SUBTYPES, ids, false);
     LOG_END;
     return ret;
 }
@@ -758,7 +796,7 @@ void
         for (size_t row_i = 1; row_i != cm.rows(); row_i++) {
             if (processedRows.find (row_i) != processedRows.end ()) continue;
             try{
-                auto ret = process_row(conn, cm, row_i, TYPES, SUBTYPES, ids);
+                auto ret = process_row(conn, cm, row_i, TYPES, SUBTYPES, ids, true);
                 touch_fn ();
                 okRows.push_back (ret);
                 log_info ("row %zu was imported successfully", row_i);
