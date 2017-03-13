@@ -33,6 +33,7 @@
 #include "utils_web.h"
 #include "log.h"
 #include "helpers.h"
+#include "assets.h"
 </%pre>
 
 <%thread scope="global">
@@ -73,13 +74,8 @@ UserInfo user;
         }
 
         for (auto const& item : DCs) {
-            http_errors_t errors;
-            uint32_t real_id = 0;
-
-            if (!check_element_identifier ("element_id", item, real_id, errors)) {
-                http_die_error (errors);
-            }
-
+            uint32_t real_id = persist::name_to_asset_id (item);
+            
             auto it = allDcsShort.item.find(real_id);
             if (it == allDcsShort.item.end()) {
                 http_die ("element-not-found", item.c_str ());
@@ -129,8 +125,8 @@ UserInfo user;
             }
 
             json << "\t\t{\n"
-                 << "\t\t\t\"id\": \""   << DCs[D]           << "\",\n"
-                 << "\t\t\t\"name\": \"" << DCNames[D]       << "\",\n"
+                 << "\t\t\t\"id\": \""   << DCNames[D]           << "\",\n"
+                 << "\t\t\t\"name\": \"" << persist::id_to_name_ext_name (atoi (DCs[D].c_str ())).second << "\",\n"
                  << "\t\t\t\"outage\" : "<<  offline         <<   ",\n"
                  << "\t\t\t\"total\" : " <<  total           <<    "\n";
             json << "\t\t}" << (  D < DCs.size() -1 ? ",\n" : "\n" );

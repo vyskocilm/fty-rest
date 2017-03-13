@@ -171,6 +171,9 @@ UserInfo user;
         if (!is_ok_name (id.c_str())) {
             http_die ("request-param-bad", "asset id", id.c_str ());
         }
+        else {
+            checked_id = id;
+        }
 
         if ( !type.empty() && !persist::type_to_typeid (type) ) {
             http_die("request-param-bad", "type", type.c_str(), "one of datacenter/room/row/rack/group/device");
