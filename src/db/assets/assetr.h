@@ -84,7 +84,16 @@ int64_t
 // <name, ext_name> 
 std::pair <std::string, std::string>
     id_to_name_ext_name (uint32_t asset_id);
-    
+
+// returns asset db id by the name in ext
+// in case of error it returns -1
+int64_t
+    extname_to_asset_id (std::string asset_ext_name);
+
+// returns asset name by the name in ext
+std::string
+    extname_to_asset_name (std::string asset_ext_name);
+
 db_reply <db_web_basic_element_t>
     select_asset_element_web_byId
         (tntdb::Connection &conn,
