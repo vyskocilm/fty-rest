@@ -734,8 +734,7 @@ db_reply_t
             "INSERT INTO t_bios_asset_element "
             "(name, id_type, id_subtype, id_parent, status, priority, asset_tag) "
             "VALUES "
-            "(:name, :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
-            "ON DUPLICATE KEY UPDATE name = :name"
+            "(concat (:name, '-', id_asset_element), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
         );
 
         if (parent_id == 0)
