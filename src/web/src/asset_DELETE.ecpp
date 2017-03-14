@@ -43,7 +43,7 @@ UserInfo user;
             {BiosProfile::Admin,     "D"}
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
-    std::string checked_id = 0;
+    std::string checked_id;
 
     // sanity check
     {
