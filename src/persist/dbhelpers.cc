@@ -180,17 +180,6 @@ bool is_ok_name (const char* name)
     if ( length == 0)
         return false;
 
-    bool is_number = true;
-    for (size_t i = 0; i != length; i++) {
-        if (!isdigit (name [i])) {
-            is_number = false;
-            break;
-        }
-    }
-
-    if (is_number)
-        return false;
-
     // Bad characters _ % @
     if (strchr (name, '_') != NULL ||
         strchr (name, '%') != NULL ||
