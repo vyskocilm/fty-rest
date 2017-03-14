@@ -47,8 +47,8 @@ static std::string
     std::string result;
     auto func = [&result](const tntdb::Row& row) {
         result +=
-            "{\"id\":\"" + row.getValue("asset_id").getString() + "\",\n" +
-            "\"name\":\"" + row.getValue("name").getString() + "\",\n" +
+            "{\"id\":\"" + row.getValue("name").getString() + "\",\n" +
+            "\"name\":\"" + persist::id_to_name_ext_name (row.getValue("asset_id").getUnsigned32()).second + "\",\n" +
             "\"type\":\"" + persist::typeid_to_type (row.getValue("type_id").getInt()) + "\",\n" +
             "\"sub_type\":\"" + persist::subtypeid_to_subtype( row.getValue("subtype_id").getInt() ) + "\"\n"
             "},";
