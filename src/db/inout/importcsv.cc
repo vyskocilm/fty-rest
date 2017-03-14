@@ -391,7 +391,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
             // remove from unused
             unused_columns.erase(link_col_name);
             // take value
-            link_source = sanitizedAssetNames [link_col_name];
+            link_source = sanitizedAssetNames.at (link_col_name);
         }
         catch (const std::out_of_range &e)
         // if column doesn't exist, then break the cycle
