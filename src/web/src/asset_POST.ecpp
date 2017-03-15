@@ -32,6 +32,7 @@
 #include "helpers.h"
 #include "inout.h"
 #include "log.h"
+#include "assets.h"
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -106,8 +107,9 @@ UserInfo user;
         }
         // no unexpected errors was detected
         // process results
+        auto foo = persist::id_to_name_ext_name (row.first.id);
 </%cpp>
-{<$$ utils::json::jsonify ("id", std::to_string(row.first.id)) $>}
+{<$$ utils::json::jsonify ("id", foo.first) $>}
 <%cpp>
         return HTTP_OK;
     }
