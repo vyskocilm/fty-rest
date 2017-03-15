@@ -225,7 +225,7 @@ std::string checked_arg2;
         if (it == allRacksShort.item.end()) {
             http_die ("element-not-found", item.c_str ());
         }
-        rackNames.push_back (it->second);
+        rackNames.push_back (persist::id_to_name_ext_name (real_id).second);
     }
 
     std::stringstream json;
