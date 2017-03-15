@@ -146,7 +146,7 @@ extname_to_asset_name (std::string asset_ext_name)
         
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
-            " SELECT a.id_asset_element FROM t_bios_asset_element AS a "
+            " SELECT a.name FROM t_bios_asset_element AS a "
             " INNER JOIN t_bios_asset_ext_attributes AS e "
             " ON a.id_asset_element = e.id_asset_element "
             " WHERE keytag = 'name' and value = :extname "            
@@ -193,7 +193,6 @@ name_to_extname (std::string asset_name)
     }    
 }
 
-    
 db_reply <db_web_basic_element_t>
     select_asset_element_web_byId
         (tntdb::Connection &conn,

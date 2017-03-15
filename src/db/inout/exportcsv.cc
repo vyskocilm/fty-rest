@@ -84,9 +84,7 @@ s_power_links(
             std::string dest_in{""};
             r["src_name"].get(src_name);
             r["src_out"].get(src_out);
-            r["dest_in"].get(dest_in);
-            
-            
+            r["dest_in"].get(dest_in);                      
             out.push_back(std::make_tuple(
                 src_name,
                 src_out,
