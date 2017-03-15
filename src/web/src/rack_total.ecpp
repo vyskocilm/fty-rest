@@ -217,13 +217,10 @@ std::string checked_arg2;
     }
 
     for (auto const& item : racks) {
-        http_errors_t errors;
-        uint32_t real_id = 0;
+        if ( !is_ok_name (item.c_str ()) )
+            http_die ("request-param-bad", "arg2", item.c_str (), "valid asset name");
 
-        if (!check_element_identifier ("element_id", item, real_id, errors)) {
-            http_die_error (errors);
-        }
-
+        auto real_id = persist::name_to_asset_id (item);
         auto it = allRacksShort.item.find(real_id);
         if (it == allRacksShort.item.end()) {
             http_die ("element-not-found", item.c_str ());
