@@ -89,11 +89,15 @@ std::pair <std::string, std::string>
 // in case of error it returns -1
 int64_t
     extname_to_asset_id (std::string asset_ext_name);
-
+ 
 // returns asset name by the name in ext
 std::string
     extname_to_asset_name (std::string asset_ext_name);
 
+// returns asset ext name based on asset name 
+std::string
+    name_to_extname (std::string asset_name);
+ 
 db_reply <db_web_basic_element_t>
     select_asset_element_web_byId
         (tntdb::Connection &conn,
