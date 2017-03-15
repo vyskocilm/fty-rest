@@ -85,6 +85,8 @@ s_power_links(
             r["src_name"].get(src_name);
             r["src_out"].get(src_out);
             r["dest_in"].get(dest_in);
+            
+            
             out.push_back(std::make_tuple(
                 src_name,
                 src_out,
@@ -204,39 +206,35 @@ void
         process_v_web_asset_element_row \
         = [&conn, &lcs, &KEYTAGS, max_power_links, max_groups](const tntdb::Row& r)
     {
-        a_elmnt_id_t id = 0;
-        r["id"].get(id);
-
-        a_elmnt_id_t id_parent = 0;
-        r["id_parent"].get(id_parent);
-
+        a_elmnt_id_t id_num = 0;
+        std::string id;
+        r["id"].get(id_num);
+        id = persist::id_to_name_ext_name (id_num).first;
+        
+        a_elmnt_id_t id_parent_num = 0;
+        std::string id_parent;
+        std::string location;
+        r["id_parent"].get(id_parent_num);
+        location = persist::id_to_name_ext_name (id_parent_num).second;        
+        
         // 2.1      select all extended attributes
         std::map <std::string, std::pair<std::string, bool> > ext_attrs;
-        select_ext_attributes(conn, id, ext_attrs);
-
-        // 2.2      get name of parent
-        auto dbreply = select_asset_element_web_byId(
-                conn,
-                id_parent);
-        std::string location;
-        if (dbreply.status == 1)
-            location = dbreply.item.name;
+        select_ext_attributes(conn, id_num, ext_attrs);
 
         // 2.3 links
         power_links_t power_links;
-        s_power_links(conn, id, power_links);
+        s_power_links(conn, id_num, power_links);
 
         // 3.4 groups
         std::vector<std::string> groups;
-        select_group_names(conn, id, groups);
+        select_group_names(conn, id_num, groups);
 
         // 2.5      PRINT IT
         // 2.5.1    things from asset element table itself
         // ORDER of fields added to the lcs IS SIGNIFICANT
         std::string type_name;
         {
-        std::string name;
-        r["name"].get(name);
+        std::string name = persist::id_to_name_ext_name (id_num).second;        
         lcs.add(name);
 
         r["type_name"].get(type_name);
@@ -282,7 +280,7 @@ void
                 //nothing here, exists only for consistency reasons
             }
             else {
-                source   = std::get<0>(power_links[i]);
+                source   = persist::name_to_extname (std::get<0>(power_links[i]));
                 plug_src = std::get<1>(power_links[i]);
                 input    = std::get<2>(power_links[i]);
             }
