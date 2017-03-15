@@ -52,9 +52,8 @@ UserInfo user;
             http_die("request-param-required", "id");
         }
 
-        if ( !is_ok_name (id.c_str ()) ) {
+        if ( !is_ok_name (id.c_str ()) )
             http_die ("request-param-bad", "id", id.c_str (), "valid asset name");
-        }
         checked_id = id;
     }
     // end sanity checks
