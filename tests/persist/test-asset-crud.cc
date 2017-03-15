@@ -1,3 +1,4 @@
+
 /*
  *
  * Copyright (C) 2015 Eaton
@@ -206,7 +207,7 @@ TEST_CASE("asset element INSERT/DELETE #3","[db][CRUD][insert][delete][asset_ele
 
     // first insert
     auto reply_insert = persist::insert_into_asset_element (conn, element_name, element_type_id,
-        parent_id, status, priority, subtype_id, UGLY_ASSET_TAG);
+                                                            parent_id, status, priority, subtype_id, UGLY_ASSET_TAG, false);
     REQUIRE ( reply_insert.status == 1 );
     uint64_t rowid = reply_insert.rowid;
     CAPTURE (rowid);
@@ -227,7 +228,7 @@ TEST_CASE("asset element INSERT/DELETE #3","[db][CRUD][insert][delete][asset_ele
 
     // must handle duplicate insert without insert
     reply_insert = persist::insert_into_asset_element (conn, element_name, element_type_id,
-            parent_id, status, priority, persist::asset_subtype::N_A, UGLY_ASSET_TAG);
+                                                       parent_id, status, priority, persist::asset_subtype::N_A, UGLY_ASSET_TAG, true);
     REQUIRE ( reply_insert.status == 0 );
     REQUIRE ( reply_insert.affected_rows == 0 );
 
