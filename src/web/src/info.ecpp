@@ -68,34 +68,22 @@ get_rc_info (std::string &output)
         log_critical ("info: client->recv (timeout = '5') returned NULL");
         return -3;
     }
-        
-    char *uuiddb = zmsg_popstr (resp);
-    char *hostname = zmsg_popstr (resp);
-    char *name = zmsg_popstr (resp);
-    char *product_name = zmsg_popstr (resp);
-    char *location = zmsg_popstr (resp);
-    char *version = zmsg_popstr (resp);
-    char *rest_root = zmsg_popstr (resp);
-    char *rest_port = zmsg_popstr (resp);        
-       
+    zframe_t *frame_infos = zmsg_next (resp);
+    zhash_t *infos = zhash_unpack(frame_infos);
+
     output += "{\n";
-    output += utils::json::jsonify("uuid", uuiddb);        
-    output += ",\n";
-    output += utils::json::jsonify("hostname", hostname);
-    output += ",\n";        
-    output += utils::json::jsonify("name", name);
-    output += ",\n";        
-    output += utils::json::jsonify("product_name", product_name);
-    output += ",\n";        
-    output += utils::json::jsonify("location", location);
-    output += ",\n";        
-    output += utils::json::jsonify("version", version);
-    output += ",\n";        
-    output += utils::json::jsonify("rest_root_path", rest_root);        
-    output += ",\n";        
-    output += utils::json::jsonify("rest_api_port", rest_port);       
+    char *value = (char *) zhash_first (infos);   // first value
+    while ( value != NULL )
+    {
+        char *key = (char *) zhash_cursor (infos);   // key of this value
+        output += utils::json::jsonify(key, value);
+
+        value = (char *) zhash_next (infos);   // next value
+        if (value != NULL) output += ",\n";
+    } 
     output += "\n}";        
 
+    zhash_destroy(&infos);
     zmsg_destroy(&resp);
     return 0;
 }
