@@ -53,7 +53,7 @@ UserInfo user;
         }
 
         if ( !is_ok_name (id.c_str ()) ) {
-            http_die ("request-param-bad", id.c_str ());
+            http_die ("request-param-bad", "id", id.c_str (), "valid asset name");
         }
         checked_id = id;
     }
