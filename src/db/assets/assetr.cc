@@ -132,7 +132,7 @@ extname_to_asset_id (std::string asset_ext_name)
     }
     catch (const std::exception &e)
     {
-        log_error ("exception caught %s", e.what ());
+        log_error ("exception caught %s for element '%s'", e.what (), asset_ext_name.c_str ());
         return -1;
     }    
 }
@@ -160,7 +160,7 @@ extname_to_asset_name (std::string asset_ext_name)
     }
     catch (const std::exception &e)
     {
-        log_error ("exception caught %s", e.what ());
+        log_error ("exception caught %s for element '%s'", e.what (), asset_ext_name.c_str ());
         return "";
     }    
 }

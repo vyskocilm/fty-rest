@@ -93,7 +93,8 @@ db_reply_t
          const char      *status,
          a_elmnt_pr_t     priority,
          a_dvc_tp_id_t    subtype_id,
-         const char      *asset_tag);
+         const char      *asset_tag,
+         bool update);
 
 db_reply_t
     insert_into_asset_links

@@ -29,6 +29,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "log.h"
 #include "defs.h"
 #include "asset_types.h"
+#include "assetr.h"
 #include "utils_web.h"
 
 namespace persist {
@@ -687,7 +688,8 @@ db_reply_t
          const char      *status,
          a_elmnt_pr_t     priority,
          a_dvc_tp_id_t    subtype_id,
-         const char      *asset_tag)
+         const char      *asset_tag,
+         bool update)
 {
     LOG_START;
     log_debug ("  element_name = '%s'", element_name);
@@ -730,13 +732,24 @@ db_reply_t
     log_debug ("input parameters are correct");
 
     try {
-        tntdb::Statement statement = conn.prepareCached (
-            "INSERT INTO t_bios_asset_element "
-            "(name, id_type, id_subtype, id_parent, status, priority, asset_tag) "
-            "VALUES "
-            "(concat (:name, '-', id_asset_element), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
-        );
-
+        // this concat with last_insert_id may have raise condition issue but hopefully is not important
+        tntdb::Statement statement;
+        if (update) {
+            statement = conn.prepareCached (
+                " INSERT INTO t_bios_asset_element "
+                " (name, id_type, id_subtype, id_parent, status, priority, asset_tag) "
+                " VALUES "
+                " (:name, :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
+                " ON DUPLICATE KEY UPDATE name = :name "
+            );
+        } else {                
+            statement = conn.prepareCached (
+                " INSERT INTO t_bios_asset_element "
+                " (name, id_type, id_subtype, id_parent, status, priority, asset_tag) "
+                " VALUES "
+                " (concat (:name, '-', last_insert_id() + 1), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
+            );
+        }
         if (parent_id == 0)
         {
             ret.affected_rows = statement.

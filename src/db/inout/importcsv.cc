@@ -154,7 +154,7 @@ std::map <std::string, std::string>sanitize_row_ext_names (
     std::map <std::string, std::string> result;
     // make copy of this one line
     for (auto title: cm.getTitles ()) {
-        result[title] = cm.get_strip(row_i, title);
+        result[title] = cm.get(row_i, title);
     }
     if (sanitize) {
         // sanitize ext names to t_bios_asset_element.name
@@ -162,6 +162,7 @@ std::map <std::string, std::string>sanitize_row_ext_names (
         auto sanitizeList = {"location", "power_source.1", "power_source.2" };
         for (auto item: sanitizeList) {
             std::string name = extname_to_asset_name (result [item]);
+            log_debug ("sanitized '%s' -> '%s'", result [item].c_str(), name.c_str ());
             if (! name.empty ()) {
                 result [item] = name;
             }
