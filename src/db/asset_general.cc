@@ -223,7 +223,15 @@ db_reply_t
      const std::string &asset_tag)
 {
     LOG_START;
-
+    if (extname_to_asset_id(element_name) != -1) {
+        db_reply_t ret;
+        ret.status     = 0;
+        ret.errtype    = DB_ERR;
+        ret.errsubtype = DB_ERROR_BADINPUT;
+        //ret.rowid      = -1;
+        ret.msg        = std::string("Element with name ").append(element_name).append(" exists!");
+        return ret;
+    }
     setlocale (LC_ALL, ""); // move this to main?
     char *iname = ic_utf8_to_name ((char *) element_name);
     log_debug ("  element_name = '%s/%s'", element_name, iname);
@@ -231,7 +239,7 @@ db_reply_t
     tntdb::Transaction trans(conn);
     auto reply_insert1 = insert_into_asset_element
                         (conn, iname, element_type_id, parent_id,
-                         status, priority, 0, asset_tag.c_str());
+                         status, priority, 0, asset_tag.c_str(), false);
     zstr_free (&iname);
     if ( reply_insert1.status == 0 )
     {
@@ -309,7 +317,15 @@ db_reply_t
         const std::string &asset_tag)
 {
     LOG_START;
-
+    if (extname_to_asset_id(element_name) != -1) {
+        db_reply_t ret;
+        ret.status     = 0;
+        ret.errtype    = DB_ERR;
+        ret.errsubtype = DB_ERROR_BADINPUT;
+        //ret.rowid      = -1;
+        ret.msg        = std::string ("Element with name ").append (element_name).append (" exists!");
+        return ret;
+    }
     setlocale (LC_ALL, ""); // move this to main?
     char *iname = ic_utf8_to_name ((char *)element_name);
     log_debug ("  element_name = '%s/%s'", element_name, iname);
@@ -318,7 +334,7 @@ db_reply_t
 
     auto reply_insert1 = insert_into_asset_element
                         (conn, iname, asset_type::DEVICE, parent_id,
-                        status, priority, asset_device_type_id, asset_tag.c_str());
+                         status, priority, asset_device_type_id, asset_tag.c_str(), false);
     zstr_free (&iname);
     if ( reply_insert1.status == 0 )
     {
