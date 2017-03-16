@@ -112,7 +112,7 @@ int asset_location_r(asset_msg_t** asset_msg, std::string& json) {
                     first_contains = false;
                     json += ", \"contains\" : { ";
                 }
-                json += "\"" + utils::json::escape (name_it) + "\" : [";
+                json += "\"" + utils::json::escape (persist::name_to_extname(name_it)) + "\" : [";
                 first = false;
             }
             if(asset_location_r(&item, json) != HTTP_OK)
