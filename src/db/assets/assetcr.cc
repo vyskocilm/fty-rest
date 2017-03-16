@@ -747,7 +747,7 @@ db_reply_t
                 " INSERT INTO t_bios_asset_element "
                 " (name, id_type, id_subtype, id_parent, status, priority, asset_tag) "
                 " VALUES "
-                " (concat (:name, '-', (coalesce (select max(id_asset_element) from t_bios_asset_element,0) + 1))), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
+                " (concat (:name, '-', last_insert_id() + 1), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
             );
         }
         if (parent_id == 0)
