@@ -159,7 +159,7 @@ std::map <std::string, std::string>sanitize_row_ext_names (
     if (sanitize) {
         // sanitize ext names to t_bios_asset_element.name
         // FIXME: better walk trough powersources
-        auto sanitizeList = {"location", "power_source.1", "power_source.2" };
+        auto sanitizeList = {"location", "power_source.1", "power_source.2", "power_source.3", "power_source.4" };
         for (auto item: sanitizeList) {
             std::string name = extname_to_asset_name (result [item]);
             log_debug ("sanitized '%s' -> '%s'", result [item].c_str(), name.c_str ());
