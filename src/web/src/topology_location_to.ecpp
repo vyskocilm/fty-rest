@@ -54,7 +54,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    a_elmnt_id_t checked_to = 0;
+    std::string checked_to;
 
     // ##################################################
     // BLOCK 1
@@ -83,20 +83,19 @@ UserInfo user;
             http_die("parameter-conflict", "Parameter 'feed_by' can not be specified with parameter 'to'.");
         }
 
-        // Try to convert string to number
-        http_errors_t errors;
-        if (!check_element_identifier ("to", to, checked_to, errors)) {
-            http_die_error (errors);
+        if (!is_ok_name (to.c_str ())) {
+            http_die ("request-param-required", to.c_str() ,"to");
         }
+        checked_to = to;
     }
     // Sanity check end
-
+    int64_t checked_to_num = persist::name_to_asset_id (checked_to);
     // ##################################################
     // BLOCK 2
     // Call persistence layer
     _scoped_asset_msg_t *input_msg = asset_msg_new (ASSET_MSG_GET_LOCATION_TO);
     assert (input_msg);
-    asset_msg_set_element_id (input_msg, checked_to);
+    asset_msg_set_element_id (input_msg, checked_to_num);
 
     _scoped_zmsg_t *return_msg = process_assettopology (url.c_str(), &input_msg);
     if (return_msg == NULL) {
@@ -122,7 +121,7 @@ UserInfo user;
             LOG_END;
             switch(common_msg_errorno(common_msg)) {
                 case(DB_ERROR_NOTFOUND):
-                    http_die("element-not-found", std::to_string(checked_to).c_str());
+                    http_die("element-not-found", std::to_string(checked_to_num).c_str());
                 case(DB_ERROR_BADINPUT):
                 default:
                     http_die("internal-error");
@@ -145,18 +144,18 @@ UserInfo user;
             http_die("internal-error");
         }
 
-        // <checked_to, type, contains, name, type_name>
+        // <checked_to_num, type, contains, name, type_name>
         std::stack<std::tuple <int, int, std::string, std::string, std::string>> stack;
         std::string contains;
 
         if (asset_msg_id (asset_msg) == ASSET_MSG_RETURN_LOCATION_TO) {
             bool go = true;
             do {
-                checked_to = asset_msg_element_id (asset_msg);
+                checked_to_num = asset_msg_element_id (asset_msg);
                 int type_id = asset_msg_type (asset_msg);
                 std::string name = asset_msg_name (asset_msg);
                 std::string type_name = asset_msg_type_name (asset_msg);
-                stack.push (make_tuple(checked_to, type_id, contains, name, type_name));
+                stack.push (make_tuple(checked_to_num, type_id, contains, name, type_name));
                 // I deliberately didn't want to use asset manager (unknown / ""; suffix s)
                 // TODO use special function
                 switch (type_id) {
@@ -223,12 +222,13 @@ UserInfo user;
             int counter = 0;
             int indent = 0;
             std::string json = "{\n";
-
+            std::string ext_name;
             while ( !stack.empty() ) {
-                // <checked_to, type, contains, name, type_name>
+                // <checked_to_num, type, contains, name, type_name>
                 std::tuple<int, int, std::string, std::string, std::string> row = stack.top();
                 stack.pop();
-
+                ext_name = persist::id_to_name_ext_name (std::get<0>(row)).second;
+                    
                 indent++;
                 if (!std::get<2>(row).empty()) {
                     counter++;
@@ -236,13 +236,13 @@ UserInfo user;
                         json.append ("\t");
                     }
                     json.append("\"name\" : \"")
-                        .append(utils::json::escape (std::get<3>(row)))
+                        .append(utils::json::escape (ext_name))
                         .append("\",\n");
                     for (int i = 0; i < indent; i++) {
                         json.append ("\t");
                     }
                     json.append("\"id\" : \"")
-                        .append(std::to_string(std::get<0>(row)))
+                        .append(std::get<3>(row))
                         .append("\",\n");
                     if (std::get<4>(row) != "N_A") { // magic constant from initdb.sql
                         for (int i = 0; i < indent; i++) {
@@ -269,7 +269,7 @@ UserInfo user;
                         json.append ("\t");
                     }
                     json.append("\"id\" : \"")
-                        .append(std::to_string(std::get<0>(row)))
+                        .append(utils::json::escape (ext_name))
                         .append("\"");
                     json.append(",\n");
                     json += "\"type\" : \"" + persist::typeid_to_type(std::get<1>(row)) + "\",";
