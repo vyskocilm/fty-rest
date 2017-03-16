@@ -82,16 +82,6 @@ escape (
 std::string
 sql_escape(
         const std::string& in);
-
-/*
- * \brief convert zhash to map<string,string>
- *
- * \param zhash to convert
- * \return std::map
- */
-std::map<std::string,std::string>
-zhash_to_map(zhash_t *hash);
-
 /**
  * \brief Join keys of std::map using given separator
  *

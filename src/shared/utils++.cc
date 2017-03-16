@@ -162,19 +162,6 @@ std::string sql_escape(const std::string& in) {
     return escape(in, "_%");
 }
 
-std::map<std::string,std::string> zhash_to_map(zhash_t *hash)
-{
-    std::map<std::string,std::string> map;
-    char *item = (char *)::zhash_first(hash);
-    while(item) {
-        const char * key = ::zhash_cursor(hash);
-        const char * val = (const char *)::zhash_lookup(hash,key);
-        if( key && val ) map[key] = val;
-        item = (char *)::zhash_next(hash);
-    }
-    return map;
-}
-
 std::string
 join (const char **str_arr, uint32_t length, const char *separator) {
     std::string result;
