@@ -134,9 +134,8 @@ UserInfo user;
 
         // 6. Check if 'from' has valid asset id
         if (!is_ok_name (from.c_str ()))
-            http_die("request-param-bad", "from: ", from.c_str ());
+            http_die("request-param-bad", "from: ", from.c_str ());        
         checked_from = from;
-
 
         if ( !feed_by.empty() ) {
             if (!is_ok_name (feed_by.c_str ()))
@@ -144,14 +143,20 @@ UserInfo user;
                 http_die("request-param-bad", "feed_by", feed_by.c_str ());                        
             }
             checked_feed_by = feed_by;
-            checked_from_num = persist::name_to_asset_id (checked_from);
+            
+            checked_from_num = persist::name_to_asset_id (checked_from);            
+            if (checked_from_num <= 0)
+                http_die("element-not-found", checked_from.c_str());
+            
             checked_feed_by_num = persist::name_to_asset_id (checked_feed_by);
+            if (checked_feed_by_num <= 0)
+                http_die("element-not-found", checked_feed_by.c_str ());
             
             auto tmp = asset_mgr.get_item1 (checked_feed_by_num);
             if ( tmp.status == 0 ) {
                 switch ( tmp.errsubtype ) {
                     case DB_ERROR_NOTFOUND:
-                        http_die("element-not-found", checked_feed_by_num);
+                        http_die("element-not-found", checked_feed_by.c_str());
                     case DB_ERROR_BADINPUT:
                     case DB_ERROR_INTERNAL:
                     default:
@@ -171,7 +176,7 @@ UserInfo user;
     _scoped_asset_msg_t *input_msg = asset_msg_new (ASSET_MSG_GET_LOCATION_FROM);
     assert (input_msg);
    
-    asset_msg_set_element_id (input_msg, checked_from_num);
+    asset_msg_set_element_id (input_msg, (uint32_t) checked_from_num);
     asset_msg_set_recursive (input_msg, (byte) checked_recursive);
     asset_msg_set_filter_type (input_msg, (byte) checked_filter);
 
@@ -198,7 +203,7 @@ UserInfo user;
             LOG_END;
             switch(common_msg_errorno(common_msg)) {
                 case(DB_ERROR_NOTFOUND):
-                    http_die("element-not-found",checked_from_num);
+                    http_die("element-not-found", checked_from.c_str ());
                 case(DB_ERROR_BADINPUT): // this should never be returned
                 default:
                     http_die("internal-error", "");
