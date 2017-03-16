@@ -267,6 +267,8 @@ libpriv_utils_plusplus_la_SOURCES = \
 				src/shared/filesystem.h \
 				src/shared/filesystem.cc
 
+libpriv_utils_plusplus_la_LIBADD = ${CXXTOOLS_LIBS}
+
 noinst_LTLIBRARIES += 		libpriv-defs.la
 
 libpriv_defs_la_SOURCES = 	src/include/str_defs.c \
