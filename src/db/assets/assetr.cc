@@ -93,7 +93,7 @@ name_to_asset_id (std::string asset_name)
         " SELECT id_asset_element"
         " FROM"
         "   t_bios_asset_element"
-        " WHERE name = :asset_name"
+        " WHERE name = ':asset_name'"
         );
 
         tntdb::Row row = st.set("asset_name", asset_name).selectRow();

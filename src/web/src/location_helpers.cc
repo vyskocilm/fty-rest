@@ -43,7 +43,7 @@ int asset_location_r(asset_msg_t** asset_msg, std::string& json) {
 
 
     json += "{";
-    json += "\"name\" : \"" + persist::id_to_name_ext_name (element_id).second + "\", ";
+    json += "\"name\" : \"" + utils::json::escape (persist::id_to_name_ext_name (element_id).second) + "\", ";
     json += "\"id\" : \"" + utils::json::escape (name) + "\",";
     json += "\"type\" : \"" + persist::typeid_to_type(type_id) + "\",";
     if ( (type_id == persist::asset_type::DEVICE ) ||
@@ -112,7 +112,7 @@ int asset_location_r(asset_msg_t** asset_msg, std::string& json) {
                     first_contains = false;
                     json += ", \"contains\" : { ";
                 }
-                json += "\"" + utils::json::escape (persist::name_to_extname(name_it)) + "\" : [";
+                json += "\"" + utils::json::escape (name_it)+ "\" : [";
                 first = false;
             }
             if(asset_location_r(&item, json) != HTTP_OK)
