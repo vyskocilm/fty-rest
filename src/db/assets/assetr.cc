@@ -45,7 +45,6 @@ id_to_name_ext_name (uint32_t asset_id)
     std::string ext_name;
     try
     {
-        
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
         " SELECT asset.name, ext.value "
@@ -56,22 +55,20 @@ id_to_name_ext_name (uint32_t asset_id)
         " ON "
         "   ext.id_asset_element = asset.id_asset_element "
         " WHERE "
-        "   ext.keytag = \"name\" AND asset.id_asset_element = :asset_id ";
-        );
-        
+        "   ext.keytag = \"name\" AND asset.id_asset_element = :asset_id ");
+
         tntdb::Row row = st.set("asset_id", asset_id).selectRow();
         log_debug("[t_bios_asset_element]: were selected %" PRIu32 " rows", 1);
 
         row [0].get (name);
         row [1].get (ext_name);
-                
     }
     catch (const std::exception &e)
     {
         log_error ("exception caught %s", e.what ());
         name = "";
         ext_name = "";
-    }    
+    }
     return make_pair (name, ext_name);
 }
 
