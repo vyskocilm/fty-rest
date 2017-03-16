@@ -21,11 +21,13 @@
 #include <cassert>
 #include <cxxtools/regex.h>
 #include <unistd.h> // make "readlink" available on ARM
+#include <tntdb.h>
 #include "utils_web.h"
 #include "helpers.h"
 #include "str_defs.h" // EV_LICENSE_DIR, EV_DATA_DIR
 
 #include "log.h"
+#include "dbpath.h"
 
 const char* UserInfo::toString() {
     switch (_profile) {
@@ -42,6 +44,34 @@ const char* UserInfo::toString() {
 }
 
 
+int64_t
+iname_to_dbid (const std::string& url, const std::string& asset_name)
+{
+    try
+    {
+        int64_t id = 0;
+        
+        tntdb::Connection conn = tntdb::connectCached(url);
+        tntdb::Statement st = conn.prepareCached(
+        " SELECT id_asset_element"
+        " FROM"
+        "   t_bios_asset_element"
+        " WHERE name = :asset_name"
+        );
+
+        tntdb::Row row = st.set("asset_name", asset_name).selectRow();
+        log_debug("[t_bios_asset_element]: were selected %" PRIu32 " rows", 1);
+
+        row [0].get(id);
+        return id;
+    }
+    catch (const std::exception &e)
+    {
+        log_error ("exception caught %s", e.what ());
+        return -1;
+    }    
+}
+
 bool
 check_element_identifier (const char *param_name, const std::string& param_value, uint32_t& element_id, http_errors_t& errors) {
     assert (param_name);
@@ -50,25 +80,24 @@ check_element_identifier (const char *param_name, const std::string& param_value
         return false;
     }
 
-    uint32_t eid = 0;
-    try {
-        eid = utils::string_to_element_id (param_value);
+    
+    int64_t eid = 0;
+    const char *prohibited = "_@%;\"";
+    for (unsigned int a = 0; a < strlen (prohibited); ++a) {
+        if (param_value.find (prohibited[a])) { 
+            http_add_error ("", errors, "request-param-bad", param_name,
+                            std::string ("value '").append (param_value).append ("'").append (" contains prohibited characters (").append (prohibited).append(")").c_str (),
+                            "valid identificator");
+            return false;
+        }
     }
-    catch (const std::invalid_argument& e) {
-        http_add_error ("", errors, "request-param-bad", param_name,
-            std::string ("value '").append (param_value).append ("'").append (" is not an element identifier").c_str (),
-            std::string ("an unsigned integer in range 1 to ").append (std::to_string (UINT_MAX)).append (".").c_str ());
-        return false;
-    }
-    catch (const std::out_of_range& e) {
-        http_add_error ("", errors, "request-param-bad", param_name,
-            std::string ("value '").append (param_value).append ("'").append (" is out of range").c_str (),
-            std::string ("value in range 1 to ").append (std::to_string (UINT_MAX)).append (".").c_str ());
-        return false;
-    }
-    catch (const std::exception& e) {
-        log_error ("std::exception caught: %s", e.what ());
-        http_add_error ("", errors, "internal-error");
+    eid =iname_to_dbid (url, param_value);
+    if (eid == -1) {
+        http_add_error (
+            "", errors, "request-param-bad", param_name,
+            std::string ("value '").append (param_value).append ("' is not valid identificator").c_str (),
+            "existing identificator"
+            );
         return false;
     }
     element_id = eid;

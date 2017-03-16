@@ -155,6 +155,7 @@ AM_CPPFLAGS = \
 		-I$(abs_top_srcdir)/src/include \
 		-I$(abs_top_builddir)/src/msg \
 		-I$(abs_top_srcdir)/src/msg \
+		-I$(abs_top_srcdir)/tools \
 		-D__STDC_FORMAT_MACROS
 
 AM_CFLAGS = \
@@ -518,13 +519,14 @@ test_web_helpers_LDADD =    libpriv-test-run.la \
 				            libpriv-log.la \
 				            libpriv-utils-web.la \
 							libpriv-subprocess.la \
-							libpriv-defs.la
+							libpriv-defs.la \
+							libpriv-db.la
 
 test_web_helpers_CPPFLAGS =	$(AM_CPPFLAGS) \
 							-I$(abs_top_srcdir)/tests/include/ \
 							-I$(abs_top_srcdir)/src/web/include
 
-test_web_helpers_LDFLAGS =	-ltntnet ${CXXTOOLS_LIBS} $(LIBCZMQ_LIBS)
+test_web_helpers_LDFLAGS =	-ltntnet -ltntdb ${CXXTOOLS_LIBS} $(LIBCZMQ_LIBS)
 
 ###
 check_PROGRAMS +=	test-utils-web
