@@ -745,7 +745,7 @@ std::pair<db_a_elmnt_t, persist::asset_operation>
     auto SUBTYPES = read_device_types (conn);
 
     std::set<a_elmnt_id_t> ids{};
-    auto ret = process_row(conn, cm, 1, TYPES, SUBTYPES, ids, true);
+    auto ret = process_row(conn, cm, 1, TYPES, SUBTYPES, ids, false);
     LOG_END;
     return ret;
 }
