@@ -84,7 +84,7 @@ check_element_identifier (const char *param_name, const std::string& param_value
     int64_t eid = 0;
     const char *prohibited = "_@%;\"";
     for (unsigned int a = 0; a < strlen (prohibited); ++a) {
-        if (param_value.find (prohibited[a])) { 
+        if (param_value.find (prohibited[a]) != std::string::npos) { 
             http_add_error ("", errors, "request-param-bad", param_name,
                             std::string ("value '").append (param_value).append ("'").append (" contains prohibited characters (").append (prohibited).append(")").c_str (),
                             "valid identificator");
