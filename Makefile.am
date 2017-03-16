@@ -401,6 +401,8 @@ libpriv_db_assets_la_SOURCES = \
 			src/db/asset_general.cc \
 			src/db/asset_general.h
 
+libpriv_db_assets_la_LIBADD = ${LIBCZMQ_LIBS}
+
 libpriv_db_assets_la_CPPFLAGS = $(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
 			-I$(abs_top_srcdir)/tools \
