@@ -1,7 +1,7 @@
 { "flexible" :
   {
     "name"          : "sts-preferred-source@__name__",
-    "description"   : "STS/ATS preferred source alert",
+    "description"   : "STS/ATS is not running from preferred input",
     "metrics"       : ["input.source", "input.source.preferred"],
     "assets"        : ["__name__"],
     "results"       :  {
