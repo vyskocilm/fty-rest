@@ -161,7 +161,7 @@ fill_array_powerchains (std::vector <std::tuple
     int64_t num_dc_id = persist::name_to_asset_id (dc_id);
   
     if ( num_dc_id == -1 )
-        http_die ("not-found", "dc_id ", dc_id.c_str ());
+        http_die ("element-not-found", "dc_id ", dc_id.c_str ());
   
     rv = input_power_group_response (url, num_dc_id, devices_data, powerchains_data);
   
