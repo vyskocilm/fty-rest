@@ -228,8 +228,8 @@ db_reply_t
         ret.status     = 0;
         ret.errtype    = DB_ERR;
         ret.errsubtype = DB_ERROR_BADINPUT;
-        //ret.rowid      = -1;
-        ret.msg        = std::string("Element with name ").append(element_name).append(" exists!");
+        ret.rowid      = 8;
+        ret.msg        = std::string ("Element '").append (element_name).append ("' cannot be processed because of conflict. Most likely duplicate entry.");
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
@@ -322,8 +322,8 @@ db_reply_t
         ret.status     = 0;
         ret.errtype    = DB_ERR;
         ret.errsubtype = DB_ERROR_BADINPUT;
-        //ret.rowid      = -1;
-        ret.msg        = std::string ("Element with name ").append (element_name).append (" exists!");
+        ret.rowid      = 8;
+        ret.msg        = std::string ("Element '").append (element_name).append ("' cannot be processed because of conflict. Most likely duplicate entry.");
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
