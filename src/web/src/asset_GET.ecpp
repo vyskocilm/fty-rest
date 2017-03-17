@@ -205,12 +205,6 @@ UserInfo user;
                 http_die("internal-error", "Internal database error");
         }
     }
-    // TODO: the call /asset/type/id is deprecated. This check should be removed soon
-    if ( !checked_type.empty() &&
-            (tmp.item.basic.type_id != persist::type_to_typeid (checked_type) ) )
-    {
-        http_die("request-param-bad", "type", checked_type.c_str(), tmp.item.basic.type_name.c_str());
-    }
     // end argument check
 
 
