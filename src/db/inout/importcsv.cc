@@ -168,7 +168,7 @@ std::map <std::string, std::string>sanitize_row_ext_names (
                     if (it == result.end ()) break;
                     
                     std::string name = extname_to_asset_name (it->second);
-                    if (! name.empty ()) { name = it->second; }
+                    if (name.empty ()) { name = it->second; }
                     log_debug ("sanitized '%s' -> '%s'", it->second.c_str(), name.c_str ());
                 }
             } else {
@@ -176,7 +176,7 @@ std::map <std::string, std::string>sanitize_row_ext_names (
                 auto it = result.find (item);
                 if (it != result.end ()) {
                     std::string name = extname_to_asset_name (it->second);
-                    if (! name.empty ()) { name = it->second; }
+                    if (name.empty ()) { name = it->second; }
                     log_debug ("sanitized '%s' -> '%s'", it->second.c_str(), name.c_str ());
                 }
             }
