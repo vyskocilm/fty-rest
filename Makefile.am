@@ -326,7 +326,7 @@ libpriv_csv_la_CPPFLAGS =$(AM_CPPFLAGS) \
 			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_src_dir)/src/msg
 
-libpriv_csv_la_LIBADD = ${CXXTOOLS_LIBS}
+libpriv_csv_la_LIBADD = ${CXXTOOLS_LIBS} -ltntdb
 
 noinst_LTLIBRARIES += 		libpriv-db.la
 
@@ -635,11 +635,11 @@ test_cidr_LDFLAGS =	-lcidr
 check_PROGRAMS += 	test-csv
 
 test_csv_SOURCES =		src/shared/csv.h \
-					    tests/shared/test-csv.cc
+						tests/shared/test-csv.cc
 
 test_csv_LDADD = 		libpriv-csv.la \
 						libpriv-log.la \
-					    libpriv-test-run.la
+						libpriv-test-run.la
 
 test_csv_CPPFLAGS =		$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
