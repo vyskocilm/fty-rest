@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <iconv.h>
 #include <ctype.h>
+#include "ic.h"
 
 static
 int s_convert(iconv_t id, char *inbuf, size_t *bytes, char *outbuf, size_t *capacity)
@@ -96,10 +97,13 @@ char *ic_utf8_to_ascii (char *string)
     return ic_convert (string, strlen (string)+1, "UTF-8", "ASCII//TRANSLIT", NULL);
 }
 
-char *ic_utf8_to_name (char *string)
+char *ic_utf8_to_name (char *string, const char *prefix)
 {
     char *ascii = ic_utf8_to_ascii (string);
-    if (!ascii) return NULL;
+    if (!ascii || strlen (ascii) == 0) {
+        zstr_free (&ascii);
+        return zsys_sprintf ("%s-%d", prefix, time (NULL));
+    }
 
     char *name = (char *) malloc (strlen (ascii) + 1);
     if (!name) {
@@ -134,6 +138,10 @@ char *ic_utf8_to_name (char *string)
     }
     name [j] = '\0';
     free (ascii);
+    if (!name || strlen (name) == 0) {
+        zstr_free (&name);
+        return zsys_sprintf ("%s-%d", prefix, time (NULL));
+    }
     return name;
 }
 
