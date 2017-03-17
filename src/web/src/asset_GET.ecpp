@@ -153,7 +153,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    std::string checked_id;                       
+    uint32_t checked_id;
     std::string checked_type;
 
     // ##################################################
@@ -168,18 +168,21 @@ UserInfo user;
         log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
                 id.c_str (), type.c_str ());
         
-        if (!is_ok_name (id.c_str())) {
-            http_die ("request-param-bad", "asset id", id.c_str ());
-        }
-        else {
-            checked_id = id;
-        }
-
-        if ( !type.empty() && !persist::type_to_typeid (type) ) {
+        if ( !type.empty() && !persist::type_to_typeid (type) )
             http_die("request-param-bad", "type", type.c_str(), "one of datacenter/room/row/rack/group/device");
-        }
-        else {
-            checked_type = type;
+        
+        checked_type = type;
+
+        http_errors_t errors;
+        if (!check_element_identifier ("dev", id, checked_id, errors)) {
+            // XXX: we might have device called group.123, which will be passed as
+            //      id = '.123', type = 'group'
+            //      This is deprecated form of the call, but handle that gracefully
+            id = type + id;
+            http_errors_t errors;
+            if (!check_element_identifier ("dev", id, checked_id, errors)) {
+                http_die_error (errors);
+            }
         }
     }
     // Sanity check end
@@ -187,21 +190,15 @@ UserInfo user;
     // ##################################################
     // BLOCK 2
     // Receive data and check arguments
-  if ( checked_id.empty() ) {
-        http_die("request-param-required", "id");
-    }
 
-    int64_t num_id = persist::name_to_asset_id (checked_id);
-    if ( num_id == -1 )
-        http_die ("not-found", "asset id", checked_id.c_str ());
   
-    auto tmp = asset_mgr.get_item1 (num_id);
+    auto tmp = asset_mgr.get_item1 (checked_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
         {
             case DB_ERROR_NOTFOUND:
-                http_die("element-not-found", checked_id.c_str ());
+                http_die("element-not-found", checked_id);
             case DB_ERROR_BADINPUT:
             case DB_ERROR_INTERNAL:
             default:
