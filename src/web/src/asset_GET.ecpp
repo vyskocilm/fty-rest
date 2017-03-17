@@ -181,7 +181,7 @@ UserInfo user;
             id = type + id;
             http_errors_t errors;
             if (!check_element_identifier ("dev", id, checked_id, errors)) {
-                http_die_error (errors);
+                http_die ("element-not-found", id.c_str ());
             }
         }
     }
