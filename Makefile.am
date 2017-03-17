@@ -805,7 +805,7 @@ CLEANFILES += $(cibin_programs_list)
 ### Verification that bios_web.so is in fact usable on binary level
 ### Note that this creates no retainable output file
 web-link-test: bios_web.la
-			@$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) -o /dev/null \
+			$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) -o /dev/null \
 			$(abs_top_srcdir)/tests/web-linking-test.cc \
 			${CXXTOOLS_LIBS} -ltntnet \
 			$(abs_top_builddir)/.libs/bios_web.so && \
