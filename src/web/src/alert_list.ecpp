@@ -140,6 +140,10 @@ UserInfo user;
                 http_die ("request-param-bad", asset.c_str ());
             }
         }
+        else
+        {
+            http_die ("request-param-bad", asset.c_str ());
+        }
 
         checked_state = state;
         checked_asset = asset;
