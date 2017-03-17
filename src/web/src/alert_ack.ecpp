@@ -33,6 +33,7 @@
 #include "log.h"
 #include "helpers.h"
 #include "str_defs.h"
+#include "assets.h"
 
 static
 int state_valid (const char *state) {
@@ -60,7 +61,7 @@ UserInfo user;
 
 // checked input arguments
 std::string checked_rule_name;
-std::string checked_element_name;
+std::string checked_element_name; // after last change this is unicode name
 std::string checked_state;
 
 // ##################################################
@@ -223,10 +224,12 @@ if (streq (part, "OK")) {
     }
     free (part);
 // TODO: rfc-11 is not written yet, json format can change freely
+    std::string asset_id = persist::extname_to_asset_name (checked_element_name);    
 </%cpp>
 {
     <$$ utils::json::jsonify ("rule_name", checked_rule_name) $>,
-    <$$ utils::json::jsonify ("element_name", checked_element_name) $>,
+    <$  utils::json::jsonify ("asset_id", asset_id) $>,
+    <$$ utils::json::jsonify ("element_name", utils::json::escape (checked_element_name)) $>,
     <$$ utils::json::jsonify ("state", checked_state) $>
 }
 <%cpp>
