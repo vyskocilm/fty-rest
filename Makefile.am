@@ -35,7 +35,7 @@ dist_noinst_DATA =
 # A source file listed in BUILT_SOURCES is made on `make all` or `make check`
 # (or even `make install`) before other targets are processed. However, such
 # a source file is not compiled unless explicitly requested by mentioning it
-# in some other _SOURCES variable. 
+# in some other _SOURCES variable.
 BUILT_SOURCES =
 # http://www.gnu.org/software/automake/manual/html_node/Clean.html
 # * If make built it, and it is commonly something that one would want to
@@ -105,7 +105,7 @@ RUN_TNTNET = cat "$(RUN_TNTNET_ENVFILE)" || exit; \
 # tracking (which is automatic), but to ensure these files are
 # distributed by "make dist" although not "installed".
 
-dist_noinst_HEADERS = 
+dist_noinst_HEADERS =
 
 # Clean up products of configure script
 DISTCLEANFILES += \
@@ -552,7 +552,7 @@ test_utils_web_CPPFLAGS = \
 test_utils_web_LDFLAGS =	${CXXTOOLS_LIBS} -lczmq
 
 ###
-check_PROGRAMS +=	test-tntmlm	
+check_PROGRAMS +=	test-tntmlm
 
 test_tntmlm_SOURCES = \
 			src/shared/tntmlm.h \
@@ -571,7 +571,7 @@ test_tntmlm_CPPFLAGS = \
 
 test_tntmlm_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} ${CXXTOOLS_LIBS}
 
-check_PROGRAMS +=	test-utils-plusplus	
+check_PROGRAMS +=	test-utils-plusplus
 
 test_utils_plusplus_SOURCES = \
 			src/shared/utils++.h \
@@ -767,7 +767,7 @@ cibin_programs += 	test-totalpower
 
 test_totalpower_SOURCES = \
 			tests/persist/test-rack-power.cc \
-			tests/persist/test-dc-power.cc 
+			tests/persist/test-dc-power.cc
 
 test_totalpower_LDADD = \
 			libpriv-db.la \
@@ -1158,7 +1158,7 @@ EXTRA_DIST += \
 # and written in asciidoc markup
 # Note these should have paths relative to project root dir.
 BASE_DOCS_ASCIIDOC =	INSTALL \
-			CONTRIBUTING 
+			CONTRIBUTING
 
 # Documentation files saved in the project source-code root directory
 # as text files without extensions in the name and written in plain
@@ -1186,7 +1186,7 @@ TXT_DOCS_PLAINTEXT =
 # (as in case of the _ASCIIDOC list).
 # Filenames here should not have spaces and should have the '.txt' suffix.
 
-MAPPED_TXT_DOCS_PLAINTEXT = 
+MAPPED_TXT_DOCS_PLAINTEXT =
 
 MAPPED_TXT_DOCS_ASCIIDOC = \
 	src/web/README.txt:$(myDEVDOCDIR)/README-web-tests-generalInfo.txt
