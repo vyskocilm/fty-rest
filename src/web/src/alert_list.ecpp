@@ -102,7 +102,7 @@ UserInfo user;
     std::string checked_state;
     std::string checked_asset;
     std::string checked_recursive;
-    uint32_t element_id = 0;
+    a_elmnt_id_t element_id = 0;
 
     {
         std::string state = qparam.param("state");
@@ -133,11 +133,10 @@ UserInfo user;
                         std::string ("one of the following values [ true | false ]").c_str ());
             }
 
-        if (!asset.empty ())
-        {            
-            if (!is_ok_name (asset.c_str ()))
-            {
-                http_die ("request-param-bad", asset.c_str ());
+        if (!asset.empty ()) {
+            http_errors_t errors;
+            if (!check_element_identifier ("asset", asset, element_id, errors)) {
+                http_die_error (errors);
             }
         }
 
@@ -149,10 +148,9 @@ UserInfo user;
                 "\tstate = '%s'\n\tasset = '%s'\n\trecursive = '%s'\n",
                 state.c_str (), asset.c_str (), recursive.c_str ());
     }
-  
-element_id = (uint32_t) persist::name_to_asset_id (checked_asset);
-  
+
 std::map<std::string, int> desired_elements;
+
 tntdb::Connection connection;
 try {
     connection = tntdb::connectCached (url);
@@ -370,8 +368,8 @@ if (streq (part, "LIST")) {
     {
         <$$ utils::json::jsonify ("timestamp", buff) $>,
         <$$ utils::json::jsonify ("rule_name", fty_proto_rule (decoded)) $>,
-        <$$ utils::json::jsonify ("element_id",  fty_proto_name (decoded)) $>,
-        <$$ utils::json::jsonify ("element_name", persist::id_to_name_ext_name (asset_element.item.id).second) $>,
+        <$$ utils::json::jsonify ("element_id", std::to_string (asset_element.item.id)) $>,
+        <$$ utils::json::jsonify ("element_name", fty_proto_name (decoded)) $>,
         <$$ utils::json::jsonify ("element_type", asset_element.item.type_name) $>,
         <$$ utils::json::jsonify ("element_sub_type", asset_element.item.subtype_name) $>,
         <$$ utils::json::jsonify ("state", fty_proto_state (decoded)) $>,
@@ -384,8 +382,8 @@ if (streq (part, "LIST")) {
 , {
         <$$ utils::json::jsonify ("timestamp", buff) $>,
         <$$ utils::json::jsonify ("rule_name", fty_proto_rule (decoded)) $>,
-        <$$ utils::json::jsonify ("element_id", fty_proto_name (decoded)) $>,
-        <$$ utils::json::jsonify ("element_name", persist::id_to_name_ext_name (asset_element.item.id).second) $>,
+        <$$ utils::json::jsonify ("element_id", std::to_string (asset_element.item.id)) $>,
+        <$$ utils::json::jsonify ("element_name", fty_proto_name (decoded)) $>,
         <$$ utils::json::jsonify ("element_type", asset_element.item.type_name) $>,
         <$$ utils::json::jsonify ("element_sub_type", asset_element.item.subtype_name) $>,
         <$$ utils::json::jsonify ("state", fty_proto_state (decoded)) $>,
