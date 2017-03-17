@@ -33,6 +33,7 @@
 #include "log.h"
 #include "helpers.h"
 #include "str_defs.h"
+#include "assets.h"
 
 static
 int state_valid (const char *state) {
@@ -60,7 +61,7 @@ UserInfo user;
 
 // checked input arguments
 std::string checked_rule_name;
-std::string checked_element_name;
+std::string checked_element_name; // after last change this is unicode name
 std::string checked_state;
 
 // ##################################################
@@ -138,8 +139,11 @@ if (!send_msg) {
     log_critical ("zmsg_new() failed.");
     http_die ("internal-error", "zmsg_new() failed.");
 }
+std::string asset_id = persist::extname_to_asset_name (checked_element_name);
+if (asset_id.empty ())
+    http_die ("not-found", "Cannot get asset_id for ", checked_element_name.c_str ());  
 zmsg_addstr (send_msg, checked_rule_name.c_str ());
-zmsg_addstr (send_msg, checked_element_name.c_str ());
+zmsg_addstr (send_msg, asset_id.c_str ());
 zmsg_addstr (send_msg, checked_state.c_str ());
 
 // send it
@@ -207,7 +211,7 @@ if (streq (part, "OK")) {
     }
     free (part);
     part = zmsg_popstr (recv_msg);
-    if (!part || !streq (part, checked_element_name.c_str ())) {
+    if (!part || !streq (part, asset_id.c_str ())) {
         log_error ("Unexpected reply from '%s'. Expected OK/rule_name/element_name/state. Got OK/rule_name/(null).", mlm_client_sender (client));
         zmsg_destroy (&recv_msg);
         mlm_client_destroy (&client);
@@ -226,7 +230,8 @@ if (streq (part, "OK")) {
 </%cpp>
 {
     <$$ utils::json::jsonify ("rule_name", checked_rule_name) $>,
-    <$$ utils::json::jsonify ("element_name", checked_element_name) $>,
+    <$$ utils::json::jsonify ("asset_id", asset_id) $>,
+    <$$ utils::json::jsonify ("element_name", utils::json::escape (checked_element_name)) $>,
     <$$ utils::json::jsonify ("state", checked_state) $>
 }
 <%cpp>
@@ -246,7 +251,7 @@ if (streq (part, "ERROR")) {
     if (streq (part, "NOT_FOUND")) {
         free (part);
         log_error ("Alert identified by rule_name = '%s' and element_name = '%s' does not exist.",
-            checked_rule_name.c_str (), checked_element_name.c_str ());
+            checked_rule_name.c_str (), asset_id.c_str ());
         zmsg_destroy (&recv_msg);
         mlm_client_destroy (&client);
         http_die ("not-found", std::string ("Alert identified by rule name = '").append (checked_rule_name).append ("' and element name = '").
