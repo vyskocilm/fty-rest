@@ -233,7 +233,9 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    char *iname = ic_utf8_to_name ((char *) element_name);
+    char *iname = ic_utf8_to_name (
+            (char *) element_name,
+            persist::typeid_to_type (element_type_id).c_str ());
     log_debug ("  element_name = '%s/%s'", element_name, iname);
 
     tntdb::Transaction trans(conn);
@@ -327,7 +329,9 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    char *iname = ic_utf8_to_name ((char *)element_name);
+    char *iname = ic_utf8_to_name (
+            (char *)element_name,
+            persist::subtypeid_to_subtype (asset_device_type_id).c_str ());
     log_debug ("  element_name = '%s/%s'", element_name, iname);
     
     tntdb::Transaction trans(conn);
