@@ -166,10 +166,11 @@ std::map <std::string, std::string>sanitize_row_ext_names (
                     std::string title = item + std::to_string (i);
                     auto it = result.find (title);
                     if (it == result.end ()) break;
-                    
+
                     std::string name = extname_to_asset_name (it->second);
                     if (name.empty ()) { name = it->second; }
-                    log_debug ("sanitized '%s' -> '%s'", it->second.c_str(), name.c_str ());
+                    log_debug ("sanitized %s '%s' -> '%s'", title.c_str(), it->second.c_str(), name.c_str ());
+                    result [title] = name;
                 }
             } else {
                 // simple name
@@ -177,7 +178,8 @@ std::map <std::string, std::string>sanitize_row_ext_names (
                 if (it != result.end ()) {
                     std::string name = extname_to_asset_name (it->second);
                     if (name.empty ()) { name = it->second; }
-                    log_debug ("sanitized '%s' -> '%s'", it->second.c_str(), name.c_str ());
+                    log_debug ("sanitized %s '%s' -> '%s'", it->first.c_str (), it->second.c_str(), name.c_str ());
+                    result [item] = name;
                 }
             }
         }

@@ -50,7 +50,7 @@ iname_to_dbid (const std::string& url, const std::string& asset_name)
     try
     {
         int64_t id = 0;
-        
+
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
         " SELECT id_asset_element"
@@ -69,7 +69,7 @@ iname_to_dbid (const std::string& url, const std::string& asset_name)
     {
         log_error ("exception caught %s", e.what ());
         return -1;
-    }    
+    }
 }
 
 bool
@@ -80,11 +80,11 @@ check_element_identifier (const char *param_name, const std::string& param_value
         return false;
     }
 
-    
+
     int64_t eid = 0;
     const char *prohibited = "_@%;\"";
     for (unsigned int a = 0; a < strlen (prohibited); ++a) {
-        if (param_value.find (prohibited[a]) != std::string::npos) { 
+        if (param_value.find (prohibited[a]) != std::string::npos) {
             http_add_error ("", errors, "request-param-bad", param_name,
                             std::string ("value '").append (param_value).append ("'").append (" contains prohibited characters (").append (prohibited).append(")").c_str (),
                             "valid identificator");
@@ -157,7 +157,7 @@ utf8_contains_chars (const std::string& input, const std::vector <char>& exclude
 
     unsigned int pos = 0;
 
-    while (pos < input.length ()) {        
+    while (pos < input.length ()) {
         const char c = input [pos];
         if ((c & 0x80 ) == 0) {     // lead bit is zero, must be a single ascii
             for (const auto& item : exclude)
