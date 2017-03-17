@@ -61,7 +61,7 @@ UserInfo user;
     // get id by name
     int64_t dbid = persist::name_to_asset_id (checked_id);
     if (dbid == -1) {
-        http_die ("not-found", checked_id.c_str ());
+        http_die ("element-not-found", checked_id.c_str ());
     }
     // delete it
     db_a_elmnt_t row;

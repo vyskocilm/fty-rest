@@ -236,7 +236,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     {
         id = name_to_asset_id (id_str);
         if (id == -1) {
-            bios_throw("not-found", id_str.c_str ());
+            bios_throw("element-not-found", id_str.c_str ());
         }
         if ( ids.count(id) == 1 ) {
             std::string msg = "Element id '";

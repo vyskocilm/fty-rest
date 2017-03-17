@@ -239,7 +239,7 @@ UserInfo user;
                 zstr_free (&frame);
                 std::string die = "Data for type = '" + checked_type + "', step = '" + checked_step +
                 "', source = '" + checked_source + "', element_id = '" + std::to_string (checked_element_id) + "' ";
-                http_die ("not-found", die.c_str ());
+                http_die ("element-not-found", die.c_str ());
             }
             log_info ("error frame == '%s'", frame);
             http_die ("internal-error", frame);
