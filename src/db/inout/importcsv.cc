@@ -158,13 +158,27 @@ std::map <std::string, std::string>sanitize_row_ext_names (
     }
     if (sanitize) {
         // sanitize ext names to t_bios_asset_element.name
-        // FIXME: better walk trough powersources
-        auto sanitizeList = {"location", "power_source.1", "power_source.2", "power_source.3", "power_source.4" };
+        auto sanitizeList = {"location", "power_source.", "group." };
         for (auto item: sanitizeList) {
-            std::string name = extname_to_asset_name (result [item]);
-            log_debug ("sanitized '%s' -> '%s'", result [item].c_str(), name.c_str ());
-            if (! name.empty ()) {
-                result [item] = name;
+            if (item [strlen (item) - 1] == '.') {
+                // iterate index .X
+                for (int i = 1; true; ++i) {
+                    std::string title = item + std::to_string (i);
+                    auto it = result.find (title);
+                    if (it == result.end ()) break;
+                    
+                    std::string name = extname_to_asset_name (it->second);
+                    if (! name.empty ()) { name = it->second; }
+                    log_debug ("sanitized '%s' -> '%s'", it->second.c_str(), name.c_str ());
+                }
+            } else {
+                // simple name
+                auto it = result.find (item);
+                if (it != result.end ()) {
+                    std::string name = extname_to_asset_name (it->second);
+                    if (! name.empty ()) { name = it->second; }
+                    log_debug ("sanitized '%s' -> '%s'", it->second.c_str(), name.c_str ());
+                }
             }
         }
     }
