@@ -5,7 +5,6 @@
     "metrics"       : ["status.input.1.voltage", "status.input.2.voltage"],
     "assets"         : [__name__],
     "results"       :  {
-        "high_critical"  : { "action" : ["EMAIL", "SMS"] },
         "high_warning"  : { "action" : ["EMAIL"] }
     },
     "evaluation"    : "
@@ -19,7 +18,7 @@
              if i2 == 'good' then
                  return WARNING, 'Input 1 voltage status of ' .. NAME .. ' is out of tolerance (' .. i1 .. ')!'
              end
-             return CRITICAL, 'Voltage status of both inputs are out of tolerance (' .. i1 .. ', ' .. i2 .. ')!'
+             return WARNING, 'Voltage status of both inputs are out of tolerance (' .. i1 .. ', ' .. i2 .. ')!'
          end
     "
   }
