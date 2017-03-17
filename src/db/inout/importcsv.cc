@@ -370,7 +370,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
             // remove from unused
             unused_columns.erase(grp_col_name);
             // take value
-            group = cm.get(row_i, grp_col_name);
+            group = sanitizedAssetNames [grp_col_name];
         }
         catch (const std::out_of_range &e)
         // if column doesn't exist, then break the cycle
