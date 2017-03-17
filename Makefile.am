@@ -267,7 +267,7 @@ libpriv_utils_plusplus_la_SOURCES = \
 				src/shared/filesystem.h \
 				src/shared/filesystem.cc
 
-libpriv_utils_plusplus_la_LIBADD = ${CXXTOOLS_LIBS}
+libpriv_utils_plusplus_la_LIBADD = ${LIBCZMQ_LIBS}
 
 noinst_LTLIBRARIES += 		libpriv-defs.la
 
