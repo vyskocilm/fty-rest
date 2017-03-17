@@ -234,12 +234,12 @@ UserInfo user;
     std::string parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).first;
     std::string ext_parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).second;
     std::string asset_ext_name = persist::id_to_name_ext_name (tmp.item.basic.id).second;
-  
+
 // Prepare the reply
 </%cpp>
 {
       "id": "<$$ tmp.item.basic.name $>"
-    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.id $>&sub_type=epdu,pdu,feed,genset,ups,sts"
+    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.name $>&sub_type=epdu,pdu,feed,genset,ups,sts"
     , "name": "<$$ utils::json::escape (asset_ext_name) $>"  
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
