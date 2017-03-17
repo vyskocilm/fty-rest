@@ -378,6 +378,10 @@ if ( !tmp.item.ext.empty() )
     for ( auto &oneExt : tmp.item.ext )
     {
         auto &attrName = oneExt.first;
+
+        if (attrName == "name")
+            continue;
+
         auto &attrValue = oneExt.second.first;
         auto isReadOnly= oneExt.second.second;
         if ( r_outlet_label.match(attrName) ) {
