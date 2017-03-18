@@ -376,7 +376,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         // if column doesn't exist, then break the cycle
         {
             log_debug ("end of group processing");
-            log_debug (e.what());
+            log_debug ("%s", e.what());
             break;
         }
         log_debug ("group_name = '%s'", group.c_str());
@@ -414,7 +414,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         // if column doesn't exist, then break the cycle
         {
             log_debug ("end of power links processing");
-            log_debug (e.what());
+            log_debug ("%s", e.what());
             break;
         }
 
@@ -449,7 +449,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         catch (const std::out_of_range &e)
         {
             log_debug ("'%s' - is missing at all", link_col_name1.c_str());
-            log_debug (e.what());
+            log_debug ("%s", e.what());
         }
 
         // column name
@@ -465,7 +465,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         catch (const std::out_of_range &e)
         {
             log_debug ("'%s' - is missing at all", link_col_name2.c_str());
-            log_debug (e.what());
+            log_debug ("%s", e.what());
         }
 
         if ( one_link.src != 0 ) // if first column was ok
