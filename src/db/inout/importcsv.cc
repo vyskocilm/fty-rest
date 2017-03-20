@@ -158,7 +158,7 @@ std::map <std::string, std::string>sanitize_row_ext_names (
     }
     if (sanitize) {
         // sanitize ext names to t_bios_asset_element.name
-        auto sanitizeList = {"location", "power_source.", "group." };
+        auto sanitizeList = {"location", "logical_asset", "power_source.", "group." };
         for (auto item: sanitizeList) {
             if (item [strlen (item) - 1] == '.') {
                 // iterate index .X
@@ -505,6 +505,9 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         // BIOS-2784: Check max_current, max_power
         if ( key == "logical_asset" && !value.empty() ) {
             // check, that this asset exists
+
+            value = sanitizedAssetNames.at ("logical_asset");
+
             auto ret = select_asset_element_by_name
                 (conn, value.c_str());
             if ( ret.status == 0 ) {
