@@ -20,7 +20,7 @@
 /*!
  * \file input_power_chain.ecpp
  * \author Barbora Stepankova <BarboraStepankova@Eaton.com>
- * \brief Returns input power chain. 
+ * \brief Returns input power chain.
  */
  #><%pre>
 #include <string>
@@ -29,12 +29,12 @@
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/serializationinfo.h>
 #include "utils_web.h"
-#include "assets.h"                
+#include "assets.h"
 #include "helpers.h"
 #include "dbpath.h"
 #include "assettopology.h"
 
-// struc for "devices" array    
+// struc for "devices" array
 struct Array_devices
 {
     std::string name;
@@ -42,7 +42,7 @@ struct Array_devices
     std::string sub_type;
 };
 
-// struc for "powerchains" array        
+// struc for "powerchains" array
 struct Array_power_chain
 {
     std::string src_id;
@@ -58,7 +58,7 @@ struct Topology
     std::vector <Array_power_chain> powerchains;
 };
 
-// that's how main structure is serialized 
+// that's how main structure is serialized
 void operator<<= (cxxtools::SerializationInfo& si, const Topology& input_power)
 {
     si.addMember("devices") <<= input_power.devices;
@@ -78,14 +78,14 @@ void operator<<= (cxxtools::SerializationInfo& si, const Array_power_chain& arra
 {
     si.addMember("src-id") <<= array_power_chain.src_id;
     si.addMember("dst-id") <<= array_power_chain.dst_id;
-    
+
     if (array_power_chain.src_socket != "")
        si.addMember("src-socket") <<= array_power_chain.src_socket;
     if (array_power_chain.dst_socket != "")
         si.addMember("dst-socket") <<= array_power_chain.dst_socket;
 }
 
-    
+
 void
 fill_array_devices (const std::map <std::string,
                           std::pair <std::string,
@@ -93,16 +93,16 @@ fill_array_devices (const std::map <std::string,
                           std::vector <Array_devices>& devices_vector)
 {
     Array_devices array_devices;
-    std::map <std::string, std::pair <std::string, std::string>> _map_devices = map_devices;    
+    std::map <std::string, std::pair <std::string, std::string>> _map_devices = map_devices;
     for (const auto& device : _map_devices)
     {
         array_devices.id = device.second.first;
         array_devices.name = persist::id_to_name_ext_name (atoi (device.first.c_str())).second;
         array_devices.sub_type = device.second.second;
-        
+
         devices_vector.push_back (array_devices);
     }
-    
+
 }
 
 void
@@ -116,16 +116,16 @@ fill_array_powerchains (std::vector <std::tuple
         Array_power_chain array_powerchains;
         for (const auto& chain : vector_powerchains)
         {
-            
+
             array_powerchains.src_socket = std::get <3> (chain).c_str();
             array_powerchains.dst_socket = std::get <1> (chain).c_str();
-            
-            array_powerchains.src_id = std::get <2> (chain).c_str();
-            array_powerchains.dst_id = std::get <0> (chain).c_str ();
-            
+
+            array_powerchains.src_id = persist::id_to_name_ext_name (atoi (std::get <2> (chain).c_str())).first;
+            array_powerchains.dst_id = persist::id_to_name_ext_name (atoi (std::get <0> (chain).c_str ())).first;
+
             powerchains_vector.push_back (array_powerchains);
         }
-}        
+}
 </%pre>
 <%request scope="global">
     UserInfo user;
@@ -144,7 +144,7 @@ fill_array_powerchains (std::vector <std::tuple
     Array_power_chain powerchains_item;
     std::vector <Array_power_chain> powerchains_vector;
     std::vector <Array_devices> devices_vector;
-  
+
     // test data for powerchains -- dst-id, dst-socket, src-id, src-socket
     std::vector <std::tuple <std::string, std::string, std::string, std::string>> powerchains_data;
    //  device_id -- <device name, device subtype>
@@ -159,14 +159,14 @@ fill_array_powerchains (std::vector <std::tuple
 
     int rv = -1;
     int64_t num_dc_id = persist::name_to_asset_id (dc_id);
-  
+
     if ( num_dc_id == -1 )
         http_die ("element-not-found", "dc_id ", dc_id.c_str ());
-  
+
     rv = input_power_group_response (url, num_dc_id, devices_data, powerchains_data);
-  
-    if (rv == -1)    
-    {    
+
+    if (rv == -1)
+    {
         log_debug ("input_power_group_response = %i", rv);
         http_die ("internal-error", "input_power_group_response");
     }
@@ -175,20 +175,16 @@ fill_array_powerchains (std::vector <std::tuple
         log_debug ("devices_data.size () == 0");
     if (powerchains_data.size () == 0)
         log_debug ("powerchains_data.size () == 0");
-  
+
     fill_array_devices (devices_data, devices_vector);
     fill_array_powerchains (powerchains_data, powerchains_vector);
-  
+
     topo.devices = std::move (devices_vector);
     topo.powerchains = std::move (powerchains_vector);
 
     cxxtools::JsonSerializer serializer (reply.out ());
-    serializer.serialize(topo).finish(); 
+    serializer.serialize(topo).finish();
 
     return HTTP_OK;
-    
+
 </%cpp>
-
-
-
-
