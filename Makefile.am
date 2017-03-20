@@ -1253,6 +1253,8 @@ run-test-subprocess: test-subprocess
 check-pool: test-tntmlm
 	(valgrind --leak-check=full --show-reachable=yes --error-exitcode=1 --suppressions=$(abs_top_srcdir)/tests/test-mlm.supp $(abs_top_builddir)/test-tntmlm)
 
+memcheck: check-pool
+
 EXTRA_DIST += $(top_srcdir)/tests/test-mlm.supp
 
 clean-junit:
