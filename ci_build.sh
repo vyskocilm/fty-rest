@@ -256,7 +256,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
         BASE_PWD=${PWD}
         echo "`date`: INFO: Building prerequisite 'czmq' from Git repository..." >&2
         # $CI_TIME git clone --quiet --depth 1 -b v3.0.2 https://github.com/zeromq/czmq.git czmq
-        $CI_TIME git clone --quiet --depth 1 https://github.com/42ity/czmq czmq
+        # $CI_TIME git clone --quiet --depth 1 https://github.com/42ity/czmq czmq
+        $CI_TIME git clone --quiet --depth 1 -b v3.0.2 https://github.com/42ity/czmq czmq
         cd czmq
         CCACHE_BASEDIR=${PWD}
         export CCACHE_BASEDIR
