@@ -84,7 +84,7 @@ s_power_links(
             std::string dest_in{""};
             r["src_name"].get(src_name);
             r["src_out"].get(src_out);
-            r["dest_in"].get(dest_in);                      
+            r["dest_in"].get(dest_in);
             out.push_back(std::make_tuple(
                 src_name,
                 src_out,
@@ -208,13 +208,13 @@ void
         std::string id;
         r["id"].get(id_num);
         id = persist::id_to_name_ext_name (id_num).first;
-        
+
         a_elmnt_id_t id_parent_num = 0;
         std::string id_parent;
         std::string location;
         r["id_parent"].get(id_parent_num);
-        location = persist::id_to_name_ext_name (id_parent_num).second;        
-        
+        location = persist::id_to_name_ext_name (id_parent_num).second;
+
         // 2.1      select all extended attributes
         std::map <std::string, std::pair<std::string, bool> > ext_attrs;
         select_ext_attributes(conn, id_num, ext_attrs);
@@ -232,7 +232,7 @@ void
         // ORDER of fields added to the lcs IS SIGNIFICANT
         std::string type_name;
         {
-        std::string name = persist::id_to_name_ext_name (id_num).second;        
+        std::string name = persist::id_to_name_ext_name (id_num).second;
         lcs.add(name);
 
         r["type_name"].get(type_name);
@@ -287,13 +287,21 @@ void
             lcs.add(input);
         }
 
+        // convert necessary ids to names, for now just logical_asset
+        {
+            auto it = ext_attrs.find ("logical_asset");
+            if (it != ext_attrs.end ()) {
+                ext_attrs ["logical_asset"] = make_pair (persist::name_to_extname (it->second.first), it->second.second);
+            }
+        }
         // 2.5.3        read-write (!read_only) extended attributes
         for (const auto& k : KEYTAGS) {
             if (ext_attrs.count(k) == 1 &&
-                !ext_attrs[k].second)
+                !ext_attrs[k].second) {
                 lcs.add(ext_attrs[k].first);
-            else
+            } else {
                 lcs.add("");
+            }
         }
 
         // 2.5.4        groups
@@ -301,7 +309,7 @@ void
             if (i >= groups.size())
                 lcs.add("");
             else
-                lcs.add(groups[i]);
+                lcs.add(persist::name_to_extname (groups[i]));
         }
 
         lcs.add(id);
