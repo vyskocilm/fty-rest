@@ -603,7 +603,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
 
     if ( !id_str.empty() )
     {
-        m.id = atoi(id_str.c_str());
+        m.id = id;
         std::string errmsg = "";
         if (type != "device" )
         {
