@@ -52,7 +52,7 @@ UserInfo user;
 
     // checked (processed) parameters
     std::vector<std::string> DCNames;
-    std::vector<std::string> DCs;
+    std::vector<std::string> DCExtNames;
 
     // ##################################################
     // BLOCK 1
@@ -65,7 +65,8 @@ UserInfo user;
             http_die ("request-param-required", "arg1");
         }
 
-        cxxtools::split(",", arg1, std::back_inserter(DCs));
+        cxxtools::split(",", arg1, std::back_inserter(DCNames));
+        std::string ExtName;
 
         // check that DC exists
         auto allDcsShort = asset_mgr.get_items1 ("datacenter", "");
@@ -73,14 +74,14 @@ UserInfo user;
             http_die ("internal-error", "Error while retrieving information about datacenters.");
         }
 
-        for (auto const& item : DCs) {
-            uint32_t real_id = persist::name_to_asset_id (item);
-            
-            auto it = allDcsShort.item.find(real_id);
-            if (it == allDcsShort.item.end()) {
-                http_die ("element-not-found", item.c_str ());
-            }
-            DCNames.push_back(it->second);
+        for (auto const& item : DCNames) {
+            ExtName = persist::name_to_extname (item);
+
+            if (ExtName.empty ())
+                http_die ("not-found", item.c_str ());
+
+            DCExtNames.push_back (ExtName);
+
         }
     }
     // Sanity check end
@@ -97,7 +98,7 @@ UserInfo user;
 
         json << "{\n\t\"outage\": [\n";
 
-        for ( size_t D = 0 ; D < DCs.size(); D++ )
+        for ( size_t D = 0 ; D < DCNames.size(); D++ )
         {
 
             mlm_client_sendtox (
@@ -125,11 +126,11 @@ UserInfo user;
             }
 
             json << "\t\t{\n"
-                 << "\t\t\t\"id\": \""   << DCNames[D]           << "\",\n"
-                 << "\t\t\t\"name\": \"" << persist::id_to_name_ext_name (atoi (DCs[D].c_str ())).second << "\",\n"
-                 << "\t\t\t\"outage\" : "<<  offline         <<   ",\n"
-                 << "\t\t\t\"total\" : " <<  total           <<    "\n";
-            json << "\t\t}" << (  D < DCs.size() -1 ? ",\n" : "\n" );
+                 << "\t\t\t\"id\": \""   << DCNames[D]       << "\",\n"
+                 << "\t\t\t\"name\": \"" << DCExtNames[D]    << "\",\n"
+                 << "\t\t\t\"outage\" : "<< offline          <<   ",\n"
+                 << "\t\t\t\"total\" : " << total            <<    "\n";
+            json << "\t\t}"              << (  D < DCNames.size() -1 ? ",\n" : "\n" );
         }
         json << "\t]\n}\n";
         mlm_client_destroy (&client);
