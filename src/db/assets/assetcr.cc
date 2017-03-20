@@ -742,12 +742,13 @@ db_reply_t
                 " (:name, :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
                 " ON DUPLICATE KEY UPDATE name = :name "
             );
-        } else {                
+        } else {
+            // @ is prohibited in name => name-@@-342 is unique
             statement = conn.prepareCached (
                 " INSERT INTO t_bios_asset_element "
                 " (name, id_type, id_subtype, id_parent, status, priority, asset_tag) "
                 " VALUES "
-                " (concat (:name, '-', (coalesce (select max(id_asset_element) from t_bios_asset_element,0) + 1))), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
+                " (concat (:name, '-@@-', " + std::to_string (rand ())  + "), :id_type, :id_subtype, :id_parent, :status, :priority, :asset_tag) "
             );
         }
         if (parent_id == 0)
@@ -777,6 +778,17 @@ db_reply_t
 
         ret.rowid = conn.lastInsertId ();
         log_debug ("[t_bios_asset_element]: was inserted %" PRIu64 " rows", ret.affected_rows);
+        if (! update) {
+            // it is insert, fix the name
+            statement = conn.prepareCached (
+                " UPDATE t_bios_asset_element "
+                "  set name = concat(:name, '-', :id) "
+                " WHERE id_asset_element = :id "
+            );
+            statement.set ("name", element_name).
+                set ("id", ret.rowid).
+                execute();
+        }
         if (ret.affected_rows == 0) {
             ret.status = 0;
             //TODO: rework to bad param

@@ -40,6 +40,7 @@
 #include "log.h"
 #include "cleanup.h"
 #include "helpers.h"
+#include "assetr.h"
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -54,7 +55,8 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    a_elmnt_id_t checked_id = 0;
+    int64_t checked_id;
+    std::string asset_id;
     int request_type = 0;
     std::string parameter_name;
 
@@ -67,7 +69,6 @@ UserInfo user;
         std::string filter_dc = qparam.param("filter_dc");
         std::string filter_group = qparam.param("filter_group");
 
-        std::string asset_id;
         if ( from.empty() && to.empty() && filter_dc.empty() && filter_group.empty() ) {
             http_die("request-param-required", "from/to/filter_dc/filter_group");
         }
@@ -109,10 +110,11 @@ UserInfo user;
             parameter_name = "filter_group";
         }
 
-        http_errors_t errors;
-        if (!check_element_identifier (parameter_name.c_str (), asset_id, checked_id, errors)) {
-            http_die_error (errors);
-        }
+	if (!is_ok_name (asset_id.c_str ()) )
+            http_die ("request-param-bad", "id", asset_id.c_str (), "valid asset name");
+        checked_id = persist::name_to_asset_id (asset_id);
+	if (checked_id == -1)
+            http_die ("request-param-bad", "id", asset_id.c_str (), "existing asset name");
     }
     // Sanity check end
 
@@ -124,7 +126,7 @@ UserInfo user;
     }
 
    // Call persistence layer
-    asset_msg_set_element_id (input_msg,  checked_id);
+    asset_msg_set_element_id (input_msg,  (uint32_t) checked_id);
     _scoped_zmsg_t *return_msg = process_assettopology (url.c_str(), &input_msg);
     if (return_msg == NULL) {
         log_error ("Function process_assettopology() returned a null pointer");
@@ -147,7 +149,7 @@ UserInfo user;
                 case(DB_ERROR_BADINPUT):
                     http_die("request-param-bad", parameter_name.c_str(), "id of the asset, that is not a device", "id of the asset, that is a device");
                 case(DB_ERROR_NOTFOUND):
-                    http_die("element-not-found", std::to_string (checked_id).c_str());
+                    http_die("element-not-found", asset_id.c_str());
                 default:
                     http_die("internal-error", "");
             }
@@ -212,8 +214,8 @@ UserInfo user;
                     } else {
                         first = false;
                     }
-                    json.append("{ \"name\" : \"").append(asset_msg_name (item)).append("\",");
-                    json.append("\"id\" : \"").append(std::to_string(asset_msg_element_id (item))).append("\",");
+                    json.append("{ \"name\" : \"").append(persist::id_to_name_ext_name (asset_msg_element_id (item)).second).append("\",");
+                    json.append("\"id\" : \"").append(asset_msg_name (item)).append("\",");
                     json.append("\"sub_type\" : \"").append(asset_msg_type_name (item)).append("\"}");
 
                     asset_msg_destroy (&item);
@@ -244,11 +246,11 @@ UserInfo user;
                     while (getline(f, tmp, ':')) {
                         tokens.push_back(tmp);
                     }
-                    json.append("\"src-id\" : \"").append(tokens[1]).append("\",");
+                    json.append("\"src-id\" : \"").append(persist::id_to_name_ext_name (std::stoi (tokens[1])).first).append("\",");
                     if (!tokens[0].empty() && tokens[0] != "999") {
                         json.append("\"src-socket\" : \"").append(tokens[0]).append("\",");
                     }
-                    json.append("\"dst-id\" : \"").append(tokens[3]).append("\"");
+                    json.append("\"dst-id\" : \"").append(persist::id_to_name_ext_name (std::stoi (tokens[3])).first).append("\"");
                     if (!tokens[2].empty() && tokens[2] != "999") {
                         json.append(",\"dst-socket\" : \"").append(tokens[2]).append("\"");
                     }

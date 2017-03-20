@@ -1,11 +1,10 @@
 { "flexible" :
   {
     "name"          : "sts-frequency@__name__",
-    "description"   : "STS/ATS frequency alert",
+    "description"   : "The frequency is out of tolerance",
     "metrics"       : ["status.input.1.frequency", "status.input.2.frequency"],
     "assets"        : ["__name__"],
     "results"       :  {
-        "high_critical"  : { "action" : ["EMAIL", "SMS"] },
         "high_warning"  : { "action" : ["EMAIL"] }
     },
     "evaluation"    : "
@@ -19,7 +18,7 @@
              if i2 == 'good' then
                  return WARNING, 'Input 1 frequency status of ' .. NAME .. ' is out of tolerance (' .. i1 .. ')!'
              end
-             return CRITICAL, 'Frequency status of both inputs are out of tolerance (' .. i1 .. ', ' .. i2 .. ')!'
+             return WARNING, 'Frequency status of both inputs are out of tolerance (' .. i1 .. ', ' .. i2 .. ')!'
          end
     "
   }

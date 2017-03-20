@@ -158,13 +158,29 @@ std::map <std::string, std::string>sanitize_row_ext_names (
     }
     if (sanitize) {
         // sanitize ext names to t_bios_asset_element.name
-        // FIXME: better walk trough powersources
-        auto sanitizeList = {"location", "power_source.1", "power_source.2" };
+        auto sanitizeList = {"location", "logical_asset", "power_source.", "group." };
         for (auto item: sanitizeList) {
-            std::string name = extname_to_asset_name (result [item]);
-            log_debug ("sanitized '%s' -> '%s'", result [item].c_str(), name.c_str ());
-            if (! name.empty ()) {
-                result [item] = name;
+            if (item [strlen (item) - 1] == '.') {
+                // iterate index .X
+                for (int i = 1; true; ++i) {
+                    std::string title = item + std::to_string (i);
+                    auto it = result.find (title);
+                    if (it == result.end ()) break;
+
+                    std::string name = extname_to_asset_name (it->second);
+                    if (name.empty ()) { name = it->second; }
+                    log_debug ("sanitized %s '%s' -> '%s'", title.c_str(), it->second.c_str(), name.c_str ());
+                    result [title] = name;
+                }
+            } else {
+                // simple name
+                auto it = result.find (item);
+                if (it != result.end ()) {
+                    std::string name = extname_to_asset_name (it->second);
+                    if (name.empty ()) { name = it->second; }
+                    log_debug ("sanitized %s '%s' -> '%s'", it->first.c_str (), it->second.c_str(), name.c_str ());
+                    result [item] = name;
+                }
             }
         }
     }
@@ -220,7 +236,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
     {
         id = name_to_asset_id (id_str);
         if (id == -1) {
-            bios_throw("not-found", id_str.c_str ());
+            bios_throw("element-not-found", id_str.c_str ());
         }
         if ( ids.count(id) == 1 ) {
             std::string msg = "Element id '";
@@ -354,13 +370,13 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
             // remove from unused
             unused_columns.erase(grp_col_name);
             // take value
-            group = cm.get(row_i, grp_col_name);
+            group = sanitizedAssetNames.at (grp_col_name);
         }
         catch (const std::out_of_range &e)
         // if column doesn't exist, then break the cycle
         {
             log_debug ("end of group processing");
-            log_debug (e.what());
+            log_debug ("%s", e.what());
             break;
         }
         log_debug ("group_name = '%s'", group.c_str());
@@ -398,7 +414,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         // if column doesn't exist, then break the cycle
         {
             log_debug ("end of power links processing");
-            log_debug (e.what());
+            log_debug ("%s", e.what());
             break;
         }
 
@@ -433,7 +449,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         catch (const std::out_of_range &e)
         {
             log_debug ("'%s' - is missing at all", link_col_name1.c_str());
-            log_debug (e.what());
+            log_debug ("%s", e.what());
         }
 
         // column name
@@ -449,7 +465,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         catch (const std::out_of_range &e)
         {
             log_debug ("'%s' - is missing at all", link_col_name2.c_str());
-            log_debug (e.what());
+            log_debug ("%s", e.what());
         }
 
         if ( one_link.src != 0 ) // if first column was ok
@@ -489,6 +505,9 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         // BIOS-2784: Check max_current, max_power
         if ( key == "logical_asset" && !value.empty() ) {
             // check, that this asset exists
+
+            value = sanitizedAssetNames.at ("logical_asset");
+
             auto ret = select_asset_element_by_name
                 (conn, value.c_str());
             if ( ret.status == 0 ) {
@@ -587,7 +606,7 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
 
     if ( !id_str.empty() )
     {
-        m.id = atoi(id_str.c_str());
+        m.id = id;
         std::string errmsg = "";
         if (type != "device" )
         {

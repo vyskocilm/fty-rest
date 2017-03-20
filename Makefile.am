@@ -35,7 +35,7 @@ dist_noinst_DATA =
 # A source file listed in BUILT_SOURCES is made on `make all` or `make check`
 # (or even `make install`) before other targets are processed. However, such
 # a source file is not compiled unless explicitly requested by mentioning it
-# in some other _SOURCES variable. 
+# in some other _SOURCES variable.
 BUILT_SOURCES =
 # http://www.gnu.org/software/automake/manual/html_node/Clean.html
 # * If make built it, and it is commonly something that one would want to
@@ -105,7 +105,7 @@ RUN_TNTNET = cat "$(RUN_TNTNET_ENVFILE)" || exit; \
 # tracking (which is automatic), but to ensure these files are
 # distributed by "make dist" although not "installed".
 
-dist_noinst_HEADERS = 
+dist_noinst_HEADERS =
 
 # Clean up products of configure script
 DISTCLEANFILES += \
@@ -155,6 +155,7 @@ AM_CPPFLAGS = \
 		-I$(abs_top_srcdir)/src/include \
 		-I$(abs_top_builddir)/src/msg \
 		-I$(abs_top_srcdir)/src/msg \
+		-I$(abs_top_srcdir)/tools \
 		-D__STDC_FORMAT_MACROS
 
 AM_CFLAGS = \
@@ -266,6 +267,8 @@ libpriv_utils_plusplus_la_SOURCES = \
 				src/shared/filesystem.h \
 				src/shared/filesystem.cc
 
+libpriv_utils_plusplus_la_LIBADD = ${LIBCZMQ_LIBS}
+
 noinst_LTLIBRARIES += 		libpriv-defs.la
 
 libpriv_defs_la_SOURCES = 	src/include/str_defs.c \
@@ -323,7 +326,7 @@ libpriv_csv_la_CPPFLAGS =$(AM_CPPFLAGS) \
 			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_src_dir)/src/msg
 
-libpriv_csv_la_LIBADD = ${CXXTOOLS_LIBS}
+libpriv_csv_la_LIBADD = ${CXXTOOLS_LIBS} -ltntdb
 
 noinst_LTLIBRARIES += 		libpriv-db.la
 
@@ -399,6 +402,8 @@ libpriv_db_assets_la_SOURCES = \
 			src/db/inout/exportcsv.cc \
 			src/db/asset_general.cc \
 			src/db/asset_general.h
+
+libpriv_db_assets_la_LIBADD = ${LIBCZMQ_LIBS}
 
 libpriv_db_assets_la_CPPFLAGS = $(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
@@ -518,13 +523,14 @@ test_web_helpers_LDADD =    libpriv-test-run.la \
 				            libpriv-log.la \
 				            libpriv-utils-web.la \
 							libpriv-subprocess.la \
-							libpriv-defs.la
+							libpriv-defs.la \
+							libpriv-db.la
 
 test_web_helpers_CPPFLAGS =	$(AM_CPPFLAGS) \
 							-I$(abs_top_srcdir)/tests/include/ \
 							-I$(abs_top_srcdir)/src/web/include
 
-test_web_helpers_LDFLAGS =	-ltntnet ${CXXTOOLS_LIBS} $(LIBCZMQ_LIBS)
+test_web_helpers_LDFLAGS =	-ltntnet -ltntdb ${CXXTOOLS_LIBS} $(LIBCZMQ_LIBS)
 
 ###
 check_PROGRAMS +=	test-utils-web
@@ -546,7 +552,7 @@ test_utils_web_CPPFLAGS = \
 test_utils_web_LDFLAGS =	${CXXTOOLS_LIBS} -lczmq
 
 ###
-check_PROGRAMS +=	test-tntmlm	
+check_PROGRAMS +=	test-tntmlm
 
 test_tntmlm_SOURCES = \
 			src/shared/tntmlm.h \
@@ -565,7 +571,7 @@ test_tntmlm_CPPFLAGS = \
 
 test_tntmlm_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} ${CXXTOOLS_LIBS}
 
-check_PROGRAMS +=	test-utils-plusplus	
+check_PROGRAMS +=	test-utils-plusplus
 
 test_utils_plusplus_SOURCES = \
 			src/shared/utils++.h \
@@ -629,11 +635,11 @@ test_cidr_LDFLAGS =	-lcidr
 check_PROGRAMS += 	test-csv
 
 test_csv_SOURCES =		src/shared/csv.h \
-					    tests/shared/test-csv.cc
+						tests/shared/test-csv.cc
 
 test_csv_LDADD = 		libpriv-csv.la \
 						libpriv-log.la \
-					    libpriv-test-run.la
+						libpriv-test-run.la
 
 test_csv_CPPFLAGS =		$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
@@ -761,7 +767,7 @@ cibin_programs += 	test-totalpower
 
 test_totalpower_SOURCES = \
 			tests/persist/test-rack-power.cc \
-			tests/persist/test-dc-power.cc 
+			tests/persist/test-dc-power.cc
 
 test_totalpower_LDADD = \
 			libpriv-db.la \
@@ -799,7 +805,7 @@ CLEANFILES += $(cibin_programs_list)
 ### Verification that bios_web.so is in fact usable on binary level
 ### Note that this creates no retainable output file
 web-link-test: bios_web.la
-			@$(CXX) $(AM_CPPFLAGS) $(AM_CXXFLAGS) -o /dev/null \
+			$(CXX) $(AM_CPPFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -o /dev/null \
 			$(abs_top_srcdir)/tests/web-linking-test.cc \
 			${CXXTOOLS_LIBS} -ltntnet \
 			$(abs_top_builddir)/.libs/bios_web.so && \
@@ -967,7 +973,8 @@ bios_web_la_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_builddir)/src \
 			-I$(abs_top_srcdir)/tools \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/agents/configure_inform
+			-I$(abs_top_srcdir)/src/agents/configure_inform \
+			-I$(abs_top_srcdir)/src/db/assets
 
 bios_web_la_LDFLAGS = 	${LIBCZMQ_LIBS}	${CXXTOOLS_LIBS} \
 			${LIBSODIUM_LIBS} ${LIBSASL2_LIBS} \
@@ -1151,7 +1158,7 @@ EXTRA_DIST += \
 # and written in asciidoc markup
 # Note these should have paths relative to project root dir.
 BASE_DOCS_ASCIIDOC =	INSTALL \
-			CONTRIBUTING 
+			CONTRIBUTING
 
 # Documentation files saved in the project source-code root directory
 # as text files without extensions in the name and written in plain
@@ -1179,7 +1186,7 @@ TXT_DOCS_PLAINTEXT =
 # (as in case of the _ASCIIDOC list).
 # Filenames here should not have spaces and should have the '.txt' suffix.
 
-MAPPED_TXT_DOCS_PLAINTEXT = 
+MAPPED_TXT_DOCS_PLAINTEXT =
 
 MAPPED_TXT_DOCS_ASCIIDOC = \
 	src/web/README.txt:$(myDEVDOCDIR)/README-web-tests-generalInfo.txt
@@ -1245,6 +1252,8 @@ run-test-subprocess: test-subprocess
 # FIXME: temporarily disabled as it started to fail in about 10% of runs
 check-pool: test-tntmlm
 	(valgrind --leak-check=full --show-reachable=yes --error-exitcode=1 --suppressions=$(abs_top_srcdir)/tests/test-mlm.supp $(abs_top_builddir)/test-tntmlm)
+
+memcheck: check-pool
 
 EXTRA_DIST += $(top_srcdir)/tests/test-mlm.supp
 

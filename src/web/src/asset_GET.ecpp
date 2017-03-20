@@ -153,7 +153,7 @@ UserInfo user;
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
     // checked parameters
-    std::string checked_id;                       
+    uint32_t checked_id;
     std::string checked_type;
 
     // ##################################################
@@ -168,18 +168,21 @@ UserInfo user;
         log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
                 id.c_str (), type.c_str ());
         
-        if (!is_ok_name (id.c_str())) {
-            http_die ("request-param-bad", "asset id", id.c_str ());
-        }
-        else {
-            checked_id = id;
-        }
-
-        if ( !type.empty() && !persist::type_to_typeid (type) ) {
+        if ( !type.empty() && !persist::type_to_typeid (type) )
             http_die("request-param-bad", "type", type.c_str(), "one of datacenter/room/row/rack/group/device");
-        }
-        else {
-            checked_type = type;
+        
+        checked_type = type;
+
+        http_errors_t errors;
+        if (!check_element_identifier ("dev", id, checked_id, errors)) {
+            // XXX: we might have device called group.123, which will be passed as
+            //      id = '.123', type = 'group'
+            //      This is deprecated form of the call, but handle that gracefully
+            id = type + id;
+            http_errors_t errors;
+            if (!check_element_identifier ("dev", id, checked_id, errors)) {
+                http_die ("element-not-found", id.c_str ());
+            }
         }
     }
     // Sanity check end
@@ -187,32 +190,20 @@ UserInfo user;
     // ##################################################
     // BLOCK 2
     // Receive data and check arguments
-  if ( checked_id.empty() ) {
-        http_die("request-param-required", "id");
-    }
 
-    int64_t num_id = persist::name_to_asset_id (checked_id);
-    if ( num_id == -1 )
-        http_die ("not-found", "asset id", checked_id.c_str ());
   
-    auto tmp = asset_mgr.get_item1 (num_id);
+    auto tmp = asset_mgr.get_item1 (checked_id);
     if ( tmp.status == 0 )
     {
         switch ( tmp.errsubtype )
         {
             case DB_ERROR_NOTFOUND:
-                http_die("element-not-found", checked_id.c_str ());
+                http_die("element-not-found", checked_id);
             case DB_ERROR_BADINPUT:
             case DB_ERROR_INTERNAL:
             default:
                 http_die("internal-error", "Internal database error");
         }
-    }
-    // TODO: the call /asset/type/id is deprecated. This check should be removed soon
-    if ( !checked_type.empty() &&
-            (tmp.item.basic.type_id != persist::type_to_typeid (checked_type) ) )
-    {
-        http_die("request-param-bad", "type", checked_type.c_str(), tmp.item.basic.type_name.c_str());
     }
     // end argument check
 
@@ -243,12 +234,12 @@ UserInfo user;
     std::string parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).first;
     std::string ext_parent_name = persist::id_to_name_ext_name (tmp.item.basic.parent_id).second;
     std::string asset_ext_name = persist::id_to_name_ext_name (tmp.item.basic.id).second;
-  
+
 // Prepare the reply
 </%cpp>
 {
       "id": "<$$ tmp.item.basic.name $>"
-    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.id $>&sub_type=epdu,pdu,feed,genset,ups,sts"
+    , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.name $>&sub_type=epdu,pdu,feed,genset,ups,sts"
     , "name": "<$$ utils::json::escape (asset_ext_name) $>"  
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
@@ -387,6 +378,10 @@ if ( !tmp.item.ext.empty() )
     for ( auto &oneExt : tmp.item.ext )
     {
         auto &attrName = oneExt.first;
+
+        if (attrName == "name")
+            continue;
+
         auto &attrValue = oneExt.second.first;
         auto isReadOnly= oneExt.second.second;
         if ( r_outlet_label.match(attrName) ) {

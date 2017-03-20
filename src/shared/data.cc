@@ -106,7 +106,7 @@ db_reply <db_web_element_t>
             ret.errtype       = basic_ret.errtype;
             ret.errsubtype    = basic_ret.errsubtype;
             ret.msg           = basic_ret.msg;
-            log_warning (ret.msg.c_str());
+            log_warning ("%s", ret.msg.c_str());
             return ret;
         }
         log_debug ("    1/5 no errors");
@@ -121,7 +121,7 @@ db_reply <db_web_element_t>
             ret.errtype       = ext_ret.errtype;
             ret.errsubtype    = ext_ret.errsubtype;
             ret.msg           = ext_ret.msg;
-            log_warning (ret.msg.c_str());
+            log_warning ("%s", ret.msg.c_str());
             return ret;
         }
         log_debug ("    2/5 no errors");
@@ -136,7 +136,7 @@ db_reply <db_web_element_t>
             ret.errtype       = group_ret.errtype;
             ret.errsubtype    = group_ret.errsubtype;
             ret.msg           = group_ret.msg;
-            log_warning (ret.msg.c_str());
+            log_warning ("%s", ret.msg.c_str());
             return ret;
         }
         log_debug ("    3/5 no errors");
@@ -153,7 +153,7 @@ db_reply <db_web_element_t>
                 ret.errtype       = powers.errtype;
                 ret.errsubtype    = powers.errsubtype;
                 ret.msg           = powers.msg;
-                log_warning (ret.msg.c_str());
+                log_warning ("%s", ret.msg.c_str());
                 return ret;
             }
             log_debug ("    4/5 no errors");
@@ -195,7 +195,7 @@ db_reply <std::map <uint32_t, std::string> >
         ret.errtype       = DB_ERR;
         ret.errsubtype    = DB_ERROR_INTERNAL;
         ret.msg           = "Unsupported type of the elemnts";
-        log_error (ret.msg.c_str());
+        log_error ("%s", ret.msg.c_str());
         // TODO need to have some more precise list of types, so we don't have to change anything here,
         // if something was changed
         bios_error_idx(ret.rowid, ret.msg, "request-param-bad", "type", typeName.c_str(), "datacenters,rooms,ros,racks,devices");
@@ -209,7 +209,7 @@ db_reply <std::map <uint32_t, std::string> >
             ret.errtype       = DB_ERR;
             ret.errsubtype    = DB_ERROR_INTERNAL;
             ret.msg           = "Unsupported subtype of the elemnts";
-            log_error (ret.msg.c_str());
+            log_error ("%s", ret.msg.c_str());
             // TODO need to have some more precise list of types, so we don't have to change anything here,
             // if something was changed
             bios_error_idx(ret.rowid, ret.msg, "request-param-bad", "subtype", subtypeName.c_str(), "ups, epdu, pdu, genset, sts, server, feed");
@@ -262,7 +262,7 @@ db_reply_t
             ret.errtype       = basic_info.errsubtype;
             ret.errsubtype    = DB_ERROR_NOTFOUND;
             ret.msg           = "problem with selecting basic info";
-            log_warning (ret.msg.c_str());
+            log_warning ("%s", ret.msg.c_str());
             return ret;
         }
         // here we are only if everything was ok
@@ -295,7 +295,7 @@ db_reply_t
                 ret.errtype       = basic_info.errsubtype;
                 ret.errsubtype    = DB_ERROR_INTERNAL;
                 ret.msg           = "unknown type";
-                log_warning (ret.msg.c_str());
+                log_warning ("%s", ret.msg.c_str());
             }
         }
         LOG_END;

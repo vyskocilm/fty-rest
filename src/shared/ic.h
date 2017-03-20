@@ -22,7 +22,7 @@
 #ifndef _IC_H_INCLUDED
 #define _IC_H_INCLUDED
 
-#include <stdlib.h>
+#include <czmq.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,10 +49,13 @@ char *ic_utf8_to_ascii (char *string);
 // readable but simple and asscii. Output is limited
 // to first 40 characters.
 //
+// if transliteration to ascii returns empty string,
+// use prefix-$unixtime
+//
 // See note about setlocale before.
-// 
+//
 // You have to free returned string yourself
-char *ic_utf8_to_name (char *string);
+char *ic_utf8_to_name (char *string, const char *prefix);
 
 #ifdef __cplusplus
 }

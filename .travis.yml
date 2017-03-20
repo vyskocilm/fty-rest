@@ -72,7 +72,7 @@ before_script:
 - ./.travis.fixsasl
 
 # Hand off to generated script for each BUILD_TYPE
-script: ./ci_build.sh
+script: travis_wait 30 ./ci_build.sh
 before_deploy: . ./ci_deploy.sh
 deploy:
   provider: releases

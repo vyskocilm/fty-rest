@@ -56,6 +56,7 @@ UserInfo user;
         std::string type = request.getArg("type");
         // TODO make name of the parameter consistent with other REST API calls
         std::string subtypes = qparam.param("subtype");
+        log_debug ("type=%s, subtypes=%s", type.c_str (), subtypes.c_str ());
 
         // we want to support multiple subtype selection
         cxxtools::split(",", subtypes, std::back_inserter(checked_subtypes));
@@ -66,8 +67,9 @@ UserInfo user;
         }
         checked_type = type;
         for ( const auto &subtype: checked_subtypes ) {
+            log_debug ("\tdubtype=%s", subtype.c_str ());
             if ( !persist::subtype_to_subtypeid (subtype) ) {
-                http_die ("request-param-bad", "subtype", "See RFC-11 for possible values");
+                http_die ("request-param-bad", "subtype", subtype.c_str (), "See RFC-11 for possible values");
             }
         }
     }
