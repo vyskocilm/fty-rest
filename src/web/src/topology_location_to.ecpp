@@ -121,7 +121,7 @@ UserInfo user;
             LOG_END;
             switch(common_msg_errorno(common_msg)) {
                 case(DB_ERROR_NOTFOUND):
-                    http_die("element-not-found", std::to_string(checked_to_num).c_str());
+                    http_die("element-not-found", checked_to.c_str());
                 case(DB_ERROR_BADINPUT):
                 default:
                     http_die("internal-error");
