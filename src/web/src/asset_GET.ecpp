@@ -248,9 +248,7 @@ UserInfo user;
 // if element is located, then show the location
 if ( tmp.item.basic.parent_id != 0 ) {
 </%cpp>
-    , "location_uri":"<$$ "/api/v1/asset/" +
-           persist::typeid_to_type(tmp.item.basic.parent_type_id) + "/" +      
-           parent_name $>"
+    , "location_uri":"<$$ "/api/v1/asset/" + parent_name $>"
     , "location_id":"<$$ parent_name $>"
     , "location":"<$$ utils::json::escape (ext_parent_name) $>" 
 <%cpp>
