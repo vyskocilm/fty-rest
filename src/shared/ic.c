@@ -1,21 +1,21 @@
 /*  =========================================================================
     iconv simplified interface
 
-    Copyright (C) 2014 - 2017 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2017 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -44,15 +44,15 @@ char *ic_convert(char *buf, size_t bytes, const char *from, const char *to, size
 {
     if (outsize) *outsize = 0;
     if (!buf || !bytes || !from) return NULL;
-    
+
     iconv_t iconv_cd;
 
     if ((iconv_cd = iconv_open(to, from)) == (iconv_t) -1) {
         return NULL;
     }
-    
+
     size_t allocated = bytes;
-    
+
     char *out = (char *) malloc (allocated);
     if (! out) {
         iconv_close (iconv_cd);
@@ -97,24 +97,24 @@ char *ic_utf8_to_ascii (char *string)
     return ic_convert (string, strlen (string)+1, "UTF-8", "ASCII//TRANSLIT", NULL);
 }
 
-char *ic_utf8_to_name (char *string, const char *prefix)
+char *ic_utf8_to_name (char *string, const char *assettype)
 {
-    char *ascii = ic_utf8_to_ascii (string);
-    if (!ascii || strlen (ascii) == 0) {
-        zstr_free (&ascii);
-        return zsys_sprintf ("%s-%d", prefix, time (NULL));
-    }
+    if (!string) return NULL;
+    if (!assettype || strlen (assettype) == 0) assettype = "unknown";
 
-    char *name = (char *) malloc (strlen (ascii) + 1);
+    char *ascii = ic_utf8_to_ascii (string);
+    if (!ascii) return strdup (assettype);
+
+    char *name = (char *) malloc (strlen (ascii) + strlen (assettype) + 2);
     if (!name) {
         free (ascii);
         return NULL;
     }
-    
+
     int i = 0;
     int j = 0;
     // name max size 40 -- keep space for -id
-    while (j < 40) {
+    while (j < 40 - strlen (assettype)) {
         if (ascii [i] == '\0') {
             // end of input string
             break;
@@ -136,13 +136,13 @@ char *ic_utf8_to_name (char *string, const char *prefix)
         }
         ++i;
     }
-    name [j] = '\0';
+    name [j] = '-';
+    name [j+1] = '\0';
+    strcat (name, assettype);
     free (ascii);
     if (!name || strlen (name) == 0) {
         zstr_free (&name);
-        return zsys_sprintf ("%s-%d", prefix, time (NULL));
+        return zsys_sprintf ("%s", assettype);
     }
     return name;
 }
-
-
