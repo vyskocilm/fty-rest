@@ -111,8 +111,8 @@ char *ic_utf8_to_name (char *string, const char *assettype)
         return NULL;
     }
 
-    int i = 0;
-    int j = 0;
+    unsigned int i = 0;
+    unsigned int j = 0;
     // name max size 40 -- keep space for -id
     while (j < 40 - strlen (assettype)) {
         if (ascii [i] == '\0') {
@@ -136,9 +136,18 @@ char *ic_utf8_to_name (char *string, const char *assettype)
         }
         ++i;
     }
-    name [j] = '-';
-    name [j+1] = '\0';
-    strcat (name, assettype);
+    // sanitize also assettype (see "rack controller")
+    name [j++] = '-';
+    for (i = 0; i < strlen (assettype); ++i) {
+        if (
+            (assettype [i] >= 'a' && assettype [i] <= 'z') ||
+            (assettype [i] >= 'A' && assettype [i] <= 'Z') ||
+            (assettype [i] >= '0' && assettype [i] <= '9')
+        ) {
+            name [j++] = tolower (assettype [i]);
+        }
+    }
+    name [j] = '\0';
     free (ascii);
     if (!name || strlen (name) == 0) {
         zstr_free (&name);
