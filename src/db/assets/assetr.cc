@@ -65,7 +65,7 @@ id_to_name_ext_name (uint32_t asset_id)
     }
     catch (const std::exception &e)
     {
-        log_error ("exception caught %s", e.what ());
+        log_error ("exception caught %s - %" PRIu32, e.what (), asset_id);
         name = "";
         ext_name = "";
     }
@@ -78,7 +78,7 @@ name_to_asset_id (std::string asset_name)
     try
     {
         int64_t id = 0;
-        
+
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
         " SELECT id_asset_element"
@@ -95,9 +95,9 @@ name_to_asset_id (std::string asset_name)
     }
     catch (const std::exception &e)
     {
-        log_error ("exception caught %s", e.what ());
+        log_error ("exception caught %s for element %s", e.what (), asset_name.c_str ());
         return -1;
-    }    
+    }
 }
 
 int64_t
@@ -106,7 +106,7 @@ extname_to_asset_id (std::string asset_ext_name)
     try
     {
         int64_t id = 0;
-        
+
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
             " SELECT a.id_asset_element FROM t_bios_asset_element AS a "
@@ -125,7 +125,7 @@ extname_to_asset_id (std::string asset_ext_name)
     {
         log_error ("exception caught %s for element '%s'", e.what (), asset_ext_name.c_str ());
         return -1;
-    }    
+    }
 }
 
 std::string
@@ -134,13 +134,13 @@ extname_to_asset_name (std::string asset_ext_name)
     try
     {
         std::string name;
-        
+
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
             " SELECT a.name FROM t_bios_asset_element AS a "
             " INNER JOIN t_bios_asset_ext_attributes AS e "
             " ON a.id_asset_element = e.id_asset_element "
-            " WHERE keytag = 'name' and value = :extname "            
+            " WHERE keytag = 'name' and value = :extname "
         );
 
         tntdb::Row row = st.set("extname", asset_ext_name).selectRow();
@@ -153,7 +153,7 @@ extname_to_asset_name (std::string asset_ext_name)
     {
         log_error ("exception caught %s for element '%s'", e.what (), asset_ext_name.c_str ());
         return "";
-    }    
+    }
 }
 
 std::string
@@ -162,18 +162,18 @@ name_to_extname (std::string asset_name)
     try
     {
         std::string ext_name;
-        
+
         tntdb::Connection conn = tntdb::connectCached(url);
         tntdb::Statement st = conn.prepareCached(
             " SELECT e.value FROM t_bios_asset_ext_attributes AS e  "
             " INNER JOIN t_bios_asset_element AS a "
             " ON a.id_asset_element = e.id_asset_element "
-            " WHERE keytag = 'name' AND a.name = :asset_name"            
+            " WHERE keytag = 'name' AND a.name = :asset_name"
         );
 
         tntdb::Row row = st.set("asset_name", asset_name).selectRow();
         log_debug("[t_bios_asset_element]: were selected %" PRIu32 " rows", 1);
-        
+
         row [0].get(ext_name);
         return ext_name;
     }
@@ -181,7 +181,7 @@ name_to_extname (std::string asset_name)
     {
         log_error ("exception caught %s for element '%s'", e.what (), asset_name.c_str ());
         return "";
-    }    
+    }
 }
 
 db_reply <db_web_basic_element_t>
@@ -452,7 +452,7 @@ db_reply <std::map <a_elmnt_id_t, std::string> >
             "   v_bios_asset_element v "
             " WHERE "
             "   v1.id_asset_element = :idelement AND "
-            "   v.id = v1.id_asset_group "  
+            "   v.id = v1.id_asset_group "
         );
 
         tntdb::Result result = st_gr.set("idelement", element_id).
@@ -1036,12 +1036,12 @@ int
         if (!subtypes.empty()) {
             std::string list;
             for( auto &id: subtypes) list += std::to_string(id) + ",";
-            select += " and v.id_asset_device_type in (" + list.substr(0,list.size()-1) + ")"; 
+            select += " and v.id_asset_device_type in (" + list.substr(0,list.size()-1) + ")";
         }
         if (!types.empty()) {
             std::string list;
             for( auto &id: types) list += std::to_string(id) + ",";
-            select += " and v.id_type in (" + list.substr(0,list.size()-1) + ")"; 
+            select += " and v.id_type in (" + list.substr(0,list.size()-1) + ")";
         }
         // Can return more than one row.
         tntdb::Statement st = conn.prepareCached (select);
