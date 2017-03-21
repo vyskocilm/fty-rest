@@ -49,12 +49,12 @@ zlist_t* select_asset_device_links_all(tntdb::Connection &conn,
     log_info("start");
     zlist_t* links = zlist_new();
     zlist_autofree(links);
-    
+
     try {
-        // Get information about the links the specified device 
+        // Get information about the links the specified device
         // belongs to
         // Can return more than one row
-        
+
         tntdb::Result result;
         if ( link_type_id == 0 )
         {
@@ -93,7 +93,7 @@ zlist_t* select_asset_device_links_all(tntdb::Connection &conn,
 
         // Go through the selected links
         for ( auto &row: result )
-        { 
+        {
             // dest
             a_elmnt_id_t element_id_dest = 0;
             row[0].get(element_id_dest);
@@ -112,10 +112,10 @@ zlist_t* select_asset_device_links_all(tntdb::Connection &conn,
             std::string dest_in = SRCOUT_DESTIN_IS_NULL;
             row[3].get(dest_in);
 
-            sprintf(buff, "%s:%" PRIu32 ":%s:%" PRIu32, 
-                src_out.c_str(), 
-                element_id_src, 
-                dest_in.c_str(), 
+            sprintf(buff, "%s:%" PRIu32 ":%s:%" PRIu32,
+                src_out.c_str(),
+                element_id_src,
+                dest_in.c_str(),
                 element_id_dest);
             zlist_push(links, buff);
         }
@@ -134,7 +134,7 @@ std::set <a_elmnt_id_t> select_asset_group_elements (tntdb::Connection &conn, a_
 {
     LOG_START;
     log_debug ("asset_group_id = %" PRIu32, group_id);
-    
+
     try{
         tntdb::Statement st = conn.prepareCached(
             " SELECT"
@@ -144,12 +144,12 @@ std::set <a_elmnt_id_t> select_asset_group_elements (tntdb::Connection &conn, a_
             " WHERE"
             "   v.id_asset_group = :group"
         );
-    
+
         tntdb::Result result = st.set("group", group_id).
                                   select();
 
         log_debug ("was selected %u elements in group %" PRIu32, result.size(), group_id);
-        
+
         std::set <a_elmnt_id_t> ret;
         a_elmnt_id_t asset_element_id = 0;
         for ( auto &row: result )
@@ -183,7 +183,7 @@ static std::string st_dictionary_device_type = \
             " FROM"
             "   v_bios_asset_device_type v";
 
-static 
+static
 db_reply < std::map <std::string, int> >
     get_dictionary
         (tntdb::Connection &conn, const std::string &st_str)
@@ -195,7 +195,7 @@ db_reply < std::map <std::string, int> >
     try {
         tntdb::Statement st = conn.prepareCached(st_str);
         tntdb::Result res = st.select();
-        
+
         std::string name = "";
         int id = 0;
         for ( auto &row : res )
@@ -256,16 +256,35 @@ db_reply <db_a_elmnt_t>
     }
 
     try {
-        tntdb::Statement st = conn.prepareCached(
-            " SELECT"
-            "   v.name, v.id_parent, v.status, v.priority, v.id, v.id_type"
-            " FROM"
-            "   v_bios_asset_element v"
-            " WHERE v.name = :name"
-        );
+        tntdb::Statement st;
+        tntdb::Row row;
+        try {
+            tntdb::Statement st = conn.prepareCached(
+                " SELECT"
+                "   v.name, v.id_parent, v.status, v.priority, v.id, v.id_type"
+                " FROM"
+                "   v_bios_asset_element v"
+                " WHERE v.name = :name"
+            );
 
-        tntdb::Row row = st.set("name", element_name).
-                            selectRow();
+            row = st.set("name", element_name).selectRow();
+        }
+        catch (const tntdb::NotFound &e) {
+            // maybe we got extname instead of name
+            tntdb::Statement st = conn.prepareCached(
+                " SELECT v.name, v.id_parent, v.status, v.priority, v.id, v.id_type "
+                " FROM "
+                "   v_bios_asset_element AS v "
+                " LEFT JOIN "
+                "   v_bios_asset_ext_attributes AS ext "
+                " ON "
+                "   ext.id_asset_element = v.id "
+                " WHERE "
+                "   ext.keytag = 'name' AND ext.value = :name "
+            );
+
+            row = st.set("name", element_name).selectRow();
+        }
 
         row[0].get(ret.item.name);
         assert ( !ret.item.name.empty() );  // database is corrupted
