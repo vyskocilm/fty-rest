@@ -238,7 +238,7 @@ UserInfo user;
             if (streq (frame, "BAD_REQUEST")) {
                 zstr_free (&frame);
                 std::string die = "Data for type = '" + checked_type + "', step = '" + checked_step +
-                "', source = '" + checked_source + "', element_id = '" + std::to_string (checked_element_id) + "' ";
+                "', source = '" + checked_source + "', element_name = " + " '" + element_name + "'.";
                 http_die ("element-not-found", die.c_str ());
             }
             log_info ("error frame == '%s'", frame);
