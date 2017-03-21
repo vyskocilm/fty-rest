@@ -25,6 +25,7 @@ AC_ARG_WITH([package-vendor],
 	# This may be left empty by explicit request
 )
 
+PKG_PROG_PKG_CONFIG
 # Set pkgconfigdir
 AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
 	[Path to the pkgconfig directory [[LIBDIR/pkgconfig]]]),
@@ -695,7 +696,7 @@ Summary:
         LIBSASL2_LIBS:           ${LIBSASL2_LIBS}
         LIBMLM_CFLAGS:           ${LIBMLM_CFLAGS}
         LIBMLM_LIBS:             ${LIBMLM_LIBS}
-        LIBFTYPROTO_LIBS:       ${LIBFTYPROTO_LIBS}
+        LIBFTYPROTO_LIBS:        ${LIBFTYPROTO_LIBS}
         SASLAUTHD_MUX:           ${SASLAUTHD_MUX}
         PKG_CONFIG:              ${PKG_CONFIG}
         SYSTEMDSYSTEMUNITDIR:    ${systemdsystemunitdir}

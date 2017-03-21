@@ -519,6 +519,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "default-Werror" ] || [ 
     # (and it is not our duty to check prerequisite projects anyway)
     CONFIG_OPTS+=("${CONFIG_OPT_WERROR}")
     $CI_TIME ./autogen.sh 2> /dev/null
+    echo "+ ./configure" "${CONFIG_OPTS[@]}"
     $CI_TIME ./configure "${CONFIG_OPTS[@]}"
     if [ "$BUILD_TYPE" == "valgrind" ] ; then
         # Build and check this project
