@@ -298,8 +298,8 @@ if ( tmp.item.basic.type_id == persist::asset_type::DEVICE )
         for ( auto &oneLink : tmp.item.powers )
         {
 </%cpp>
-{"src_id":"<$$ oneLink.src_id $>",
- "src_name":"<$$ utils::json::escape (oneLink.src_name) $>"
+{"src_name":"<$$ utils::json::escape (persist::id_to_name_ext_name (oneLink.src_id).first) $>",
+ "src_id":"<$$ utils::json::escape (oneLink.src_name) $>"
 <%cpp>
             if ( !oneLink.src_socket.empty() )
             {
