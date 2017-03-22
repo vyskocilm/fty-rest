@@ -344,9 +344,6 @@ static std::pair<db_a_elmnt_t, persist::asset_operation>
         }
         else
         {
-            if ( element_in_db.item.name != iname ) {
-                bios_throw("bad-request-document", "Renaming of internal asset is not supported");
-            }
             if ( element_in_db.item.type_id != type_id ) {
                 bios_throw("bad-request-document", "Changing of asset type is forbidden");
             }
