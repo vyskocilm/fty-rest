@@ -233,16 +233,13 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    char *iname = ic_utf8_to_name (
-            (char *) element_name,
-            persist::typeid_to_type (element_type_id).c_str ());
-    log_debug ("  element_name = '%s/%s'", element_name, iname);
+    std::string iname = persist::typeid_to_type (element_type_id);
+    log_debug ("  element_name = '%s/%s'", element_name, iname.c_str ());
 
     tntdb::Transaction trans(conn);
     auto reply_insert1 = insert_into_asset_element
-                        (conn, iname, element_type_id, parent_id,
+                        (conn, iname.c_str (), element_type_id, parent_id,
                          status, priority, 0, asset_tag.c_str(), false);
-    zstr_free (&iname);
     if ( reply_insert1.status == 0 )
     {
         trans.rollback();
@@ -329,17 +326,14 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    char *iname = ic_utf8_to_name (
-            (char *)element_name,
-            persist::subtypeid_to_subtype (asset_device_type_id).c_str ());
-    log_debug ("  element_name = '%s/%s'", element_name, iname);
+    std::string iname = persist::subtypeid_to_subtype (asset_device_type_id);
+    log_debug ("  element_name = '%s/%s'", element_name, iname.c_str ());
     
     tntdb::Transaction trans(conn);
 
     auto reply_insert1 = insert_into_asset_element
-                        (conn, iname, asset_type::DEVICE, parent_id,
+                        (conn, iname.c_str (), asset_type::DEVICE, parent_id,
                          status, priority, asset_device_type_id, asset_tag.c_str(), false);
-    zstr_free (&iname);
     if ( reply_insert1.status == 0 )
     {
         trans.rollback();
