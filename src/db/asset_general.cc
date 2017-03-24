@@ -233,7 +233,7 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    std::string iname = persist::typeid_to_type (element_type_id);
+    std::string iname = s_strip (persist::typeid_to_type (element_type_id));
     log_debug ("  element_name = '%s/%s'", element_name, iname.c_str ());
 
     tntdb::Transaction trans(conn);
@@ -300,6 +300,12 @@ db_reply_t
     return reply_insert1;
 }
 
+static inline std::string
+s_strip (std::string &str) {
+    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+    return str;
+}
+
 // because of transactions, previous function is not used here!
 db_reply_t
     insert_device
@@ -326,7 +332,7 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    std::string iname = persist::subtypeid_to_subtype (asset_device_type_id);
+    std::string iname = s_strip (persist::subtypeid_to_subtype (asset_device_type_id));
     log_debug ("  element_name = '%s/%s'", element_name, iname.c_str ());
     
     tntdb::Transaction trans(conn);
