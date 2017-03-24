@@ -20,6 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <tntdb/transaction.h>
 #include <locale.h>
+#include <algorithm>
 
 #include "log.h"
 #include "asset_types.h"
@@ -27,6 +28,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "ic.h"
 
 namespace persist {
+
+static inline std::string
+s_strip (const std::string &_str) {
+    std::string str {_str};
+    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+    return str;
+}
+
 
 //=============================================================================
 // transaction is used
@@ -298,12 +307,6 @@ db_reply_t
     trans.commit();
     LOG_END;
     return reply_insert1;
-}
-
-static inline std::string
-s_strip (std::string &str) {
-    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-    return str;
 }
 
 // because of transactions, previous function is not used here!
