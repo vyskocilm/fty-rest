@@ -23,21 +23,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "defs.h"
 #include "cleanup.h"
 
-const char *str_bool(const bool b) {
-    return b ? "true" : "false";
-}
-
-const char *safe_str(const char *s) {
-    return s == NULL ? "(null)" : s;
-}
-
-bool str_eq(const char *a, const char *b) {
-	if (!a || !b) {
-		return (!a && !b);
-	}
-	return !strcmp(a, b);
-}
-
 bool is_average_step_supported (const char *step) {
     if (!step) {
         return false;

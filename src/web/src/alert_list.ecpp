@@ -80,7 +80,7 @@ is_state_included (const char *request, const char *alert) {
 
     if (streq (request, "ALL"))
         return 1;
-    if (streq (request, "ALL-ACTIVE") && !str_eq (alert, "RESOLVED"))
+    if (streq (request, "ALL-ACTIVE") && !streq (alert, "RESOLVED"))
         return 1;
     return streq (request, alert);
 }

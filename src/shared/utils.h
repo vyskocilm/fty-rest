@@ -49,19 +49,6 @@ extern "C"
 {
 #endif
 
-/*! \brief return "true" or "false" for bool argument */
-const char *str_bool(const bool b);
-
-/*! \brief return "(null)" if string argument is NULL */
-const char *safe_str(const char *s);
-
-/*! \brief return true if a == b
- *
- * This is a safe variant, so it handles NULL inputs well
- * a == b == NULL ->true
- * */
-bool str_eq(const char *a, const char *b);
-
 //! Return true if string representation of average step is supported 
 bool is_average_step_supported (const char *step);
 

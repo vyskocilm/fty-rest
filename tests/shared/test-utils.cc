@@ -32,32 +32,6 @@
 #include "utils.h"
 #include "filesystem.h"
 
-TEST_CASE("str_eq","[utils][str_eq]"){
-    CHECK(str_eq(NULL, NULL));
-    CHECK_FALSE(str_eq("a", NULL));
-    CHECK_FALSE(str_eq(NULL, "b"));
-    CHECK(str_eq("a", "a"));
-    CHECK_FALSE(str_eq("yyy","bb"));
-    CHECK_FALSE(str_eq("yyy","yy"));
-    CHECK_FALSE(str_eq("YY","yy"));
-    CHECK_FALSE(str_eq("\0",NULL));
-    CHECK(str_eq("","\0"));
-}
-
-
-TEST_CASE("str_bool","[str_bool][utils]") {
-    CHECK(str_eq(str_bool(true), "true"));
-    CHECK(str_eq(str_bool(false), "false"));
-    CHECK_FALSE(str_eq(str_bool(true),"True"));
-    CHECK_FALSE(str_eq(str_bool(false),"False"));
-}
-
-TEST_CASE("safe_str","[safe_str][utils]"){
-    CHECK(str_eq(safe_str(NULL), "(null)"));
-    CHECK(str_eq(safe_str("a"), "a"));
-    CHECK(str_eq(safe_str("\0"), ""));
-}
-
 TEST_CASE ("average_step_seconds", "[average_step_seconds][utils][average]") {
 
     SECTION ("bad arguments") {
@@ -264,61 +238,61 @@ TEST_CASE("sanitize_date", "[utils][sanitize_date]") {
     // ISO date
     r = sanitize_date ("2010-02-15");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // ISO date w/0 zeros
     r = sanitize_date ("2010-2-15");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // Excell date
     r = sanitize_date ("15-Feb-10");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // European date
     r = sanitize_date ("15.02.2010");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // ISO date
     r = sanitize_date ("2010-2-2");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-02"));
+    CHECK (streq (r, "2010-02-02"));
     zstr_free (&r);
 
     // European date
     r = sanitize_date ("15 02 2010");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // European date
     r = sanitize_date ("15 2 2010");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // US date
     r = sanitize_date ("02/15/2010");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // US date
     r = sanitize_date ("2/15/2010");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2010-02-15"));
+    CHECK (streq (r, "2010-02-15"));
     zstr_free (&r);
 
     // Date provided by Yves
     r = sanitize_date ("20-09-2016");
     CHECK (r != NULL);
-    CHECK (str_eq (r, "2016-09-20"));
+    CHECK (streq (r, "2016-09-20"));
 
     //reject date where we can't disntiguish order
     r = sanitize_date ("20-09-16");
