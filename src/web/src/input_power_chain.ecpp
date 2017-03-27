@@ -70,7 +70,7 @@ void operator<<= (cxxtools::SerializationInfo& si, const Array_devices& array_de
 {
     si.addMember("name") <<= array_devices.name;
     si.addMember("id") <<= array_devices.id;
-    si.addMember("sub_type") <<= array_devices.sub_type;
+    si.addMember("sub_type") <<= utils::strip (array_devices.sub_type);
 }
 
 // that's how "powerchains" array is serialized

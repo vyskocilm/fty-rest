@@ -24,6 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef SRC_SHARED_UTILS_PLUSPLUS_H__
 #define SRC_SHARED_UTILS_PLUSPLUS_H__
 
+#include <sstream>
 #include <string>
 #include <map>
 #include <czmq.h>
@@ -45,6 +46,16 @@ bool
     stobiosf (const std::string& string, int32_t& integer, int8_t& scale);
 
 } // namespace utils::math
+
+/*!
+ * \brief strip whitespaces from input string
+ *
+ * \param[in] _str is a string to strip
+ *
+ * \return new allocated string with whitespaces deleted
+ */
+std::string
+strip (const std::string &_str);
 
 /*!
  * \brief universal escaping function

@@ -41,6 +41,7 @@
 #include <climits>
 #include <cxxtools/serializationinfo.h>
 #include "log.h"
+#include "utils++.h"
 
 #include <tnt/http.h>
 

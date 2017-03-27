@@ -20,21 +20,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <tntdb/transaction.h>
 #include <locale.h>
-#include <algorithm>
 
 #include "log.h"
 #include "asset_types.h"
 #include "defs.h"
 #include "ic.h"
+#include "utils++.h"
+
 
 namespace persist {
-
-static inline std::string
-s_strip (const std::string &_str) {
-    std::string str {_str};
-    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
-    return str;
-}
 
 
 //=============================================================================
@@ -242,7 +236,7 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    std::string iname = s_strip (persist::typeid_to_type (element_type_id));
+    std::string iname = utils::strip (persist::typeid_to_type (element_type_id));
     log_debug ("  element_name = '%s/%s'", element_name, iname.c_str ());
 
     tntdb::Transaction trans(conn);
@@ -335,7 +329,7 @@ db_reply_t
         return ret;
     }
     setlocale (LC_ALL, ""); // move this to main?
-    std::string iname = s_strip (persist::subtypeid_to_subtype (asset_device_type_id));
+    std::string iname = utils::strip (persist::subtypeid_to_subtype (asset_device_type_id));
     log_debug ("  element_name = '%s/%s'", element_name, iname.c_str ());
     
     tntdb::Transaction trans(conn);
