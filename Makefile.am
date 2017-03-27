@@ -285,6 +285,7 @@ libpriv_utils_la_SOURCES = 	src/shared/utils.c \
 				src/shared/cidr.cc \
 				src/include/str_defs.c \
 				src/include/str_defs.h \
+				src/db/types.h \
 			src/persist/assetcrud.cc \
 			src/persist/assetcrud.h \
 			src/persist/assettopology.cc \
