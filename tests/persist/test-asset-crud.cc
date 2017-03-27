@@ -35,7 +35,6 @@
 #include "assetcrud.h"
 #include "db/assets.h"
 #include "db/asset_general.h"
-#include "measurements.h"
 #include "common_msg.h"
 
 #define UGLY_ASSET_TAG "0123456"
