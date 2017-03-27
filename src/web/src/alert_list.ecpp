@@ -37,6 +37,7 @@
 #include "log.h"
 #include "utils.h"
 #include "utils_web.h"
+#include "utils++.h"
 #include "str_defs.h"
 #include "dbpath.h"
 #include "db/assets.h"
@@ -373,7 +374,7 @@ if (streq (part, "LIST")) {
         <$$ utils::json::jsonify ("element_id",  fty_proto_name (decoded)) $>,
         <$$ utils::json::jsonify ("element_name", persist::id_to_name_ext_name (asset_element.item.id).second) $>,
         <$$ utils::json::jsonify ("element_type", asset_element.item.type_name) $>,
-        <$$ utils::json::jsonify ("element_sub_type", asset_element.item.subtype_name) $>,
+        <$$ utils::json::jsonify ("element_sub_type", utils::strip (asset_element.item.subtype_name)) $>,
         <$$ utils::json::jsonify ("state", fty_proto_state (decoded)) $>,
         <$$ utils::json::jsonify ("severity", fty_proto_severity (decoded)) $>,
         <$$ utils::json::jsonify ("description", fty_proto_description (decoded)) $>
@@ -387,7 +388,7 @@ if (streq (part, "LIST")) {
         <$$ utils::json::jsonify ("element_id", fty_proto_name (decoded)) $>,
         <$$ utils::json::jsonify ("element_name", persist::id_to_name_ext_name (asset_element.item.id).second) $>,
         <$$ utils::json::jsonify ("element_type", asset_element.item.type_name) $>,
-        <$$ utils::json::jsonify ("element_sub_type", asset_element.item.subtype_name) $>,
+        <$$ utils::json::jsonify ("element_sub_type", utils::strip (asset_element.item.subtype_name)) $>,
         <$$ utils::json::jsonify ("state", fty_proto_state (decoded)) $>,
         <$$ utils::json::jsonify ("severity", fty_proto_severity (decoded)) $>,
         <$$ utils::json::jsonify ("description", fty_proto_description (decoded)) $>

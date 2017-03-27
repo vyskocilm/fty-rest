@@ -24,6 +24,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef SRC_SHARED_UTILS_PLUSPLUS_H__
 #define SRC_SHARED_UTILS_PLUSPLUS_H__
 
+#include <sstream>
 #include <string>
 #include <map>
 #include <czmq.h>

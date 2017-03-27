@@ -41,6 +41,7 @@
 #include "cleanup.h"
 #include "helpers.h"
 #include "assetr.h"
+#include "utils++.h"
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -216,7 +217,7 @@ UserInfo user;
                     }
                     json.append("{ \"name\" : \"").append(persist::id_to_name_ext_name (asset_msg_element_id (item)).second).append("\",");
                     json.append("\"id\" : \"").append(asset_msg_name (item)).append("\",");
-                    json.append("\"sub_type\" : \"").append(asset_msg_type_name (item)).append("\"}");
+                    json.append("\"sub_type\" : \"").append(utils::strip (asset_msg_type_name (item))).append("\"}");
 
                     asset_msg_destroy (&item);
                 }

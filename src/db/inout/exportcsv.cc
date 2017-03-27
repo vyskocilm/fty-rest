@@ -33,6 +33,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "db/assets.h"
 #include "dbpath.h"
 #include "log.h"
+#include "utils++.h"
 
 namespace persist {
 
@@ -251,7 +252,7 @@ void
         }
         if ( subtype_name == "N_A" )
             subtype_name = "";
-        lcs.add(subtype_name);
+        lcs.add (utils::strip (subtype_name));
 
         lcs.add(location);
 

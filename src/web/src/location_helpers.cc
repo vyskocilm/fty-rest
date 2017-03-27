@@ -32,6 +32,7 @@
 
 #include "asset_types.h"
 #include "cleanup.h"
+#include "utils++.h"
 #include "utils_web.h"
 #include "assets.h"
 
@@ -48,7 +49,7 @@ int asset_location_r(asset_msg_t** asset_msg, std::string& json) {
     json += "\"type\" : \"" + persist::typeid_to_type(type_id) + "\",";
     if ( (type_id == persist::asset_type::DEVICE ) ||
          (type_id == persist::asset_type::GROUP) ) {
-        json += "\"sub_type\" : \"" + type_name + "\"";
+        json += "\"sub_type\" : \"" + utils::strip (type_name) + "\"";
     }
     else {
         json += "\"sub_type\" : \"N_A\"";

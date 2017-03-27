@@ -38,6 +38,7 @@
 #include "assets.h"        
 #include "defs.h"
 #include "utils_web.h"
+#include "utils++.h"
 #include "asset_computed_impl.h"
 #include "helpers.h"
         
@@ -326,14 +327,14 @@ if ( tmp.item.basic.type_id == persist::asset_type::GROUP )
     if ( it != tmp.item.ext.end() )
     {
 </%cpp>
-, "sub_type":"<$$ it->second.first $>"
+, "sub_type":"utils::strip (<$$ it->second.first $>)"
 <%cpp>
         tmp.item.ext.erase(it);
     }
 }
 else {
 </%cpp>
-, "sub_type": "<$$ tmp.item.basic.subtype_name $>"
+, "sub_type": "utils::strip (<$$ tmp.item.basic.subtype_name $>)"
 , "parents" : [
 %size_t i = 1;
 %std::string ext_name = "";  
@@ -344,7 +345,7 @@ else {
         "id" : "<$$ std::get<1> (it) $>",
         "name" : "<$$ utils::json::escape (ext_name) $>",   
         "type" : "<$$ std::get<2> (it) $>",
-        "sub_type" : "<$$ std::get<3> (it) $>"
+        "sub_type" : "<$$ utils::strip (std::get<3> (it)) $>"
     }<$$ comma $>
 %   i++;
 %}
