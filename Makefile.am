@@ -241,12 +241,6 @@ endef
 # Some of our code is arranged into private libraries used during
 # build, but not published or distributed outside the build-tree.
 
-noinst_LTLIBRARIES += 		libpriv-tntnet-mlm.la
-
-libpriv_tntnet_mlm_la_SOURCES = \
-					src/shared/tntmlm.h \
-					src/shared/tntmlm.cc
-
 noinst_LTLIBRARIES += 		libpriv-git-details-override.la
 
 libpriv_git_details_override_la_SOURCES = \
@@ -256,14 +250,12 @@ libpriv_git_details_override_la_SOURCES = \
 libpriv_git_details_override_la_DEPENDENCIES = \
 				$(abs_top_builddir)/.git_details
 
-noinst_LTLIBRARIES += 		libpriv-log.la
-
-libpriv_log_la_SOURCES = 	src/shared/log.h \
-				src/shared/log.c
-
 noinst_LTLIBRARIES += 		libpriv-utils.la
 
-libpriv_utils_la_SOURCES = 	src/shared/utils.c \
+libpriv_utils_la_SOURCES = 	\
+				src/shared/log.h \
+				src/shared/log.c \
+				src/shared/utils.c \
 				src/shared/utils.h \
 				src/include/str_defs.h \
 				src/include/defs.h \
@@ -319,7 +311,19 @@ libpriv_utils_la_SOURCES = 	src/shared/utils.c \
 			src/db/inout/importcsv.cc \
 			src/db/inout/exportcsv.cc \
 			src/db/asset_general.cc \
-			src/db/asset_general.h
+			src/db/asset_general.h \
+			src/shared/tntmlm.h \
+			src/shared/tntmlm.cc \
+			src/agents/configure_inform/configure_inform.cc \
+			src/agents/configure_inform/configure_inform.h \
+			src/include/fty_asset_uptime_configurator.h \
+			src/include/fty_asset_uptime_configurator.cc \
+			src/shared/magic.cc \
+			src/shared/bios-magic.h \
+			src/msg/asset_msg.c \
+			src/msg/asset_msg.h \
+			src/msg/common_msg.c \
+			src/msg/common_msg.h
 
 libpriv_utils_la_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb ${LIBCZMQ_LIBS}
 
@@ -331,39 +335,6 @@ libpriv_utils_la_CPPFLAGS =$(AM_CPPFLAGS) \
 					-I$(abs_top_srcdir)/src/ \
 					-I$(abs_top_srcdir)/src/shared \
 					-I$(abs_top_builddir)/src/shared
-
-#####
-noinst_LTLIBRARIES +=	libpriv-proto.la
-
-libpriv_proto_la_SOURCES = \
-			src/msg/asset_msg.c \
-			src/msg/asset_msg.h \
-			src/msg/common_msg.c \
-			src/msg/common_msg.h
-
-libpriv_proto_la_LIBADD = ${CXXTOOLS_LIBS}
-
-noinst_LTLIBRARIES +=	libpriv-magic.la
-libpriv_magic_la_SOURCES = \
-			src/shared/magic.cc \
-			src/shared/bios-magic.h
-
-noinst_LTLIBRARIES += 	libpriv-configure-inform.la
-
-libpriv_configure_inform_la_SOURCES = \
-			src/agents/configure_inform/configure_inform.cc \
-			src/agents/configure_inform/configure_inform.h \
-			src/include/fty_asset_uptime_configurator.h \
-			src/include/fty_asset_uptime_configurator.cc
-
-libpriv_configure_inform_la_CPPFLAGS = $(AM_CPPFLAGS) \
-			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_srcdir)/src \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_builddir)/tools \
-			-I$(abs_top_builddir)/src/persist
-
 
 #----------------------------------------------------------------------
 # Needed at least for the distcheck (post distribution tests)
@@ -435,7 +406,6 @@ test_web_helpers_SOURCES = 	tests/web/src/test-helpers.cc \
 							src/web/src/helpers.cc
 
 test_web_helpers_LDADD =    libpriv-test-run.la \
-				            libpriv-log.la \
 				            libpriv-utils.la
 
 test_web_helpers_CPPFLAGS =	$(AM_CPPFLAGS) \
@@ -453,7 +423,6 @@ test_utils_web_SOURCES = \
 
 test_utils_web_LDADD = \
 			libpriv-utils.la \
-			libpriv-log.la \
 			libpriv-test-run.la
 
 test_utils_web_CPPFLAGS = \
@@ -472,7 +441,6 @@ test_tntmlm_SOURCES = \
 
 test_tntmlm_LDADD = \
 			libpriv-utils.la \
-			libpriv-log.la \
 			libpriv-test-run.la
 
 test_tntmlm_CPPFLAGS = \
@@ -517,7 +485,7 @@ test_log_SOURCES = 	src/shared/log.h \
 			src/shared/utils.h \
 			tests/shared/test-log.cc
 
-test_log_LDADD = 	libpriv-log.la \
+test_log_LDADD = 	\
 			libpriv-utils.la \
 			libpriv-test-run.la
 test_log_CPPFLAGS =	$(AM_CPPFLAGS) \
@@ -547,7 +515,6 @@ test_csv_SOURCES =		src/shared/csv.h \
 						tests/shared/test-csv.cc
 
 test_csv_LDADD = 		libpriv-utils.la \
-						libpriv-log.la \
 						libpriv-test-run.la
 
 test_csv_CPPFLAGS =		$(AM_CPPFLAGS) \
@@ -570,8 +537,6 @@ test_loadcsv_SOURCES = 	tests/persist/test-loadcsv.cc
 
 test_loadcsv_LDADD = \
 			libpriv-utils.la \
-			libpriv-log.la \
-			libpriv-proto.la \
 			libpriv-test-run.la
 
 test_loadcsv_CPPFLAGS = \
@@ -593,7 +558,6 @@ test_db2_SOURCES = \
 
 test_db2_LDADD = \
 			libpriv-utils.la \
-			libpriv-log.la \
 			libpriv-test-run.la
 
 test_db2_CPPFLAGS =	$(AM_CPPFLAGS) \
@@ -619,9 +583,7 @@ test_dbtopology_SOURCES = \
 
 test_dbtopology_LDADD = \
 			libpriv-utils.la \
-			libpriv-proto.la \
-			libpriv-test-run.la \
-			libpriv-log.la
+			libpriv-test-run.la
 
 test_dbtopology_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
@@ -643,9 +605,7 @@ test_db_asset_crud_SOURCES = \
 
 test_db_asset_crud_LDADD = \
 			libpriv-utils.la \
-			libpriv-proto.la \
-			libpriv-test-run.la \
-			libpriv-log.la
+			libpriv-test-run.la
 
 test_db_asset_crud_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
@@ -669,9 +629,7 @@ test_totalpower_SOURCES = \
 
 test_totalpower_LDADD = \
 			libpriv-utils.la \
-			libpriv-proto.la \
-			libpriv-test-run.la \
-			libpriv-log.la
+			libpriv-test-run.la
 
 test_totalpower_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
@@ -734,10 +692,7 @@ bios_csv_CPPFLAGS = \
 						  -I $(abs_top_srcdir)/src/ \
 						  -I $(abs_top_srcdir)/src/persist/ \
 						  -I $(abs_top_srcdir)/src/share/
-bios_csv_LDADD = \
-						 libpriv-proto.la \
-						 libpriv-log.la \
-						 libpriv-utils.la
+bios_csv_LDADD = libpriv-utils.la
 bios_csv_LDFLAGS = \
 						 ${CXXTOOLS_LIBS} -ltntdb ${LIBCZMQ_LIBS}
 
@@ -783,7 +738,6 @@ client_PROGRAMS += warranty-metric
 warranty_metric_SOURCES = src/warranty/warranty-metric.cc
 
 warranty_metric_LDADD = \
-			libpriv-log.la \
 			libpriv-utils.la
 
 warranty_metric_CPPFLAGS =	$(AM_CPPFLAGS) \
@@ -878,12 +832,9 @@ bios_web_la_LDFLAGS = 	${LIBCZMQ_LIBS}	${CXXTOOLS_LIBS} \
 			$(LDFLAGS_NO_UNDEFS) \
 			-module -lm -ltntdb -ltntnet ${LIBCIDR_LIBS} -lmagic ${LIBMLM_LIBS} ${LIBFTYPROTO_LIBS} -lz
 
-bios_web_la_LIBADD = libpriv-log.la \
-			libpriv-utils.la libpriv-proto.la \
-			libpriv-git-details-override.la \
-			libpriv-magic.la \
-			libpriv-configure-inform.la \
-			libpriv-tntnet-mlm.la
+bios_web_la_LIBADD = \
+			libpriv-utils.la \
+			libpriv-git-details-override.la
 
 dist_noinst_HEADERS += \
 			src/shared/data.h \
