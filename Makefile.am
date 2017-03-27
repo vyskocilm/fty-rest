@@ -326,7 +326,7 @@ libpriv_utils_la_CPPFLAGS =$(AM_CPPFLAGS) \
                     -I$(abs_top_srcdir)/src/persist \
                     -I$(abs_top_srcdir)/src/db \
                     -I$(abs_top_srcdir)/tools \
-                    -I$(abs_top_builddir)/tools
+                    -I$(abs_top_builddir)/tools \
 					-I$(abs_top_srcdir)/src/ \
 					-I$(abs_top_srcdir)/src/shared \
 					-I$(abs_top_builddir)/src/shared
