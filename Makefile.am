@@ -320,7 +320,7 @@ libpriv_utils_la_SOURCES = 	src/shared/utils.c \
 			src/db/asset_general.cc \
 			src/db/asset_general.h
 
-libpriv_utils_la_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb
+libpriv_utils_la_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb ${LIBCZMQ_LIBS}
 
 libpriv_utils_la_CPPFLAGS =$(AM_CPPFLAGS) \
                     -I$(abs_top_srcdir)/src/persist \
