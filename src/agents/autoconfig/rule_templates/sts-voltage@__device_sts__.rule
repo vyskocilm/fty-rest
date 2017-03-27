@@ -3,7 +3,7 @@
     "name"          : "sts-voltage@__name__",
     "description"   : "The voltage is out of tolerance",
     "metrics"       : ["status.input.1.voltage", "status.input.2.voltage"],
-    "assets"         : [__name__],
+    "assets"         : ["__name__"],
     "results"       :  {
         "high_warning"  : { "action" : ["EMAIL"] }
     },
