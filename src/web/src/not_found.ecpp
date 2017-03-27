@@ -27,9 +27,6 @@
     #include "helpers.h"
     #include <stdlib.h>
 </%pre>
-<%request scope="global">
-UserInfo user;
-</%request>
 <%cpp>
 
     // check user permissions is intentionally removed, as this part should be
