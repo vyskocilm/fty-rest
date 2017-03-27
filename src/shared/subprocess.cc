@@ -47,8 +47,6 @@ struct sbp_info_t {
 };
 
 char * const * _mk_argv(const Argv& vec);
-void _free_argv(char * const * argv);
-std::size_t _argv_hash(Argv args);
 static int s_output(SubProcess& p, std::string& o, std::string& e, uint64_t timeout, size_t timestep);
 static int s_output2(SubProcess& p, std::string& o, uint64_t timeout, size_t timestep);
 
@@ -106,19 +104,6 @@ SubProcess::~SubProcess() {
     ::close(_errpair[1]);
 
     errno = _saved_errno;
-}
-
-//note: the extra space at the end of the string doesn't really matter
-std::string SubProcess::argvString() const
-{
-    std::string ret;
-    for (std::size_t i = 0, l = _cxx_argv.size();
-         i < l;
-         ++i) {
-        ret.append (_cxx_argv.at(i));
-        ret.append (" ");
-    }
-    return ret;
 }
 
 bool SubProcess::run() {
@@ -358,32 +343,6 @@ char * const * _mk_argv(const Argv& vec) {
     }
     argv[vec.size()] = NULL;
     return (char * const*)argv;
-}
-
-void _free_argv(char * const * argv) {
-    char *foo;
-    std::size_t n;
-
-    n = 0;
-    while((foo = argv[n]) != NULL) {
-        free(foo);
-        n++;
-    }
-    free((void*)argv);
-}
-
-std::size_t _argv_hash(Argv args) {
-
-
-    std::hash<std::string> hash;
-    size_t ret = hash("");
-
-    for (auto str : args) {
-        size_t foo = hash(str);
-        ret = ret ^ (foo << 1);
-    }
-
-    return ret;
 }
 
 /*  ZLOOP AND PROPER TIMEOUT SUPPORT */

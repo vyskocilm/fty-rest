@@ -46,7 +46,7 @@ int
 {
     LOG_START;
     log_debug ("  element_id = %" PRIi32, element_id);
-//    log_debug ("  element_name = '%s'", element_name);
+    log_debug ("  element_name = '%s'", element_name);
     log_debug ("  parent_id = %" PRIu32, parent_id);
     log_debug ("  status = '%s'", status);
     log_debug ("  priority = %" PRIu16, priority);
