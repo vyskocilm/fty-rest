@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <sstream>
 #include <limits>
 #include <cmath>
+#include <algorithm>
 
 #include "utils++.h"
 
@@ -114,6 +115,13 @@ stobiosf (const std::string& string, int32_t& integer, int8_t& scale) {
 
 
 } // namespace utils::math
+
+std::string
+strip (const std::string &_str) {
+    std::string str {_str};
+    str.erase(remove_if(str.begin(), str.end(), isspace), str.end());
+    return str;
+}
 
 std::string escape (const std::string& in, const std::string& escape_chars) {
 

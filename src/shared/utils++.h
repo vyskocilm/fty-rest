@@ -47,6 +47,16 @@ bool
 } // namespace utils::math
 
 /*!
+ * \brief strip whitespaces from input string
+ *
+ * \param[in] _str is a string to strip
+ *
+ * \return new allocated string with whitespaces deleted
+ */
+std::string
+strip (const std::string &_str);
+
+/*!
  * \brief universal escaping function
  *
  * \param[in] in is input string to be escaped
