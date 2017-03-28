@@ -35,13 +35,13 @@
 
 #include "data.h"
 #include "asset_types.h"
-#include "assets.h"        
+#include "assets.h"
 #include "defs.h"
 #include "utils_web.h"
 #include "utils++.h"
 #include "asset_computed_impl.h"
 #include "helpers.h"
-        
+
 #include "log.h"
 
 
@@ -168,10 +168,10 @@ UserInfo user;
         std::string type = request.getArg("type");
         log_debug ("Request parameters - Initial tainted values received:\n\tid = '%s'\n\ttype = '%s'\n",
                 id.c_str (), type.c_str ());
-        
+
         if ( !type.empty() && !persist::type_to_typeid (type) )
             http_die("request-param-bad", "type", type.c_str(), "one of datacenter/room/row/rack/group/device");
-        
+
         checked_type = type;
 
         http_errors_t errors;
@@ -192,7 +192,7 @@ UserInfo user;
     // BLOCK 2
     // Receive data and check arguments
 
-  
+
     auto tmp = asset_mgr.get_item1 (checked_id);
     if ( tmp.status == 0 )
     {
@@ -241,7 +241,7 @@ UserInfo user;
 {
       "id": "<$$ tmp.item.basic.name $>"
     , "power_devices_in_uri": "/api/v1/assets?in=<$$ tmp.item.basic.name $>&sub_type=epdu,pdu,feed,genset,ups,sts"
-    , "name": "<$$ utils::json::escape (asset_ext_name) $>"  
+    , "name": "<$$ utils::json::escape (asset_ext_name) $>"
     , "status": "<$$ tmp.item.basic.status $>"
     , "priority": "P<$$ tmp.item.basic.priority $>"
     , "type": "<$$ tmp.item.basic.type_name $>"
@@ -251,7 +251,7 @@ if ( tmp.item.basic.parent_id != 0 ) {
 </%cpp>
     , "location_uri":"<$$ "/api/v1/asset/" + parent_name $>"
     , "location_id":"<$$ parent_name $>"
-    , "location":"<$$ utils::json::escape (ext_parent_name) $>" 
+    , "location":"<$$ utils::json::escape (ext_parent_name) $>"
 <%cpp>
 }
 else {
@@ -337,13 +337,13 @@ else {
 , "sub_type": "<$$ utils::strip (tmp.item.basic.subtype_name) $>"
 , "parents" : [
 %size_t i = 1;
-%std::string ext_name = "";  
+%std::string ext_name = "";
 %for (const auto& it: tmp.item.parents) {
 %   char comma = i != tmp.item.parents.size () ? ',' : ' ';
 %   ext_name = persist::id_to_name_ext_name (std::get<0> (it)).second   ;
     {
         "id" : "<$$ std::get<1> (it) $>",
-        "name" : "<$$ utils::json::escape (ext_name) $>",   
+        "name" : "<$$ utils::json::escape (ext_name) $>",
         "type" : "<$$ std::get<2> (it) $>",
         "sub_type" : "<$$ utils::strip (std::get<3> (it)) $>"
     }<$$ comma $>
@@ -501,7 +501,7 @@ if ( !tmp.item.ext.empty() )
 %           bool isCommaNeeded = false;
             "<$$ oneOutlet.first$>" : [
 %           if ( !oneOutlet.second.label.empty() ) {
-%               std::string outletLabel = utils::json::escape(oneOutlet.second.label);                  
+%               std::string outletLabel = utils::json::escape(oneOutlet.second.label);
                 {
                     "name":"label",
                     "value": "<$$ outletLabel $>" ,

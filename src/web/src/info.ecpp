@@ -23,27 +23,27 @@
  * \brief   This call provides information about rack controller.
  */
  #><%pre>
-#include <string>        
+#include <string>
 #include "tntmlm.h"
 #include "helpers.h"
 #include "utils_web.h"
 
-// info request       
+// info request
 static zmsg_t *
 req_info (zuuid_t *uuid)
 {
     zmsg_t *msg = zmsg_new ();
-    zmsg_addstr (msg, "INFO");     
+    zmsg_addstr (msg, "INFO");
     zmsg_addstr (msg, zuuid_str_canonical (uuid));
     return msg;
 }
-        
+
 // fty-info data
 int
 get_rc_info (std::string &output)
 {
     output.clear();
-     
+
     // connect to mlm client
     MlmClientPool::Ptr client = mlm_pool.get ();
     if (!client.getPointer ())
@@ -54,15 +54,15 @@ get_rc_info (std::string &output)
 
     zuuid_t *uuid = zuuid_new ();
     zmsg_t *send = req_info (uuid);
-    int rv = client->sendto ("fty-info", "info", 1000, &send);  
+    int rv = client->sendto ("fty-info", "info", 1000, &send);
 
     if (rv == -1)
     {
         log_critical ("info: client->sendto (address = '%s') failed.", "fty-info");
         return -2;
     }
-        
-    zmsg_t *resp = client->recv (zuuid_str_canonical (uuid), 5);    
+
+    zmsg_t *resp = client->recv (zuuid_str_canonical (uuid), 5);
     if (!resp)
     {
         log_critical ("info: client->recv (timeout = '5') returned NULL");
@@ -80,8 +80,8 @@ get_rc_info (std::string &output)
 
         value = (char *) zhash_next (infos);   // next value
         if (value != NULL) output += ",\n";
-    } 
-    output += "\n}";        
+    }
+    output += "\n}";
 
     zhash_destroy(&infos);
     zmsg_destroy(&resp);
@@ -106,10 +106,10 @@ UserInfo user;
         http_die ("internal-error", "mlmpool.get () failed.");
     else
     if (rv == -2)
-        http_die ("internal-error", "client->sendto () failed.");  
+        http_die ("internal-error", "client->sendto () failed.");
     else
-    if (rv == -3)        
+    if (rv == -3)
         http_die ("internal-error", "client->recv () failed.");
     else
-</%cpp> 
-<$$ output $>  
+</%cpp>
+<$$ output $>

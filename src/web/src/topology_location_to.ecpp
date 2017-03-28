@@ -229,7 +229,7 @@ UserInfo user;
                 std::tuple<int, int, std::string, std::string, std::string> row = stack.top();
                 stack.pop();
                 ext_name = persist::id_to_name_ext_name (std::get<0>(row)).second;
-                    
+
                 indent++;
                 if (!std::get<2>(row).empty()) {
                     counter++;

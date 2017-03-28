@@ -243,8 +243,8 @@ UserInfo user;
         if (arg2.empty ()) {
             http_die ("request-param-required", "arg2");
         }
-        
-        checked_arg1 = arg1;        
+
+        checked_arg1 = arg1;
         check_regex_text_or_die ("arg2", arg2, checked_arg2, "^[_,a-z]{1,255}$");
         // sanitize params end
     }

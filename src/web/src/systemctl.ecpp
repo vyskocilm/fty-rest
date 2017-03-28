@@ -132,7 +132,7 @@ call_systemctl (
             "shared::output (command = '" + proc_cmd_str + "') failed. "
             "Return value = '" + std::to_string (proc_rv) + "', stderr = '" +
             ( ( std::string::npos == endpos ) ? proc_err : proc_err.substr( 0, endpos+1 ) ) + "'.";
-        log_error (message.c_str ());
+        log_error ("%s", message.c_str ());
         return SYSTEMCTL_ERROR_EXEC;
     }
 
@@ -142,7 +142,7 @@ call_systemctl (
     if (proc_out.empty ()) {
         std::string message = "shared::output (command = '" + proc_cmd_str + "') succeeded, "
             "but returned empty output. Is host OS misconfigured (lack of registered units)?" ;
-        log_error (message.c_str ());
+        log_error ("%s", message.c_str ());
         return 0;
     }
 
@@ -194,7 +194,7 @@ call_systemctl (
 
         if (unit_name.empty()) {
             std::string message = "Could not parse output of command = '" + proc_cmd_str + "', perhaps due to different expected output format.";
-            log_error (message.c_str ());
+            log_error ("%s", message.c_str ());
             return SYSTEMCTL_ERROR_EXEC;
         } else {
             (*discovered_unit_list)[unit_name] = sus;
@@ -204,7 +204,7 @@ call_systemctl (
 
     if (counter == 0) {
         std::string message = "Could not find anything in output of command = '" + proc_cmd_str + "' due to different expected format or lack of matching registered units.";
-        log_error (message.c_str ());
+        log_error ("%s", message.c_str ());
     }
 
     return counter;
@@ -347,7 +347,7 @@ process_get_status (
     std::map<std::string, SystemdUnitState>::iterator it = allowed_unit_list.find(service_name);
     if ( it == allowed_unit_list.end()) {
         message = "Denying request for systemd unit not among those allowed by filter: '" + service_name +"'.";
-        log_error (message.c_str ());
+        log_error ("%s", message.c_str ());
         return SYSTEMCTL_ERROR_PARAM;
     }
 
@@ -387,7 +387,7 @@ int process_post (
     ) {
         if (operation != "restart" && operation != "show") {
             message = "For the '" + service_name + "' service only the 'restart' and 'show' operations are supported; the requested '" + operation + "' is invalid here.";
-            log_error (message.c_str ());
+            log_error ("%s", message.c_str ());
             return SYSTEMCTL_ERROR_PARAM;
         }
         // restart is done using special script
@@ -404,14 +404,14 @@ int process_post (
             /* We can also be here if under systemd, but not covered
              * by OUR unit definition with the extra envvar in place. */
             message = "Got command = 'sudo systemctl " + operation + " " + service_name_op + "' which can potentially impact the tntnet web-server unit; however the current webserver seems to run outside of systemd care... broken connections etc. can appear after this action.";
-            log_warning (message.c_str ());
+            log_warning ("%s", message.c_str ());
         } else {
             /* Check if the service manipulation would impact this webserver */
             std::map<std::string, struct SystemdUnitState> required_by_tntnet_unit_list{};
             shared::Argv proc_cmd_systemctl_args {"list-requires", "--plain", "--recursive", tntnet_unit};
 
             message = "Got operation '" + operation +"' for unit '" + service_name + "'; inspecting dependencies";
-            log_info(message.c_str());
+            log_info("%s", message.c_str());
 
             int counter = call_systemctl(proc_cmd_systemctl_args, &required_by_tntnet_unit_list);
             if ( counter < 0 ) {
@@ -431,7 +431,7 @@ int process_post (
 
     if (changing_tntnet_dependency) {
         message = "command = 'sudo systemctl " + operation + " " + service_name_op + "' can impact the web-server unit '" + tntnet_unit +"'";
-        log_warning (message.c_str ());
+        log_warning ("%s", message.c_str ());
         /* Do not wait for "systemctl" to complete, because this
          * webserver will be restarted and that systemctl would
          * be killed and we end up with false-alarms of errors
@@ -461,7 +461,7 @@ int process_post (
      * not be an issue with other "unrelated" services. */
     if (changing_tntnet_dependency) {
         message = "The post-systemctl service status of '" + service_name_op + "' reported below is probably not useful because this web-server unit '" + tntnet_unit +"' should stop before that service begins to '" + operation + "'";
-        log_warning (message.c_str ());
+        log_warning ("%s", message.c_str ());
     }
 
     return process_get_status (replyx, service_name);
@@ -524,7 +524,7 @@ UserInfo user;
             catch (const std::exception& e) {
                 std::string message;
                 message.assign ("Exception caught: ").append (e.what ());
-                log_error (message.c_str ());
+                log_error ("%s", message.c_str ());
                 http_die( "internal-error", "Exception caught. Please check logs for more details.");
             }
         } else {
