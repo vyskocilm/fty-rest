@@ -327,14 +327,14 @@ if ( tmp.item.basic.type_id == persist::asset_type::GROUP )
     if ( it != tmp.item.ext.end() )
     {
 </%cpp>
-, "sub_type":"utils::strip (<$$ it->second.first $>)"
+, "sub_type":"<$$ utils::strip (it->second.first) $>"
 <%cpp>
         tmp.item.ext.erase(it);
     }
 }
 else {
 </%cpp>
-, "sub_type": "utils::strip (<$$ tmp.item.basic.subtype_name $>)"
+, "sub_type": "<$$ utils::strip (tmp.item.basic.subtype_name) $>"
 , "parents" : [
 %size_t i = 1;
 %std::string ext_name = "";  
