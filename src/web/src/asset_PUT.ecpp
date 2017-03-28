@@ -1,6 +1,6 @@
 <#
  #
- # Copyright (C) 2015 Eaton
+ # Copyright (C) 2015-2017 Eaton
  #
  # This program is free software; you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ UserInfo user;
     std::string id = request.getArg("id");
 
     if (id.empty () || !is_ok_name (id.c_str ()))
-        http_die ("request-param-bad", id.c_str ());    
-    
+        http_die ("request-param-bad", id.c_str ());
+
     // Read json, transform to csv, use existing functionality
     cxxtools::SerializationInfo si;
     // read json a deserialize it
@@ -72,7 +72,7 @@ UserInfo user;
         cm = shared::CsvMap_from_serialization_info(si);
     }
     catch (const std::invalid_argument &e) {
-        log_error (e.what());
+        log_error ("%s", e.what());
         http_die("bad-request-document", e.what());
     }
     catch (const std::exception& e) {
@@ -112,7 +112,7 @@ UserInfo user;
             send_configure (row.first, row.second, agent_name);
         }
         catch (const std::runtime_error &e) {
-            log_error (e.what());
+            log_error ("%s", e.what());
             std::string msg = "Error during configuration sending of asset change notification. Consult system log.";
             http_die("internal-error", msg.c_str());
         }

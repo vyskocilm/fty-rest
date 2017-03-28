@@ -1,6 +1,6 @@
 <#
  #
- # Copyright (C) 2016 Eaton
+ # Copyright (C) 2016-2017 Eaton
  #
  # This program is free software; you can redistribute it and/or modify
  # it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include <fstream>
 #include <libgen.h> //POSIX version of basename!!
 
-// encode GET message for smtp agent         
+// encode GET message for smtp agent
 static zmsg_t*
 s_smtp_GET_message (
         const char* to,
@@ -138,7 +138,7 @@ UserInfo user;
             //pass
         }
     }
-    
+
     // connect to mlm client
     MlmClientPool::Ptr client = mlm_pool.get ();
     if (!client.getPointer ()) {
@@ -169,7 +169,7 @@ UserInfo user;
     if (!recieve)
     {
         std::string msg = "Error: client->recv (timeout = '" + std::to_string (_timeout) + "') returned NULL";
-        log_error (msg.c_str ());
+        log_error ("%s", msg.c_str ());
         http_die ("internal-error", msg.c_str ());
     }
 
@@ -177,11 +177,11 @@ UserInfo user;
     char *err_message = zmsg_popstr (recieve);
     const char *msg_subject = client->subject();
     std::string status;
-  
+
     if (streq (msg_subject, "SENDMAIL-OK"))
     {
-         status = "Succeeded"; 
-    }   
+         status = "Succeeded";
+    }
     else
     if (streq (msg_subject, "SENDMAIL-ERR"))
     {
@@ -193,7 +193,7 @@ UserInfo user;
         log_critical ("Error: message recieved with invalid subject.");
         http_die ("internal-error", "client->recv () invalid message subject");
     }
-  
+
     zmsg_destroy(&recieve);
     zmsg_destroy(&send);
 </%cpp>
