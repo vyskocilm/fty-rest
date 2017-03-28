@@ -161,7 +161,7 @@ rack_outlets_available(
                 conn, elementId, cb);
 
     } catch (std::exception &e) {
-        log_error(e.what());
+        log_error("%s", e.what());
         return;
     }
 
