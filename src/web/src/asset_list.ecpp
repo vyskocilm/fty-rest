@@ -29,7 +29,7 @@
 #include "log.h"
 #include "assetcrud.h"
 #include "helpers.h"
-#include "assets.h"                        
+#include "assets.h"
 </%pre>
 <%thread scope="global">
 asset_manager asset_mgr;

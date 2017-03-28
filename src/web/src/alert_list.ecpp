@@ -135,7 +135,7 @@ UserInfo user;
             }
 
         if (!asset.empty ())
-        {            
+        {
             if (!is_ok_name (asset.c_str ()))
             {
                 http_die ("request-param-bad", asset.c_str ());
@@ -150,9 +150,9 @@ UserInfo user;
                 "\tstate = '%s'\n\tasset = '%s'\n\trecursive = '%s'\n",
                 state.c_str (), asset.c_str (), recursive.c_str ());
     }
-  
+
 element_id = (uint32_t) persist::name_to_asset_id (checked_asset);
-  
+
 std::map<std::string, int> desired_elements;
 tntdb::Connection connection;
 try {
