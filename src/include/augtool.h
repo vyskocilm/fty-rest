@@ -61,7 +61,7 @@ public:
      */
     std::string get_cmd_out(std::string cmd, bool key_value = true,
                             std::string sep = "",
-                            std::function<bool(std::string)> filter = 
+                            std::function<bool(std::string)> filter =
                             [](const std::string) -> bool { return false; });
     //! Return string directly as returned from augtool
     std::string get_cmd_out_raw(std::string cmd);

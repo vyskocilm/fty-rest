@@ -2,7 +2,7 @@
 #define SRC_SHARED_UPSSTATUS_H_
 /*
 Copyright (C) 2014 Eaton
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -54,7 +54,7 @@ typedef struct {
 /* previous definition is taken as it is from network ups tool project (dummy-ups.h)*/
 
 /* our transformation functions */
- 
+
 /**
  * \brief converts status from char* format to bitmap representation
  * \parameter char* string with ups status (for example "OL CHRG")
@@ -81,8 +81,8 @@ std::string upsstatus_to_string(uint16_t status);
  * \parameter std::string bitmap representing UPS status (for example "12")
  * \return std::string text representation (for example "OL CHRG")
  *
- * Functions simply converts status to integer first. 
- */ 
+ * Functions simply converts status to integer first.
+ */
 std::string upsstatus_to_string(std::string status);
 
 } // namespace shared

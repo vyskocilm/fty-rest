@@ -44,7 +44,7 @@ void
         const std::string &agent_name)
 {
     mlm_client_t *client = mlm_client_new();
-    
+
     if ( client == NULL ) {
         throw std::runtime_error(" mlm_client_new () failed.");
     }
@@ -106,7 +106,7 @@ void
         }
 
         zhash_t *ext = s_map2zhash (oneRow.first.ext);
-            
+
         zmsg_t *msg = fty_proto_encode_asset (
                 aux,
                 oneRow.first.name.c_str(),
