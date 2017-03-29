@@ -408,7 +408,7 @@ test_web_helpers_LDFLAGS =	-ltntnet -ltntdb ${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 check_PROGRAMS +=	test-utils-web
 
 test_utils_web_SOURCES = \
-			src/shared/utils_web.h \
+			src/include/utils_web.h \
 			tests/shared/test-utils-web.cc
 
 test_utils_web_LDADD = \
@@ -425,7 +425,7 @@ test_utils_web_LDFLAGS =	${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 check_PROGRAMS +=	test-tntmlm
 
 test_tntmlm_SOURCES = \
-			src/shared/tntmlm.h \
+			src/include/tntmlm.h \
 			src/shared/tntmlm.cc \
 			tests/shared/test-tntmlm.cc
 
@@ -442,7 +442,7 @@ test_tntmlm_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} ${CXXTOOLS_LIBS}
 check_PROGRAMS +=	test-utils-plusplus
 
 test_utils_plusplus_SOURCES = \
-			src/shared/utils++.h \
+			src/include/utils++.h \
 			tests/shared/test-utils++.cc
 
 test_utils_plusplus_LDADD = \
@@ -457,7 +457,7 @@ test_utils_plusplus_LDFLAGS =	${LIBCZMQ_LIBS}
 
 check_PROGRAMS += 	test-utils
 
-test_utils_SOURCES = 	src/shared/utils.h \
+test_utils_SOURCES = 	src/include/utils.h \
 			tests/shared/test-utils.cc
 
 test_utils_LDADD = 	libpriv-utils.la \
@@ -470,8 +470,8 @@ test_utils_LDFLAGS =	${LIBCZMQ_LIBS}
 
 check_PROGRAMS += 	test-log
 
-test_log_SOURCES = 	src/shared/log.h \
-			src/shared/utils.h \
+test_log_SOURCES = 	src/include/log.h \
+			src/include/utils.h \
 			tests/shared/test-log.cc
 
 test_log_LDADD = 	\
@@ -481,8 +481,9 @@ test_log_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/
 
 noinst_PROGRAMS += 			test-subprocess
-test_subprocess_SOURCES = 		src/shared/subprocess.h \
+test_subprocess_SOURCES = 		src/include/subprocess.h \
 					tests/shared/test-subprocess.cc
+
 test_subprocess_LDADD = 		libpriv-utils.la \
 					libpriv-test-run.la
 test_subprocess_CPPFLAGS =		$(AM_CPPFLAGS) \
@@ -500,7 +501,7 @@ test_cidr_LDFLAGS =	${LIBCIDR_LIBS}
 
 check_PROGRAMS += 	test-csv
 
-test_csv_SOURCES =		src/shared/csv.h \
+test_csv_SOURCES =		src/include/csv.h \
 						tests/shared/test-csv.cc
 
 test_csv_LDADD = 		libpriv-utils.la \
@@ -770,7 +771,7 @@ bios_web_la_SOURCES = \
                       src/web/src/asset_computed_impl.cc \
                       src/web/src/helpers.cc             \
                       src/web/src/iface.cc \
-					  src/shared/data.h \
+					  src/include/data.h \
 					  src/include/sasl.h \
 					  src/include/helpers.h \
 					  src/include/tokens.h \
@@ -882,9 +883,6 @@ EXTRA_DIST += \
 			$(top_srcdir)/include/*.h \
 			$(top_srcdir)/src/msg/*.xml \
 			$(top_srcdir)/src/include/*.h \
-			$(top_srcdir)/src/agents/*/*.h \
-			$(top_srcdir)/src/shared/*.h \
-			$(top_srcdir)/src/web/include/*.h \
 			$(top_srcdir)/tests/shared/test-csv.cc.*sv
 
 # add CI tests to dist
