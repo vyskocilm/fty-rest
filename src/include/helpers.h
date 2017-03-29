@@ -59,7 +59,7 @@ class UserInfo {
         UserInfo ():
             _profile {BiosProfile::Anonymous},
             _uid {-1},
-            _gid {-1}           
+            _gid {-1}
         {};
 
         BiosProfile profile () const {return _profile;}
@@ -70,12 +70,12 @@ class UserInfo {
 
         long int gid () const {return _gid;}
         void gid (long int gid) {_gid = gid;}
-        
+
         std::string login () const {return _login;}
         void login (const std::string& login) {_login = login;}
 
-        const char* toString(); 
-        
+        const char* toString();
+
     protected:
         BiosProfile _profile;
         long int _uid;
@@ -93,14 +93,14 @@ utf8_contains_chars (const std::string& input, const std::vector <char>& exclude
  \brief Perform error checking and extraction of element identifier from std::string
 
  \param[in]     param_name      name of the parameter from rest api call
- \param[in]     param_value     value of the parameter 
+ \param[in]     param_value     value of the parameter
  \param[out]    element_id      extracted element identifier
  \param[out]    errors          errors structure for storing conversion errors
  \return
     true on success, element_id is assigned the converted element identifier
     false on failure, errors are updated (exactly one item is added to structure)
 */
-bool 
+bool
 check_element_identifier (const char *param_name, const std::string& param_value, uint32_t& element_id, http_errors_t& errors);
 
 /*!
@@ -161,10 +161,10 @@ check_regex_text (const char *param_name, const std::string& param_value, const 
 }
 
 // checks if it's       '<rule_name>@<asset_name>' format -> validates <asset_name> with regard to unicode
-//        if it's       just <rule_name>                  -> validates the old way (regex) 
+//        if it's       just <rule_name>                  -> validates the old way (regex)
 bool check_alert_rule_name (const std::string& param_name, const std::string& rule_name, http_errors_t& errors);
 
-// checks just rule name  
+// checks just rule name
 bool check_alert_just_rule_part (const std::string& param_name, const std::string& rule_name, http_errors_t& errors);
 
 /*!

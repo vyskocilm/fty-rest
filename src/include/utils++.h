@@ -1,6 +1,6 @@
-/* 
+/*
 Copyright (C) 2015 Eaton
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 */
 
 /*! \file utils++.h
-    \brief c++ utilities 
+    \brief c++ utilities
     \author Karol Hrdina <KarolHrdina@Eaton.com>
 */
 
@@ -34,14 +34,14 @@ namespace utils {
 namespace math {
 
 /*!
- \brief Format double \a number into std::string \a result with floating point precision given by \a precision 
+ \brief Format double \a number into std::string \a result with floating point precision given by \a precision
  \todo Decide if noexcept (not throwing, return int) or follow a style of letting the exception bubble up
 */
 void dtos (double number, std::streamsize precision, std::string& result);
 
 /*!
  \brief Take string encoded double value and if possible return representation: integer x 10^scale
-*/ 
+*/
 bool
     stobiosf (const std::string& string, int32_t& integer, int8_t& scale);
 
@@ -109,7 +109,7 @@ std::string join_keys_map (const std::map<K,V>& t, const std::string& separator)
 
  NULL encountered sooner than length items terminates the concatenation.
  \return Concatenated string or empty on error
-*/ 
+*/
 std::string join (const char **str_arr, uint32_t length, const char *separator);
 
 /*!
@@ -121,6 +121,3 @@ std::string join (const char **str_arr, const char *separator);
 } // namespace utils
 
 #endif // SRC_SHARED_UTILS_PLUSPLUS_H__
-
-
-

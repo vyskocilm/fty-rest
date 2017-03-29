@@ -23,7 +23,7 @@
 #include <tntdb/connection.h>
 #include <tntdb/row.h>
 
-#include "shared/utils.h"
+#include "utils.h"
 #include "dbpath.h"
 #include "db/assets.h"
 #include "asset_types.h"

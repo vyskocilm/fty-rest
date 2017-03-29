@@ -369,7 +369,7 @@ namespace utils {
  \brief Convert string to element identifier
 
  \throws std::out_of_range      When number represented by 'string' is out of <1, UINT_MAX> range
- \throws std::invalid_argument  When 'string' does not represent a number 
+ \throws std::invalid_argument  When 'string' does not represent a number
  \return element identifier or throws
 */
 uint32_t string_to_element_id (const std::string& string);

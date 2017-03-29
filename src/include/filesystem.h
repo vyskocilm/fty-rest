@@ -1,6 +1,6 @@
-/* 
+/*
 Copyright (C) 2014 - 2015 Eaton
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -72,7 +72,7 @@ std::vector<std::string> files_in_directory( const char *path );
  * \param mode (rights)
  * \param create parent directories if needed
  *
- * In case of failure also errno is set, see "man 3 mkdir" for details. 
+ * In case of failure also errno is set, see "man 3 mkdir" for details.
  */
 bool mkdir_if_needed(const char *path, mode_t mode = 0x755, bool create_parent=true );
 

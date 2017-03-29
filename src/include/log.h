@@ -110,7 +110,7 @@ int do_log(
         int line,
         const char* func,
         const char* format,
-        ...) __attribute__ ((format (printf, 5, 6))); 
+        ...) __attribute__ ((format (printf, 5, 6)));
 
 #define log_macro(level, ...) \
     do { \
@@ -156,4 +156,3 @@ int do_log(
 #endif
 
 #endif
-

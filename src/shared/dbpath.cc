@@ -18,19 +18,11 @@
  *
  */
 
-/*!
- * \file location_helpers.h
- * \author Karol Hrdina <KarolHrdina@Eaton.com>
- * \author Michal Hrusecky <MichalHrusecky@Eaton.com>
- * \brief Not yet documented file
- */
-#ifndef SRC_WEB_INCLUDE_LOCATION_HELPERS
-#define SRC_WEB_INCLUDE_LOCATION_HELPERS
+#include "dbpath.h"
 
-#include <string>
-#include "asset_msg.h"
+#include <stdlib.h>
 
-int asset_location_r(asset_msg_t** asset_msg, std::string& json);
-
-#endif // SRC_WEB_INCLUDE_LOCATION_HELPERS
-
+std::string url = std::string("mysql:db=box_utf8;user=") +
+                  ((getenv("DB_USER")   == NULL) ? "root" : getenv("DB_USER")) +
+                  ((getenv("DB_PASSWD") == NULL) ? ""     :
+                      std::string(";password=") + getenv("DB_PASSWD"));
