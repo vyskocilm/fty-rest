@@ -200,7 +200,7 @@ int main(int argc, char** argv)
         }
     }
     catch (const std::exception& e) {
-        log_error (e.what());
+        log_error ("%s", e.what());
         exit (EXIT_FAILURE);
     }
     catch (...) {

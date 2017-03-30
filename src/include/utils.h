@@ -1,6 +1,6 @@
-/* 
+/*
 Copyright (C) 2014 - 2015 Eaton
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -49,10 +49,10 @@ extern "C"
 {
 #endif
 
-//! Return true if string representation of average step is supported 
+//! Return true if string representation of average step is supported
 bool is_average_step_supported (const char *step);
 
-//! Return true if string representation of average type is supported 
+//! Return true if string representation of average type is supported
 bool is_average_type_supported (const char *type);
 
 //! Supported average step expressed in seconds OR -1
@@ -78,7 +78,7 @@ int64_t datetime_to_calendar (const char *datetime);
 //  \return -1 in case of failure, 0 otherwise
 int calendar_to_datetime (time_t timestamp, char* buffer, size_t n);
 
-//! portable version of timegm() taken from manual pages 
+//! portable version of timegm() taken from manual pages
 int64_t my_timegm (struct tm *tm);
 
 /**

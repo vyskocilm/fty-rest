@@ -318,7 +318,7 @@ UserInfo user;
         std::string slist_lognames = request.getArg ("list_lognames");
 
         message = "getlog_GET got args: logname_base='" + slogname_base + "' logname_ext='" + slogname_ext + "' list_lognames='" + slist_lognames + "'";
-        log_debug( message.c_str() );
+        log_debug("%s", message.c_str() );
 
         if ( slist_lognames == "yes" ) {
             list_lognames = "yes";
@@ -356,7 +356,7 @@ UserInfo user;
         }
 
         /* We have a definite officially supported request, try to fulfill it */
-        log_debug( ("Posting logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') - initial").c_str() );
+        log_debug("%s", ("Posting logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') - initial").c_str() );
 
         /* Prepare strings for Content-Disposition: header */
         /* Requests with a valid extension are downloads; without - plaintext shown in browser */
@@ -420,7 +420,7 @@ UserInfo user;
                 /* TODO: Is it ASCII? Check rsyslog */
 
             reply.setHeader(tnt::httpheader::contentDisposition, content_disposition + "; filename=\"" + content_filename + "\"", true);
-            log_debug( ("Posting logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') in mode " + reply.getHeader(tnt::httpheader::contentDisposition) + " - done").c_str() );
+            log_debug("%s", ("Posting logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') in mode " + reply.getHeader(tnt::httpheader::contentDisposition) + " - done").c_str() );
             return HTTP_OK;
         } else {
             tnt::MimeDb mimeDb("/etc/mime.types");
@@ -446,12 +446,12 @@ UserInfo user;
                 std::ostringstream ozsize;
                 ozsize << compressor.zsize();
                 omessage << "gzipped '" << logname_base << "' body " << body.size() << " bytes to " << ozsize << " bytes";
-                log_debug( omessage.str().c_str() );
+                log_debug("%s", omessage.str().c_str() );
 
                 reply.out() << compressor.str();
                 reply.setHeader(tnt::httpheader::contentLength, ozsize.str(), true);
                 reply.setHeader(tnt::httpheader::contentDisposition, content_disposition + "; filename=\"" + content_filename + "\"", true);
-                log_debug( ("Posting logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') in mode " + reply.getHeader(tnt::httpheader::contentDisposition) + " - done").c_str() );
+                log_debug("%s", ("Posting logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') in mode " + reply.getHeader(tnt::httpheader::contentDisposition) + " - done").c_str() );
                 return HTTP_OK;
             } else {
                 throw std::runtime_error("Sorry, logfile extension '" + logname_ext + "' (MIME type '" + reply.getContentType() + "') support is currently not implemented");
@@ -473,7 +473,7 @@ UserInfo user;
                 " (EUID=" + std::to_string(cureuid) + "), " +
                 " GID=" + std::to_string(curgid) +
                 " (EGID=" + std::to_string(curegid) + ")";
-          log_debug(message.c_str());
+          log_debug("%s", message.c_str());
 
           int ngroups = getgroups(0, NULL);
           message = "Can not report about supplementary groups at the moment";
@@ -507,12 +507,12 @@ UserInfo user;
                 message += " but malloc() failed";
             }
           }
-          log_debug(message.c_str());
+          log_debug("%s", message.c_str());
         }
 
         reply.resetContent();
         message.assign ("Exception caught: ").append (e.what ());
-        log_error (message.c_str ());
+        log_error ("%s", message.c_str ());
         http_die( "internal-error", "Exception caught. Please check logs for more details.");
     }
 

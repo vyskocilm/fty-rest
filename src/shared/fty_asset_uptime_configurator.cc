@@ -1,21 +1,21 @@
 /*  =========================================================================
     fty_asset_uptime_configurator - Configuration for kpi-uptime
 
-    Copyright (C) 2014 - 2017 Eaton                                        
-                                                                           
-    This program is free software; you can redistribute it and/or modify   
-    it under the terms of the GNU General Public License as published by   
-    the Free Software Foundation; either version 2 of the License, or      
-    (at your option) any later version.                                    
-                                                                           
-    This program is distributed in the hope that it will be useful,        
-    but WITHOUT ANY WARRANTY; without even the implied warranty of         
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          
-    GNU General Public License for more details.                           
-                                                                           
+    Copyright (C) 2014 - 2017 Eaton
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License along
     with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.            
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
     =========================================================================
 */
 
@@ -36,7 +36,7 @@
 #include <functional>
 #include <czmq.h>
 
-// returnns map with desired assets and their ids 
+// returnns map with desired assets and their ids
 db_reply <std::map <uint32_t, std::string> >
     select_short_elements
         (tntdb::Connection &conn,
@@ -68,7 +68,7 @@ db_reply <std::map <uint32_t, std::string> >
                 "   v.id_type = :typeid AND "
                 "   v.id_subtype = :subtypeid ";
     }
-    try { 
+    try {
         // Can return more than one row.
         tntdb::Statement st = conn.prepareCached(query);
 
@@ -106,12 +106,12 @@ db_reply <std::map <uint32_t, std::string> >
     }
 }
 
-// 
+//
 int
     select_assets_by_container_
         (tntdb::Connection &conn,
          uint32_t element_id,
-         std::string asset_name,         
+         std::string asset_name,
          std::vector<uint32_t> types,
          std::vector<uint32_t> subtypes,
          std::function<void(const tntdb::Row&)> cb
@@ -134,12 +134,12 @@ int
         if (!subtypes.empty()) {
             std::string list;
             for( auto &id: subtypes) list += std::to_string(id) + ",";
-            select += " and v.id_asset_device_type in (" + list.substr(0,list.size()-1) + ")"; 
+            select += " and v.id_asset_device_type in (" + list.substr(0,list.size()-1) + ")";
         }
         if (!types.empty()) {
             std::string list;
             for( auto &id: types) list += std::to_string(id) + ",";
-            select += " and v.id_type in (" + list.substr(0,list.size()-1) + ")"; 
+            select += " and v.id_type in (" + list.substr(0,list.size()-1) + ")";
         }
         // Can return more than one row.
         tntdb::Statement st = conn.prepareCached (select);
@@ -150,16 +150,16 @@ int
                                                             result.size());
         for ( auto &row: result ) {
             std::string _asset_name;
-            row["name"].get (_asset_name);            
+            row["name"].get (_asset_name);
             if (streq (_asset_name.c_str(), asset_name.c_str ()))
             {
-                for ( auto &row: result ) {                    
+                for ( auto &row: result ) {
                     cb(row);
-                }                
+                }
                 return 0;
             }
         }
-        
+
         return 1;
     }
     catch (const std::exception& e) {
@@ -215,15 +215,15 @@ bool
         // for each DC save its devices (/upses...done by fun)
         for (const auto& dc : reply.item )
         {
-            int rv = select_assets_by_container_ (conn, dc.first, asset_name, func);            
-            
+            int rv = select_assets_by_container_ (conn, dc.first, asset_name, func);
+
             if (rv == 0) {
                 dc_upses.emplace (dc.second, container_upses);
-                break; 
+                break;
             }
         }
         container_upses.clear();
-        conn.close ();                
+        conn.close ();
     }
     catch (const tntdb::Error& e) {
         zsys_error ("Database error: %s", e.what());
@@ -243,7 +243,7 @@ bool
 
     std::map<std::string, std::vector <std::string>> dc_upses;
     get_dc_upses(dc_upses, asset_name);
-    
+
     for (auto& item : dc_upses)
     {
         int i = 0;
@@ -253,17 +253,17 @@ bool
             sprintf (key,"ups%d", i);
             zhash_insert (aux, key, (void*) ups_it.c_str());
             i++;
-        }        
+        }
     }
-    return true; 
+    return true;
 }
 
 // helper for testing
 bool
     list_zhash_content (zhash_t *zhash)
 {
-    for (void *it = zhash_first (zhash); 
-         it != NULL;                 
+    for (void *it = zhash_first (zhash);
+         it != NULL;
 	     it = zhash_next (zhash))
     {
         zsys_debug ("--->list: %s\n", (char*) it);

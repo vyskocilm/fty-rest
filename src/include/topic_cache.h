@@ -49,7 +49,7 @@ class TopicCache {
 
          //\brief add a key to cache
         void add(const std::string& topic_name,int topic_id);
-        
+
         //\brief get topic_id vs topic_name, return 0 when not found
         int get(const std::string& topic_name);
 

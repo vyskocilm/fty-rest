@@ -141,7 +141,7 @@ if (!send_msg) {
 }
 std::string asset_id = persist::extname_to_asset_name (checked_element_name);
 if (asset_id.empty ())
-    http_die ("not-found", "Cannot get asset_id for ", checked_element_name.c_str ());  
+    http_die ("not-found", "Cannot get asset_id for ", checked_element_name.c_str ());
 zmsg_addstr (send_msg, checked_rule_name.c_str ());
 zmsg_addstr (send_msg, asset_id.c_str ());
 zmsg_addstr (send_msg, checked_state.c_str ());

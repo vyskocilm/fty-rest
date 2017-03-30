@@ -22,7 +22,7 @@
 #define SRC_SHARED_TNTMLM_H
 
 // Original idea of using cxxtools::Pool of mlm_client_t* connections
-// by Michal Hrusecky <michal@hrusecky.net> 
+// by Michal Hrusecky <michal@hrusecky.net>
 
 #include <memory>
 #include <string>
@@ -32,7 +32,7 @@
 
 class MlmClient {
     public:
-        static const std::string ENDPOINT;  
+        static const std::string ENDPOINT;
 
         MlmClient ();
         ~MlmClient ();
@@ -60,4 +60,3 @@ typedef cxxtools::Pool <MlmClient> MlmClientPool;
 extern MlmClientPool mlm_pool;
 
 #endif // SRC_SHARED_TNTMLM_H
-

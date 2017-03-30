@@ -147,15 +147,11 @@ AM_CPPFLAGS = \
 		-include $(abs_top_builddir)/config.h \
 		-I$(abs_top_builddir)/include \
 		-I$(abs_top_srcdir)/include \
-		-I$(abs_top_builddir)/src \
-		-I$(abs_top_builddir)/src/shared \
 		-I$(abs_top_builddir)/src/include \
 		-I$(abs_top_srcdir)/src \
-		-I$(abs_top_srcdir)/src/shared \
 		-I$(abs_top_srcdir)/src/include \
 		-I$(abs_top_builddir)/src/msg \
 		-I$(abs_top_srcdir)/src/msg \
-		-I$(abs_top_srcdir)/tools \
 		-D__STDC_FORMAT_MACROS
 
 AM_CFLAGS = \
@@ -253,29 +249,29 @@ libpriv_git_details_override_la_DEPENDENCIES = \
 noinst_LTLIBRARIES += 		libpriv-utils.la
 
 libpriv_utils_la_SOURCES = 	\
-				src/shared/log.h \
+				src/include/log.h \
 				src/shared/log.c \
 				src/shared/utils.c \
-				src/shared/utils.h \
+				src/include/utils.h \
 				src/include/str_defs.h \
 				src/include/defs.h \
-				src/shared/utils_web.h \
+				src/include/utils_web.h \
 				src/shared/utils_web.cc \
 				src/shared/utils++.cc \
-				src/shared/utils++.h \
-				src/shared/filesystem.h \
+				src/include/utils++.h \
+				src/include/filesystem.h \
 				src/shared/filesystem.cc \
-				src/shared/subprocess.h \
+				src/include/subprocess.h \
 				src/shared/subprocess.cc \
-				src/shared/augtool.h \
+				src/include/augtool.h \
 				src/shared/augtool.cc \
-				src/shared/ic.h \
+				src/include/ic.h \
 				src/shared/ic.c \
-				src/shared/csv.h \
+				src/include/csv.h \
 				src/shared/csv.cc \
-				src/shared/cidr.h \
+				src/include/cidr.h \
 				src/shared/cidr.cc \
-				src/include/str_defs.c \
+				src/shared/str_defs.c \
 				src/include/str_defs.h \
 				src/db/types.h \
 			src/persist/assetcrud.cc \
@@ -291,12 +287,12 @@ libpriv_utils_la_SOURCES = 	\
 			src/db/agentstate/agentstate.cc \
 			src/db/agentstate/agentstate.h \
 			src/db/agentstate.h \
-			tools/dbpath.cc \
+			src/shared/dbpath.cc \
 			src/shared/asset_types.cc \
-			src/shared/asset_types.h \
-			src/shared/dbtypes.h \
+			src/include/asset_types.h \
+			src/include/dbtypes.h \
 			src/shared/topic_cache.cc \
-			src/shared/topic_cache.h \
+			src/include/topic_cache.h \
 			src/db/assets.h \
 			src/db/assets/assetcr.h \
 			src/db/assets/assetr.h \
@@ -312,14 +308,14 @@ libpriv_utils_la_SOURCES = 	\
 			src/db/inout/exportcsv.cc \
 			src/db/asset_general.cc \
 			src/db/asset_general.h \
-			src/shared/tntmlm.h \
+			src/include/tntmlm.h \
 			src/shared/tntmlm.cc \
-			src/agents/configure_inform/configure_inform.cc \
-			src/agents/configure_inform/configure_inform.h \
+			src/shared/configure_inform.cc \
+			src/include/configure_inform.h \
 			src/include/fty_asset_uptime_configurator.h \
-			src/include/fty_asset_uptime_configurator.cc \
+			src/shared/fty_asset_uptime_configurator.cc \
 			src/shared/magic.cc \
-			src/shared/bios-magic.h \
+			src/include/bios-magic.h \
 			src/msg/asset_msg.c \
 			src/msg/asset_msg.h \
 			src/msg/common_msg.c \
@@ -329,12 +325,7 @@ libpriv_utils_la_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb ${LIBCZMQ_LIBS}
 
 libpriv_utils_la_CPPFLAGS =$(AM_CPPFLAGS) \
                     -I$(abs_top_srcdir)/src/persist \
-                    -I$(abs_top_srcdir)/src/db \
-                    -I$(abs_top_srcdir)/tools \
-                    -I$(abs_top_builddir)/tools \
-					-I$(abs_top_srcdir)/src/ \
-					-I$(abs_top_srcdir)/src/shared \
-					-I$(abs_top_builddir)/src/shared
+                    -I$(abs_top_srcdir)/src/db
 
 #----------------------------------------------------------------------
 # Needed at least for the distcheck (post distribution tests)
@@ -409,8 +400,7 @@ test_web_helpers_LDADD =    libpriv-test-run.la \
 				            libpriv-utils.la
 
 test_web_helpers_CPPFLAGS =	$(AM_CPPFLAGS) \
-							-I$(abs_top_srcdir)/tests/include/ \
-							-I$(abs_top_srcdir)/src/web/include
+							-I$(abs_top_srcdir)/tests/include/
 
 test_web_helpers_LDFLAGS =	-ltntnet -ltntdb ${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 
@@ -418,7 +408,7 @@ test_web_helpers_LDFLAGS =	-ltntnet -ltntdb ${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 check_PROGRAMS +=	test-utils-web
 
 test_utils_web_SOURCES = \
-			src/shared/utils_web.h \
+			src/include/utils_web.h \
 			tests/shared/test-utils-web.cc
 
 test_utils_web_LDADD = \
@@ -435,7 +425,7 @@ test_utils_web_LDFLAGS =	${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 check_PROGRAMS +=	test-tntmlm
 
 test_tntmlm_SOURCES = \
-			src/shared/tntmlm.h \
+			src/include/tntmlm.h \
 			src/shared/tntmlm.cc \
 			tests/shared/test-tntmlm.cc
 
@@ -445,15 +435,14 @@ test_tntmlm_LDADD = \
 
 test_tntmlm_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
-			-I$(abs_top_srcdir)/tests/include/ \
-			-I$(abs_top_srcdir)/shared/
+			-I$(abs_top_srcdir)/tests/include/
 
 test_tntmlm_LDFLAGS =	${LIBCZMQ_LIBS} ${LIBMLM_LIBS} ${CXXTOOLS_LIBS}
 
 check_PROGRAMS +=	test-utils-plusplus
 
 test_utils_plusplus_SOURCES = \
-			src/shared/utils++.h \
+			src/include/utils++.h \
 			tests/shared/test-utils++.cc
 
 test_utils_plusplus_LDADD = \
@@ -468,7 +457,7 @@ test_utils_plusplus_LDFLAGS =	${LIBCZMQ_LIBS}
 
 check_PROGRAMS += 	test-utils
 
-test_utils_SOURCES = 	src/shared/utils.h \
+test_utils_SOURCES = 	src/include/utils.h \
 			tests/shared/test-utils.cc
 
 test_utils_LDADD = 	libpriv-utils.la \
@@ -481,8 +470,8 @@ test_utils_LDFLAGS =	${LIBCZMQ_LIBS}
 
 check_PROGRAMS += 	test-log
 
-test_log_SOURCES = 	src/shared/log.h \
-			src/shared/utils.h \
+test_log_SOURCES = 	src/include/log.h \
+			src/include/utils.h \
 			tests/shared/test-log.cc
 
 test_log_LDADD = 	\
@@ -492,8 +481,9 @@ test_log_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/
 
 noinst_PROGRAMS += 			test-subprocess
-test_subprocess_SOURCES = 		src/shared/subprocess.h \
+test_subprocess_SOURCES = 		src/include/subprocess.h \
 					tests/shared/test-subprocess.cc
+
 test_subprocess_LDADD = 		libpriv-utils.la \
 					libpriv-test-run.la
 test_subprocess_CPPFLAGS =		$(AM_CPPFLAGS) \
@@ -511,7 +501,7 @@ test_cidr_LDFLAGS =	${LIBCIDR_LIBS}
 
 check_PROGRAMS += 	test-csv
 
-test_csv_SOURCES =		src/shared/csv.h \
+test_csv_SOURCES =		src/include/csv.h \
 						tests/shared/test-csv.cc
 
 test_csv_LDADD = 		libpriv-utils.la \
@@ -519,9 +509,6 @@ test_csv_LDADD = 		libpriv-utils.la \
 
 test_csv_CPPFLAGS =		$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/shared \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_srcdir)/src/msg \
 			-I$(abs_top_srcdir)/tests/include
 
@@ -543,10 +530,7 @@ test_loadcsv_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/ \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_srcdir)/src/ \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools
+			-I$(abs_top_srcdir)/src/db
 
 test_loadcsv_LDFLAGS =	-ltntdb ${CXXTOOLS_LIBS} ${LIBCZMQ_LIBS}
 
@@ -563,10 +547,7 @@ test_db2_LDADD = \
 test_db2_CPPFLAGS =	$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/ \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_srcdir)/src
+			-I$(abs_top_srcdir)/src/db
 
 test_db2_LDFLAGS =	-ltntdb ${CXXTOOLS_LIBS} ${LIBCIDR_LIBS} ${LIBCZMQ_LIBS}
 
@@ -589,9 +570,7 @@ test_dbtopology_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/ \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_builddir)/tools
+			-I$(abs_top_srcdir)/src/db
 
 test_dbtopology_LDFLAGS = \
 			-ltntdb ${CXXTOOLS_LIBS} ${LIBCIDR_LIBS} ${LIBCZMQ_LIBS}
@@ -611,10 +590,7 @@ test_db_asset_crud_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/ \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/ \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools
+			-I$(abs_top_srcdir)/src/db
 
 test_db_asset_crud_LDFLAGS = \
 			-ltntdb ${CXXTOOLS_LIBS} ${LIBCIDR_LIBS} ${LIBCZMQ_LIBS}
@@ -635,9 +611,7 @@ test_totalpower_CPPFLAGS = \
 			$(AM_CPPFLAGS) \
 			-I$(abs_top_srcdir)/tests/include/ \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/db \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools
+			-I$(abs_top_srcdir)/src/db
 
 test_totalpower_LDFLAGS = \
 			-ltntdb ${CXXTOOLS_LIBS} ${LIBCIDR_LIBS} ${LIBCZMQ_LIBS}
@@ -678,10 +652,6 @@ TESTS += $(check_SCRIPTS)
 
 EXTRA_DIST +=		$(top_srcdir)/tools/dbinit.h
 
-dist_noinst_HEADERS += \
-			src/msg/asset_msg.h \
-			src/shared/asset_types.h
-
 client_SCRIPTS +=	tools/testpass.sh
 EXTRA_DIST +=		tools/testpass.sh
 
@@ -690,8 +660,8 @@ bios_csv_SOURCES = tests/db/bios-csv.cc
 bios_csv_CPPFLAGS = \
 						  $(AM_CPPFLAGS) \
 						  -I $(abs_top_srcdir)/src/ \
-						  -I $(abs_top_srcdir)/src/persist/ \
-						  -I $(abs_top_srcdir)/src/share/
+						  -I $(abs_top_srcdir)/src/persist/
+
 bios_csv_LDADD = libpriv-utils.la
 bios_csv_LDFLAGS = \
 						 ${CXXTOOLS_LIBS} -ltntdb ${LIBCZMQ_LIBS}
@@ -741,8 +711,6 @@ warranty_metric_LDADD = \
 			libpriv-utils.la
 
 warranty_metric_CPPFLAGS =	$(AM_CPPFLAGS) \
-			-I$(abs_top_srcdir)/tools \
-			-I$(abs_top_builddir)/tools \
 			-I$(abs_top_srcdir)/src/db
 
 warranty_metric_LDFLAGS = ${LIBCZMQ_LIBS} ${LIBMLM_LIBS} -ltntdb ${CXXTOOLS_LIBS} ${LIBFTYPROTO_LIBS}
@@ -802,7 +770,13 @@ bios_web_la_SOURCES = \
                       src/shared/upsstatus.cc           \
                       src/web/src/asset_computed_impl.cc \
                       src/web/src/helpers.cc             \
-                      src/web/src/iface.cc
+                      src/web/src/iface.cc \
+					  src/include/data.h \
+					  src/include/sasl.h \
+					  src/include/helpers.h \
+					  src/include/tokens.h \
+					  src/persist/assetcrud.h \
+					  src/include/dbpath.h
 
 # Ensure these files are auto-made before others
 BUILT_SOURCES +=	$(BUILT_SOURCES_bios_web_la)
@@ -815,14 +789,9 @@ bios_web_la_CPPFLAGS =	$(AM_CPPFLAGS) \
 			${LIBSODIUM_CFLAGS} ${LIBSASL2_CFLAGS} \
 			${LIBBIOSPROTO_CFLAGS} \
 			-DSASLAUTHD_MUX=${SASLAUTHD_MUX} \
-			-I$(abs_top_srcdir)/src/web/include \
 			-I$(abs_top_srcdir)/src/db \
 			-I$(abs_top_srcdir)/src \
-			-I$(abs_top_builddir)/tools \
-			-I$(abs_top_builddir)/src \
-			-I$(abs_top_srcdir)/tools \
 			-I$(abs_top_srcdir)/src/persist \
-			-I$(abs_top_srcdir)/src/agents/configure_inform \
 			-I$(abs_top_srcdir)/src/db/assets
 
 # Note: the libmagic we use delivers no pkg-config, so we include it explicitly
@@ -835,14 +804,6 @@ bios_web_la_LDFLAGS = 	${LIBCZMQ_LIBS}	${CXXTOOLS_LIBS} \
 bios_web_la_LIBADD = \
 			libpriv-utils.la \
 			libpriv-git-details-override.la
-
-dist_noinst_HEADERS += \
-			src/shared/data.h \
-			src/web/include/sasl.h \
-			src/web/include/helpers.h \
-			src/web/include/tokens.h \
-			src/persist/assetcrud.h \
-			tools/dbpath.h
 
 EXTRA_DIST += \
 			src/web/tntnet.xml \
@@ -919,13 +880,9 @@ endif
 #----------------------------------------------------------------------
 
 EXTRA_DIST += \
-			$(top_srcdir)/tools/dbpath.h \
 			$(top_srcdir)/include/*.h \
 			$(top_srcdir)/src/msg/*.xml \
 			$(top_srcdir)/src/include/*.h \
-			$(top_srcdir)/src/agents/*/*.h \
-			$(top_srcdir)/src/shared/*.h \
-			$(top_srcdir)/src/web/include/*.h \
 			$(top_srcdir)/tests/shared/test-csv.cc.*sv
 
 # add CI tests to dist

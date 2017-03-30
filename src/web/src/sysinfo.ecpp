@@ -51,7 +51,7 @@
 #include "utils.h"
 #include "git_details_override.h"
 #include "tntmlm.h"
-        
+
 // Magic numbers - dpkg fancy formatting du-jour
 #ifndef DPKG__LIST__STRIP_HEADER
 #define DPKG__LIST__STRIP_HEADER 5
@@ -582,7 +582,7 @@ sysinfo_plain (
     "\t}\n"
     "}";
 }
-       
+
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -599,13 +599,13 @@ UserInfo user;
 
     bool detail = false;
     std::string output;
-  
+
     // argument checking
     {
         std::string sdetail = qparam.param ("detail");
         detail = sdetail == "yes";
     }
-  
+
     if (detail) {
         sysinfo_detail (output, request, user.profile ());
     }

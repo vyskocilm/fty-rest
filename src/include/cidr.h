@@ -1,6 +1,6 @@
 /*
 Copyright (C) 2014 Eaton
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 Example:
   #include "cidr.h"
-  
+
   CIDRList list;
   CIDRAddress addr;
 
@@ -40,9 +40,9 @@ Example:
     // next() increments the address and returns true until we are in the address scope
     std::cout << addr << "\n";
   }
-*/  
-    
-    
+*/
+
+
 #ifndef SRC_SHARED_CIDR_H_
 #define SRC_SHARED_CIDR_H_
 
@@ -58,7 +58,7 @@ namespace shared {
 /**
  * \enum CIDROptions
  * \brief Formating options for CIDRAddress
- */   
+ */
 enum CIDROptions {
    CIDR_AUTO_PREFIX,
    CIDR_WITH_PREFIX,
@@ -74,7 +74,7 @@ enum CIDROptions {
  * CIDR format (10.0.0.3/32). IPv6 is not fully supported.
  *
  * This class encapsulates libcidr library and add some features for easy
- * use in c++. 
+ * use in c++.
  *
  */
 class CIDRAddress {
@@ -106,7 +106,7 @@ public:
    * \param string network prefix
    *
    * The address is set to accorting the parameter. Paremeters can be
-   *   - "10.0.0.1","32" 
+   *   - "10.0.0.1","32"
    *   - "1.2.3.0/24","8"
    */
   CIDRAddress(const std::string &address, const std::string &prefix);
@@ -117,7 +117,7 @@ public:
    * \param unsigned int network prefix
    *
    * The address is set to accorting the parameter. Paremeters can be
-   *   - "10.0.0.1",32 
+   *   - "10.0.0.1",32
    *   - "1.2.3.0/24", 8
    *   - "::1",128
    */
@@ -394,7 +394,7 @@ public:
    * - +1 if *this is bigger
    * - -1 if *this is smaller
    * - 0 if *this is equal
-   * 
+   *
    * Please consider those special cases:
    * - when comparing IPv6 with IPv4, algorithm says that IPv6 is bigger (i. e. ::1 > 192.168.0.1).
    * - when comparing invalid address, valid > invalid, invalid == invalid
@@ -402,7 +402,7 @@ public:
   int compare(const CIDRAddress& a2) const;
   ~CIDRAddress();
 private:
-  // private pointer to libcidr structure 
+  // private pointer to libcidr structure
   CIDR *_cidr;
 
   /**
@@ -557,4 +557,3 @@ private:
 } // namespace shared
 
 #endif // SRC_SHARED_CIDR_H_
-
