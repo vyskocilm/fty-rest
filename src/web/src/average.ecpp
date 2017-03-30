@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <ctime>
 #include <cxxtools/split.h>
+#include <cxxtools/csvserializer.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
 
@@ -85,6 +86,9 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
+    std::string csv = request.getArg ("csv");
+    log_debug ("csv == %s", csv.c_str ());
+
     // Input arguments checking
     std::string checked_start_ts;
     std::string checked_end_ts;
@@ -106,19 +110,21 @@ UserInfo user;
 
         check_regex_text_or_die ("start_ts", start_ts, checked_start_ts, "^([0-9]{14}Z|)$");
         check_regex_text_or_die ("end_ts", end_ts, checked_end_ts, "^([0-9]{14}Z|)$");
-        check_regex_text_or_die ("type", type, checked_type, "^(arithmetic_mean|min|max|)$");
         check_regex_text_or_die ("step", step, checked_step, "^([0-9]{1,2}[a-z]|)$");
-        check_regex_text_or_die ("source", source, checked_source, "^[-_.@a-z0-9]{0,255}$");
-        check_regex_text_or_die ("relative", relative, checked_relative, "^([0-9]{1,2}[a-z]|)$");
         check_element_identifier_or_die ("element_id", element_id, checked_element_id);
-
-        check_regex_text_or_die ("ordered", ordered, ordered, "^(true|false|)$");
-        if ( ordered == "true" ) {
-            checked_ordered = true;
+        check_regex_text_or_die ("source", source, checked_source, "^[-_.@a-z0-9]{0,255}$");
+        if (csv != "yes") {
+            check_regex_text_or_die ("type", type, checked_type, "^(arithmetic_mean|min|max|)$");
+            check_regex_text_or_die ("relative", relative, checked_relative, "^([0-9]{1,2}[a-z]|)$");
+            check_regex_text_or_die ("ordered", ordered, ordered, "^(true|false|)$");
+            if ( ordered == "true" ) {
+                checked_ordered = true;
+            }
         }
     }
+
     int64_t st = -1, end = -1;
-    if (checked_relative.empty ()) {
+    if (checked_relative.empty ()) { // this executes for csv == "yes" as well
         // check both start_ts and end_ts
         if (checked_start_ts.empty ()) {
             // The message looks strange, but both 'relative' and 'start_ts'
@@ -203,50 +209,146 @@ UserInfo user;
         http_die ("internal-error", "mlm_pool.get () failed.");
     }
 
-    zuuid_t *uuid = zuuid_new ();
-    zmsg_t *msg = zmsg_new();
-    zmsg_addstr (msg, zuuid_str_canonical (uuid));
-    zmsg_addstr (msg, "GET");
-    zmsg_addstr (msg, element_name.c_str());
-    zmsg_addstr (msg, checked_source.c_str());
-    zmsg_addstr (msg, checked_step.c_str());
-    zmsg_addstr (msg, checked_type.c_str());
-    zmsg_addstr (msg, std::to_string(st).c_str());
-    zmsg_addstr (msg, std::to_string(end).c_str());
-    zmsg_addstr (msg, (checked_ordered ? "1" : "0") );
+    if (csv == "yes")
+    {
+        std::vector <std::vector <std::string>> csv_data;
+        csv_data.push_back (std::vector <std::string> {"type"});
 
-    int rv = client->sendto ("fty-metric-store", "aggregated data", 1000, &msg);
-    if (rv == -1) {
-        zuuid_destroy (&uuid);
-        log_critical ("Cannot send message to fty-metric-store");
-        http_die ("internal-error", "mlm_client_sendto failed.");
-    }
+        bool got_timestamps = false;
+        for (int i = 0; i < AVG_TYPES_SIZE; i++)
+        {
+            zuuid_t *uuid = zuuid_new ();
+            zmsg_t *msg = zmsg_new();
+            zmsg_addstr (msg, zuuid_str_canonical (uuid));
+            zmsg_addstr (msg, "GET");
+            zmsg_addstr (msg, element_name.c_str());
+            zmsg_addstr (msg, checked_source.c_str());
+            zmsg_addstr (msg, checked_step.c_str());
+            zmsg_addstr (msg, AVG_TYPES [i]);
+            zmsg_addstr (msg, std::to_string(st).c_str());
+            zmsg_addstr (msg, std::to_string(end).c_str());
+            zmsg_addstr (msg, "1");
 
-    zmsg_t *recv_msg = client->recv (zuuid_str_canonical (uuid), 30);
-    zuuid_destroy (&uuid);
-    if (!recv_msg) {
-        log_critical ("client->recv (timeout = '30') returned NULL");
-        http_die ("internal-error", "client->recv () returned NULL");
-    }
-
-    char *frame = zmsg_popstr (recv_msg);
-    if (streq (frame, "ERROR")) {
-        zstr_free (&frame);
-        frame = zmsg_popstr (recv_msg);
-        zmsg_destroy (&recv_msg);
-        if (frame) {
-            if (streq (frame, "BAD_REQUEST")) {
-                zstr_free (&frame);
-                std::string die = "Data for type = '" + checked_type + "', step = '" + checked_step +
-                "', source = '" + checked_source + "', element_name = " + " '" + element_name + "'.";
-                http_die ("element-not-found", die.c_str ());
+            int rv = client->sendto ("fty-metric-store", "aggregated data", 1000, &msg);
+            if (rv == -1) {
+                zuuid_destroy (&uuid);
+                log_critical ("Cannot send message to fty-metric-store");
+                http_die ("internal-error", "mlm_client_sendto failed.");
             }
-            log_info ("error frame == '%s'", frame);
-            http_die ("internal-error", frame);
-        }
-        else
-            http_die ("internal-error");
+
+            zmsg_t *recv_msg = client->recv (zuuid_str_canonical (uuid), 30);
+            zuuid_destroy (&uuid);
+            if (!recv_msg) {
+                log_critical ("client->recv (timeout = '30') returned NULL");
+                http_die ("internal-error", "client->recv () returned NULL");
+            }
+
+            char *frame = zmsg_popstr (recv_msg);
+            if (streq (frame, "ERROR")) {
+                zstr_free (&frame);
+                frame = zmsg_popstr (recv_msg);
+                zmsg_destroy (&recv_msg);
+                if (frame) {
+                    if (streq (frame, "BAD_REQUEST")) {
+                        zstr_free (&frame);
+                        std::string die = "Data for type = '" + checked_type + "', step = '" + checked_step +
+                        "', source = '" + checked_source + "', element_name = " + " '" + element_name + "'.";
+                        http_die ("element-not-found", die.c_str ());
+                    }
+                    log_info ("error frame == '%s'", frame);
+                    http_die ("internal-error", frame);
+                }
+                else
+                    http_die ("internal-error");
+            }
+
+            if (streq (frame, "OK")) {
+                zstr_free (&frame);
+                char *element_rep = zmsg_popstr (recv_msg);
+                char *source_rep = zmsg_popstr (recv_msg);
+                char *step_rep = zmsg_popstr (recv_msg);
+                char *type_rep = zmsg_popstr (recv_msg);
+                char *start_date_rep = zmsg_popstr (recv_msg);
+                char *end_date_rep = zmsg_popstr (recv_msg);
+                char *ordered = zmsg_popstr (recv_msg);
+                char *units_rep = zmsg_popstr (recv_msg);
+
+                zstr_free (&element_rep);
+                zstr_free (&source_rep);
+                zstr_free (&step_rep);
+                zstr_free (&start_date_rep);
+                zstr_free (&units_rep);
+                zstr_free (&ordered);
+
+                csv_data.push_back (std::vector <std::string> {type_rep});
+                // now we are going to fill in data
+                while (zmsg_size (recv_msg) >= 2 ) {
+                    char *timestamp = zmsg_popstr (recv_msg);
+                    char *value = zmsg_popstr (recv_msg);
+                    if (!got_timestamps)
+                        csv_data [0].push_back (timestamp);
+                    csv_data [i+1].push_back (value);
+                    zstr_free (&value);
+                    zstr_free (&timestamp);
+                }
+                zstr_free (&type_rep);
+
+            } // first frame OK
+
+            zmsg_destroy (&recv_msg);
+        } // end for-cycle
+
+        reply.setHeader(tnt::httpheader::contentDisposition, "attachment; filename=\"testicek.csv\"");
+        cxxtools::CsvSerializer serializer (reply.out ());
+        serializer.serialize (csv_data);
+
     }
+    else
+    {
+        zuuid_t *uuid = zuuid_new ();
+        zmsg_t *msg = zmsg_new();
+        zmsg_addstr (msg, zuuid_str_canonical (uuid));
+        zmsg_addstr (msg, "GET");
+        zmsg_addstr (msg, element_name.c_str());
+        zmsg_addstr (msg, checked_source.c_str());
+        zmsg_addstr (msg, checked_step.c_str());
+        zmsg_addstr (msg, checked_type.c_str());
+        zmsg_addstr (msg, std::to_string(st).c_str());
+        zmsg_addstr (msg, std::to_string(end).c_str());
+        zmsg_addstr (msg, (checked_ordered ? "1" : "0") );
+
+        int rv = client->sendto ("fty-metric-store", "aggregated data", 1000, &msg);
+        if (rv == -1) {
+            zuuid_destroy (&uuid);
+            log_critical ("Cannot send message to fty-metric-store");
+            http_die ("internal-error", "mlm_client_sendto failed.");
+        }
+
+        zmsg_t *recv_msg = client->recv (zuuid_str_canonical (uuid), 30);
+        zuuid_destroy (&uuid);
+        if (!recv_msg) {
+            log_critical ("client->recv (timeout = '30') returned NULL");
+            http_die ("internal-error", "client->recv () returned NULL");
+        }
+
+        char *frame = zmsg_popstr (recv_msg);
+        if (streq (frame, "ERROR")) {
+            zstr_free (&frame);
+            frame = zmsg_popstr (recv_msg);
+            zmsg_destroy (&recv_msg);
+            if (frame) {
+                if (streq (frame, "BAD_REQUEST")) {
+                    zstr_free (&frame);
+                    std::string die = "Data for type = '" + checked_type + "', step = '" + checked_step +
+                    "', source = '" + checked_source + "', element_name = " + " '" + element_name + "'.";
+                    http_die ("element-not-found", die.c_str ());
+                }
+                log_info ("error frame == '%s'", frame);
+                http_die ("internal-error", frame);
+            }
+            else
+                http_die ("internal-error");
+        }
 
     if (streq (frame, "OK")) {
         zstr_free (&frame);
@@ -296,6 +398,7 @@ UserInfo user;
         ]
 }
 <%cpp>
-    }
+    } // OK
     zmsg_destroy (&recv_msg);
+    }
 </%cpp>
