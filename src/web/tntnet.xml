@@ -399,9 +399,21 @@
     <mapping>
       <target>average@bios_web</target>
       <method>GET</method>
-      <url>^/api/v1/metric/computed/average.*$</url>
+      <url>^/api/v1/metric/computed/average/csv.*$</url>
+      <args>
+        <csv>yes</csv>
+      </args>
     </mapping>
 
+    <mapping>
+      <target>average@bios_web</target>
+      <method>GET</method>
+      <url>^/api/v1/metric/computed/average.*$</url>
+      <args>
+        <csv>no</csv>
+      </args>
+    </mapping>
+    
     <!-- admin/config -->
     <mapping>
         <target>config@bios_web</target>
