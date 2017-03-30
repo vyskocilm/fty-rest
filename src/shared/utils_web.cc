@@ -385,7 +385,7 @@ json2zpl (
                 assert_value (it.name (), value);
                 std::string name =
                     get_mapping (it.name ()) + slash + std::to_string(i);
-                s_zconfig_put (cfg, name.c_str (), value.c_str ());
+                s_zconfig_put (cfg, name, value.c_str ());
                 i++;
             }
         }
