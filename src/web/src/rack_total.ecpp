@@ -245,7 +245,7 @@ std::string checked_arg2;
             for(size_t P = 0; P < requestedParams.size(); P++ ) {
                 const std::string& key = requestedParams[P];
                 const std::string& val = PARAM_TO_SRC.at(key);   //XXX: operator[] does not work here!
-                double dvalue = s_total_rack_power (client, val, rackNames[R]);
+                double dvalue = s_total_rack_power (client, val, racks[R]);
                 json << "\t\t\t\"" << key << "\": "<< ( std::isnan(dvalue) ? "null" : std::to_string(dvalue) );
                 json << ((P < requestedParams.size() - 1) ? "," : "" ) << "\n";
             };
