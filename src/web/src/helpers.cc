@@ -283,7 +283,7 @@ check_user_permissions (
         const UserInfo &user,
         const tnt::HttpRequest &request,
         const std::map <BiosProfile, std::string> &permissions,
-        const std::string debug,
+        const std::string &debug,
         http_errors_t &errors
         )
 {
