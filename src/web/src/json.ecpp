@@ -58,6 +58,7 @@
 
 	static cxxtools::Regex rex_GET_text_plain("^/api/v1/admin/license$");
 	static cxxtools::Regex rex_GET_text_csv ("^/api/v1/asset/export$");
+	static cxxtools::Regex rex_GET_average_csv ("^/api/v1/metric/computed/average/csv.*");
 	static cxxtools::Regex rex_GET_undecided("^/api/v1/admin/getlog/.*$");
 
 	if(request.getMethod() == "GET") {
@@ -65,7 +66,9 @@
 
 		if(rex_GET_text_plain.match(request.getUrl()))
 			reply.setContentType("text/plain;charset=UTF-8");
-		else if(rex_GET_text_csv.match(request.getUrl()))
+		else
+        if (rex_GET_text_csv.match (request.getUrl ())
+            || rex_GET_average_csv.match (request.getUrl ()))
 			reply.setContentType("text/csv;charset=UTF-8");
 		else
 		if(rex_GET_undecided.match(request.getUrl()))
