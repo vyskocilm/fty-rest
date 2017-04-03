@@ -158,12 +158,12 @@ fill_array_powerchains (std::vector <std::tuple
         http_die ("request-param-bad", dc_id.c_str ());
 
     int rv = -1;
-    int64_t num_dc_id = persist::name_to_asset_id (dc_id);
+    int64_t dbid = persist::name_to_asset_id (dc_id);
 
-    if ( num_dc_id == -1 )
+    if ( dbid == -1 )
         http_die ("element-not-found", "dc_id ", dc_id.c_str ());
 
-    rv = input_power_group_response (url, num_dc_id, devices_data, powerchains_data);
+    rv = input_power_group_response (url, dbid, devices_data, powerchains_data);
 
     if (rv == -1)
     {

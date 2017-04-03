@@ -151,7 +151,14 @@ UserInfo user;
                 state.c_str (), asset.c_str (), recursive.c_str ());
     }
 
-element_id = (uint32_t) persist::name_to_asset_id (checked_asset);
+    {
+        int64_t dbid =  persist::name_to_asset_id (checked_asset);
+        if (dbid == -1) {
+            http_die ("element-not-found", checked_asset.c_str ());
+        }
+
+        element_id = (uint32_t) dbid;
+    }
 
 std::map<std::string, int> desired_elements;
 tntdb::Connection connection;
