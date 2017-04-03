@@ -67,7 +67,7 @@ UserInfo user;
         }
         checked_type = type;
         for ( const auto &subtype: checked_subtypes ) {
-            log_debug ("\tdubtype=%s", subtype.c_str ());
+            log_debug ("\tsubtype=%s", subtype.c_str ());
             if ( !persist::subtype_to_subtypeid (subtype) ) {
                 http_die ("request-param-bad", "subtype", subtype.c_str (), "See RFC-11 for possible values");
             }
