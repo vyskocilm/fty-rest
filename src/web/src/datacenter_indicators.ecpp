@@ -273,13 +273,15 @@ UserInfo user;
     std::vector<std::string> DCNames;
     std::vector<uint32_t> DCIDs;
     for (auto const& item : DCs) {
-        uint32_t id_num = (uint32_t) persist::name_to_asset_id (item);
-
-        auto it = allDcsShort.item.find (id_num);
+        int64_t dbid =  persist::name_to_asset_id (item);
+        if (dbid == -1) {
+            http_die ("element-not-found", item.c_str ());
+        }
+        auto it = allDcsShort.item.find ((uint32_t) dbid);
         if (it == allDcsShort.item.end()) {
             http_die ("element-not-found", item.c_str ());
         }
-        DCIDs.push_back (id_num);
+        DCIDs.push_back (dbid);
         DCNames.push_back (it->second);
     }
 
