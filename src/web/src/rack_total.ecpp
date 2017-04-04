@@ -220,12 +220,15 @@ std::string checked_arg2;
         if ( !is_ok_name (item.c_str ()) )
             http_die ("request-param-bad", "arg2", item.c_str (), "valid asset name");
 
-        auto real_id = persist::name_to_asset_id (item);
-        auto it = allRacksShort.item.find(real_id);
+        auto dbid = persist::name_to_asset_id (item);
+        if (dbid == -1) {
+            http_die ("element-not-found", item.c_str ());
+        }
+        auto it = allRacksShort.item.find(dbid);
         if (it == allRacksShort.item.end()) {
             http_die ("element-not-found", item.c_str ());
         }
-        rackNames.push_back (persist::id_to_name_ext_name (real_id).second);
+        rackNames.push_back (persist::id_to_name_ext_name (dbid).second);
     }
 
     std::stringstream json;

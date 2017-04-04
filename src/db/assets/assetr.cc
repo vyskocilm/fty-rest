@@ -236,7 +236,7 @@ db_reply <db_web_basic_element_t>
         ret.status        = 0;
         ret.errtype       = DB_ERR;
         ret.errsubtype    = DB_ERROR_NOTFOUND;
-        ret.msg           = "element with spesified id was not found";
+        ret.msg           = "element with specified id was not found";
         log_info ("end: %s", ret.msg.c_str());
         return ret;
     }

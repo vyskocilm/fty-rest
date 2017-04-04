@@ -87,8 +87,8 @@ static db_reply_t
         ret.status     = 0;
         ret.errtype    = DB_ERR;
         ret.errsubtype = DB_ERROR_BADINPUT;
-        ret.msg        = "apropriate asset element is not specified";
-        log_error ("end: ignore insert, apropriate asset element is "
+        ret.msg        = "appropriate asset element is not specified";
+        log_error ("end: ignore insert, appropriate asset element is "
                                                          "not specified");
         return ret;
     }
@@ -97,8 +97,8 @@ static db_reply_t
         ret.status     = 0;
         ret.errtype    = DB_ERR;
         ret.errsubtype = DB_ERROR_BADINPUT;
-        ret.msg        = "unexepetable value";
-        log_error ("end: ignore insert, unexeptable value '%s'", value);
+        ret.msg        = "unexpected value"; /* Not from list of correct values */
+        log_error ("end: ignore insert, unexpected value '%s'", value);
         return ret;
     }
     if ( !is_ok_keytag (keytag) )
@@ -106,8 +106,8 @@ static db_reply_t
         ret.status     = 0;
         ret.errtype    = DB_ERR;
         ret.errsubtype = DB_ERROR_BADINPUT;
-        ret.msg        = "unexepetable keytag";
-        log_error ("end: ignore insert, unexeptable keytag '%s'", keytag);
+        ret.msg        = "unacceptable keytag"; /* Some key names are forbidden */
+        log_error ("end: ignore insert, unacceptable keytag '%s'", keytag);
         return ret;
     }
 
