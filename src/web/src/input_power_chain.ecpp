@@ -163,7 +163,8 @@ fill_array_powerchains (std::vector <std::tuple
     if ( dbid == -1 )
         http_die ("element-not-found", "dc_id ", dc_id.c_str ());
 
-    rv = input_power_group_response (url, dbid, devices_data, powerchains_data);
+    rv = input_power_group_response (url, (uint32_t) dbid, devices_data, powerchains_data);
+
 
     if (rv == -1)
     {
