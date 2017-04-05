@@ -10,9 +10,9 @@
     "evaluation"    : "
          function main(input, preferred)
              if input == preferred then
-                 return OK, 'ATS ' .. NAME .. ' is running from preferred input.'
+                 return OK, 'ATS is running from preferred input.'
              end
-             return WARNING, 'ATS ' .. NAME .. ' is running from input ' .. input .. ' (preferred is ' .. preferred .. ')!'
+             return WARNING, 'ATS is running from input ' .. input .. ' (preferred is ' .. preferred .. ')!'
          end
     "
   }
