@@ -157,19 +157,19 @@ static double
         return 0.0f;
     }
 
-    double value_actual = 0.0f;
+    double value_actual = NAN;
     auto it = dataDc.find(items.at(1));
     if ( it != dataDc.cend() ) {
         value_actual = std::stod (it->second);
     }
 
-    double value_average = 0.0f;
+    double value_average = NAN;
     it = dataDc.find(items.at(0));
     if ( it != dataDc.cend() ) {
         value_average = std::stod (it->second);
     }
 
-    double val = 0.0f;
+    double val = NAN;
     if ( value_average != 0 ) {
         val = round( (value_actual - value_average ) / ( value_average ) * 1000.0f ) / 10.0f ;
     }
@@ -273,13 +273,15 @@ UserInfo user;
     std::vector<std::string> DCNames;
     std::vector<uint32_t> DCIDs;
     for (auto const& item : DCs) {
-        uint32_t id_num = (uint32_t) persist::name_to_asset_id (item);
-
-        auto it = allDcsShort.item.find (id_num);
+        int64_t dbid =  persist::name_to_asset_id (item);
+        if (dbid == -1) {
+            http_die ("element-not-found", item.c_str ());
+        }
+        auto it = allDcsShort.item.find ((uint32_t) dbid);
         if (it == allDcsShort.item.end()) {
             http_die ("element-not-found", item.c_str ());
         }
-        DCIDs.push_back (id_num);
+        DCIDs.push_back (dbid);
         DCNames.push_back (it->second);
     }
 
@@ -386,9 +388,9 @@ UserInfo user;
             if ( dataDc.at(aDc).count(PARAM_TO_SRC.at(key)) == 0 ) {
                 if ( isTrend (key) ) {
                     double value = get_trend_value(dataDc.at(aDc), key);
-                    dataDc.at(aDc).emplace (key, std::to_string (value));
+                    dataDc.at(aDc).emplace (key, std::isnan (value)? "null" : std::to_string (value));
                 } else {
-                    dataDc.at(aDc).emplace (key, "0");
+                    dataDc.at(aDc).emplace (key, "null");
                 }
             }
             else {

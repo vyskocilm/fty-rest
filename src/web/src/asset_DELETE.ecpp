@@ -43,7 +43,7 @@ UserInfo user;
             {BiosProfile::Admin,     "D"}
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
-    std::string checked_id;
+    std::string checked_id; // user-friendly identifier
 
     // sanity check
     {
@@ -63,6 +63,7 @@ UserInfo user;
     if (dbid == -1) {
         http_die ("element-not-found", checked_id.c_str ());
     }
+
     // delete it
     db_a_elmnt_t row;
     auto ret = asset_mgr.delete_item (dbid, row);

@@ -65,7 +65,8 @@
 
 		if(rex_GET_text_plain.match(request.getUrl()))
 			reply.setContentType("text/plain;charset=UTF-8");
-		else if(rex_GET_text_csv.match(request.getUrl()))
+		else
+        if (rex_GET_text_csv.match (request.getUrl ()))
 			reply.setContentType("text/csv;charset=UTF-8");
 		else
 		if(rex_GET_undecided.match(request.getUrl()))
