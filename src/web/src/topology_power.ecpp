@@ -111,10 +111,10 @@ UserInfo user;
             parameter_name = "filter_group";
         }
 
-	if (!is_ok_name (asset_id.c_str ()) )
+        if (!is_ok_name (asset_id.c_str ()) )
             http_die ("request-param-bad", "id", asset_id.c_str (), "valid asset name");
         checked_id = persist::name_to_asset_id (asset_id);
-	if (checked_id == -1)
+        if (checked_id == -1)
             http_die ("request-param-bad", "id", asset_id.c_str (), "existing asset name");
     }
     // Sanity check end
