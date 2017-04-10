@@ -292,6 +292,7 @@ UserInfo user;
                     zstr_free (&timestamp);
                 }
                 zstr_free (&type_rep);
+                got_timestamps = true;
 
             } // first frame OK
 
