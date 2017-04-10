@@ -28,7 +28,7 @@ std::string url = std::string("mysql:db=box_utf8;user=") +
 // helper print function to be deleted
 static const std::string
 s_get (const tntdb::Row& row, const std::string& key) {
-    try { 
+    try {
         return row.getString (key);
     }
     catch (const tntdb::NullValue &n) {
@@ -164,14 +164,73 @@ s_print_topology2 (
     }
 }
 
+static void
+print_non_recursively (std::ostream& out,
+                       tntdb::Result& res,
+                       std::string from)
+{
+    int start;
+    int from_type;
+    std::string tmp;
+    for (int i = 1; i != 6; i++)
+    {
+        for (const auto& row : res)
+        {
+            std::string ID = "ID";
+            std::string TYPEID = "TYPEID";
+
+            ID.append(std::to_string(i));
+            TYPEID.append(std::to_string(i));
+
+            if (s_get (row, ID) != from)
+                continue;
+            else
+            {
+                start = i;
+                from_type = s_geti (row, TYPEID);
+
+                out << ID << ": " << s_get (row, ID) << " " << TYPEID << " : " << s_geti (row, TYPEID) <<  "\n";
+                break;
+            }
+        }
+    }
+
+    for (int t = from_type + 1; t != 7; ++t)
+    {
+        for (int ii = start; ii != 7; ii++)
+        {
+            for (const auto& row : res)
+            {
+                std::string ID = "ID";
+                std::string TYPEID = "TYPEID";
+                std::string ORDER = "ORDER";
+                ID.append (std::to_string (ii));
+                TYPEID.append (std::to_string (ii));
+                ORDER.append (std::to_string (ii));
+
+                if (s_geti (row, TYPEID) == t && s_get (row, ID) != tmp)
+                {
+                    out << ID << " : " << s_get (row, ID) << " " << TYPEID << " : " << s_geti (row, TYPEID) << ", " << ORDER << ": " << s_get (row, ORDER) << "\n";
+                    tmp = s_get (row, ID);
+                }
+            }
+        }
+    }
+
+
+}
+
+
 int main () {
 
     tntdb::Connection conn = tntdb::connectCached (url);
 
-    auto res = s_topologyv2 (conn, "DC1", true, "");
+    auto res = s_topologyv2 (conn, "room-2", true, "");
     s_print_topology2 (std::cout, res, "");
     std::cout << "======================================================" << std::endl;
-    res = s_topologyv2 (conn, "DC1", true, "");
+    res = s_topologyv2 (conn, "room-2", true, "");
     s_print_topology2 (std::cout, res, "devices");
+    std::cout << "======================================================" << std::endl;
+    print_non_recursively (std::cout, res, "room-2");
 
 }
