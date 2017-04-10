@@ -11,7 +11,6 @@
  *  PoC of a new location_from function, will print DB content to stdout
  *
  *  TODO:
- *  1. ordering by ext attribute
  *  2. more values to be returned (type, subtype, dbid, asset name)
  *  3. recursive = true|false
  *  4. feed_by
@@ -84,7 +83,13 @@ s_topologyv2 (
         "    t3.id_type AS TYPEID3, "
         "    t4.id_type AS TYPEID4, "
         "    t5.id_type AS TYPEID5, "
-        "    t6.id_type AS TYPEID6  "
+        "    t6.id_type AS TYPEID6, "
+        "    t1ext.value AS ORDER1, "
+        "    t2ext.value AS ORDER2, "
+        "    t3ext.value AS ORDER3, "
+        "    t4ext.value AS ORDER4, "
+        "    t5ext.value AS ORDER5, "
+        "    t6ext.value AS ORDER6  "
         "  FROM v_bios_asset_element AS t1 "
         "    LEFT JOIN v_bios_asset_element AS t2 ON t2.id_parent = t1.id "
         "    LEFT JOIN v_bios_asset_element AS t3 ON t3.id_parent = t2.id "
@@ -93,7 +98,15 @@ s_topologyv2 (
         "    LEFT JOIN v_bios_asset_element AS t6 ON t6.id_parent = t5.id "
         "    INNER JOIN t_bios_asset_device_type v6 "
         "    ON (v6.id_asset_device_type = t1.id_subtype) "
-        "  WHERE t1.name=:from ";
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t1ext ON (t1.id = t1ext.id_asset_element AND t1ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t2ext ON (t2.id = t2ext.id_asset_element AND t2ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t3ext ON (t3.id = t3ext.id_asset_element AND t3ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t4ext ON (t4.id = t4ext.id_asset_element AND t4ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t5ext ON (t5.id = t5ext.id_asset_element AND t5ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t6ext ON (t6.id = t6ext.id_asset_element AND t6ext.keytag=\"order\") "
+        "  WHERE t1.name=:from "
+        "  ORDER BY "
+        "   ORDER1 ASC, ORDER2 ASC, ORDER3 ASC, ORDER4 ASC, ORDER5 ASC, ORDER6 ASC ";
 
     tntdb::Statement st = conn.prepareCached (query);
 
@@ -141,7 +154,10 @@ s_print_topology2 (
             std::string ID = "ID";
             ID.append (std::to_string (i));
 
-            out << ID << ": " << s_get (row, ID) << ", " << TYPEID << ": " << s_geti (row, TYPEID) << ", ";
+            std::string ORDER = "ORDER";
+            ORDER.append (std::to_string (i));
+
+            out << ID << ": " << s_get (row, ID) << ", " << TYPEID << ": " << s_geti (row, TYPEID) << ", " << ORDER << ": " << s_get (row, ORDER) << ", ";
         }
 
         out << std::endl;
