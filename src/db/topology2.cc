@@ -11,10 +11,12 @@
  *  PoC of a new location_from function, will print DB content to stdout
  *
  *  TODO:
+ *  1. support for unlocated elements
  *  2. more values to be returned (type, subtype, dbid, asset name)
  *  3. recursive = true|false
  *  4. feed_by
  *  5. API between function and REST API
+ *  6. JSON output
  *
  *  g++ -std=c++11 src/db/topology2.cc -lcxxtools -ltntdb && ./a.out ;
  *
