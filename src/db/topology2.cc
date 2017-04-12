@@ -12,6 +12,52 @@
 
 #include "../../src/include/asset_types.h"
 
+// copy and paste from asset_types.cc
+namespace persist {
+a_elmnt_tp_id_t
+    type_to_typeid
+        (const std::string &type)
+{
+    std::string t (type);
+    std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+    if(t == "datacenter") {
+        return asset_type::DATACENTER;
+    } else if(t == "room") {
+        return asset_type::ROOM;
+    } else if(t == "row") {
+        return asset_type::ROW;
+    } else if(t == "rack") {
+        return asset_type::RACK;
+    } else if(t == "group") {
+        return asset_type::GROUP;
+    } else if(t == "device") {
+        return asset_type::DEVICE;
+    } else
+        return asset_type::TUNKNOWN;
+}
+std::string
+    typeid_to_type
+        (a_elmnt_tp_id_t type_id)
+{
+    switch(type_id) {
+        case asset_type::DATACENTER:
+            return "datacenter";
+        case asset_type::ROOM:
+            return "room";
+        case asset_type::ROW:
+            return "row";
+        case asset_type::RACK:
+            return "rack";
+        case asset_type::GROUP:
+            return "group";
+        case asset_type::DEVICE:
+            return "device";
+        default:
+            return "unknown";
+    }
+}
+}
+
 /**
  *  topologyv2.cc
  *
@@ -172,8 +218,8 @@ s_feed_by (
 static tntdb::Result
 s_topologyv2 (
     tntdb::Connection& conn,
-    const std::string& from,
-    bool recursive)
+    const std::string& from
+    )
 {
 
     // TODO: db error handling
@@ -192,6 +238,12 @@ s_topologyv2 (
         "    t5.name AS ID5, "
         "    t6.name AS ID6, "
         "    t1.id_type AS TYPEID1, "
+        "    t2.id_type AS TYPEID2, "
+        "    t3.id_type AS TYPEID3, "
+        "    t4.id_type AS TYPEID4, "
+        "    t5.id_type AS TYPEID5, "
+        "    t6.id_type AS TYPEID6, "
+        "    t1.id_subtype AS TYPEID1, "
         "    t2.id_type AS TYPEID2, "
         "    t3.id_type AS TYPEID3, "
         "    t4.id_type AS TYPEID4, "
@@ -237,9 +289,16 @@ struct Item
     std::string name;
     std::string subtype;
     std::string type;
-    std::string order;
+    //std::string order;
     std::vector <Item> contains;
     friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
+    void print () {
+        std::cout << "{.id=" << id;
+        std::cout << ", .name=" << name;
+        std::cout << ", .type=" << type;
+        std::cout << ", .subtype=" << subtype;
+        std::cout << ", .cotaines=<" << contains.size () << subtype;
+    }
 };
 
 struct Topology
@@ -257,7 +316,7 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
     si.addMember("id") <<= asset.id;
     si.addMember("sub_type") <<= asset.subtype;
     si.addMember("type") <<= asset.type;
-    si.addMember("order") <<= asset.order;
+    //si.addMember("order") <<= asset.order;
     if (!asset.contains.empty ())
        si.addMember("contains") <<= asset.contains;
 }
@@ -277,8 +336,79 @@ void operator<<= (cxxtools::SerializationInfo &si, const Topology &topo)
         si.addMember("devices") <<= topo.devices;
 }
 
+static void
+s_json (
+    std::ostream &out,
+    tntdb::Result &res,
+    const std::string &filter,
+    const std::set <std::string> &feeded_by)
+{
+    cxxtools::JsonSerializer serializer (std::cout);
+    serializer.beautify (true);
+
+    Topology topo {};
+
+    std::set <std::string> processed {};
+
+    for (const auto& row: res) {
+
+        for (int i = 1; i != 7; i++) {
+
+
+            std::string idx = std::to_string (i);
+            std::string ID {"ID"}; ID.append (idx);
+            // TODO:!!!! NAME!!!! - need more joins?
+            std::string TYPE {"TYPEID"}; TYPE.append (idx);
+            // TODO:!!! SUBTYPE!!!! - again, more joins
+            //std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+
+            // TODO: filter!!
+
+            int type = s_geti (row, TYPE);
+            std::string id = s_get (row, ID);
+            if (processed.count (id) != 0 || id == "(null)")
+                continue;
+
+            Item it {
+                id,
+                "(name)",
+                "(subtype)",
+                persist::typeid_to_type (s_geti (row, TYPE))};
+
+            switch (type) {
+                case persist::asset_type::DATACENTER:
+                    topo.datacenters.push_back (it);
+                    break;
+                case persist::asset_type::ROOM:
+                    topo.rooms.push_back (it);
+                    break;
+                case persist::asset_type::ROW:
+                    topo.rows.push_back (it);
+                    break;
+                case persist::asset_type::RACK:
+                    topo.racks.push_back (it);
+                    break;
+                default:
+                    topo.devices.push_back (it);
+            }
+            processed.emplace (s_get (row, ID));
+        }
+    }
+    serializer.serialize(topo).finish();
+}
 
 int main () {
+
+    tntdb::Connection conn = tntdb::connectCached (url);
+
+    // 1. params
+    std::string from {"room-2"};
+    std::string feed_by {"ups-1"};
+
+    // 2. queries
+    auto res = s_topologyv2 (conn, "DC1");
+    std::set <std::string> feeded_by {};
+    s_json (std::cout, res, "", feeded_by);
 
     Item asset;
     Topology topo;
@@ -291,30 +421,18 @@ int main () {
 
     asset.name  = name;
     asset.type  = type;
-    asset.order  = order;
+    //asset.order  = order;
     asset.subtype = subtype;
     asset.id = id;
     asset.contains.push_back (asset);
 
     topo.datacenters.push_back (asset);
 
-    cxxtools::JsonSerializer serializer (std::cout);
-    serializer.beautify (true);
-    serializer.serialize(asset).finish();
     printf("\n");
     return 0;
 
-    tntdb::Connection conn = tntdb::connectCached (url);
-
-    // 1. params
-    std::string from {"room-2"};
-    std::string feed_by {"ups-1"};
-
-    // 2. queries
-    auto res = s_topologyv2 (conn, "room-2", true);
-    
     // 3. feed_by
-    std::set <std::string> feeded_by;
+    //std::set <std::string> feeded_by;
     if (! feed_by.empty())
         feeded_by = s_feed_by (conn, feed_by);
 
