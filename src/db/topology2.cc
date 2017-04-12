@@ -2,6 +2,13 @@
 #include <tntdb.h>
 #include <algorithm>
 #include <exception>
+#include <cxxtools/split.h>
+#include <tntdb/error.h>
+#include <tntdb.h>
+#include <sstream>
+#include <cxxtools/serializationinfo.h>
+#include <cxxtools/jsondeserializer.h>
+#include <cxxtools/jsonserializer.h>
 
 #include "../../src/include/asset_types.h"
 
@@ -11,10 +18,11 @@
  *  PoC of a new location_from function, will print DB content to stdout
  *
  *  TODO:
+ *  1. support for unlocated elements
  *  2. more values to be returned (type, subtype, dbid, asset name)
  *  3. recursive = true|false
- *  4. feed_by
  *  5. API between function and REST API
+ *  6. JSON output
  *
  *  g++ -std=c++11 src/db/topology2.cc -lcxxtools -ltntdb && ./a.out ;
  *
@@ -46,6 +54,112 @@ s_geti (const tntdb::Row& row, const std::string& key) {
     }
 }
 
+static std::string
+s_mkspc (int level) {
+    std::string ret;
+    if (level <=0)
+        return ret;
+    for (int i =0; i != level; i++) {
+        ret.append ("  ");
+    }
+    return ret;
+}
+
+//
+//  maps node to it's kids, ideal structure for feed_by queries
+//
+//  eg for topology v_bios_asset_link_topology
+//
+//  feed, ups
+//  ups, epdu1
+//  epdu1, srv1.2
+//  epdu1, srv2.2
+//  epdu2, srv2.2
+//  epdu2, srv2.1
+//
+//  will construct
+//
+//  feed -> ups -> epdu1 -> srv1.2
+//                       -> srv2.2
+//              -> epdu2 -> srv2.1
+//                       -> srv2.2
+//
+//  and will return a subtree of a power chain
+//
+//  Example:
+//  feed_by ("epdu2") -> {"epdu2", "srv2.1", "srv2.2"};
+//
+
+class NodeMap {
+
+    public:
+
+        NodeMap ():
+            _map {}
+        {}
+
+        void add (const std::string &name, const std::string &child) {
+            if (_map.count (name) == 0) {
+                std::set <std::string> s {};
+                _map.emplace (std::make_pair (name, s));
+            }
+            _map [name].insert (child);
+        }
+
+        void print (const std::string &name, int level) {
+            std::cout << s_mkspc (level) << name << ":" << std::endl;
+            for (const auto &child: _map [name]) {
+                print (child, level+1);
+            }
+        }
+
+        void _feed_by (const std::string& name, std::set <std::string> &ret) {
+            if (_map.count (name) == 0)
+                return;
+
+            ret.insert (name);
+            for (const auto& kid: _map [name])
+                _feed_by (kid, ret);
+        }
+
+        std::set <std::string> feed_by (const std::string& name) {
+            std::set <std::string> ret {};
+            _feed_by (name, ret);
+            return ret;
+        }
+
+    private:
+        std::map <std::string, std::set <std::string>> _map;
+};
+
+//  return a set of devices feeded by feed_by
+//
+//  feed_by - return devices feed by given iname
+//
+//  return tntdb::Result
+//
+static std::set <std::string>
+s_feed_by (
+    tntdb::Connection& conn,
+    const std::string& feed_by)
+{
+    std::string query = "SELECT src_name, dest_name FROM v_bios_asset_link_topology WHERE id_asset_link_type = 1";
+    tntdb::Statement st = conn.prepareCached (query);
+
+    NodeMap nm{};
+
+    for (const auto& row: st.select ()) {
+
+        std::string name = s_get (row, "src_name");
+        std::string kid = s_get (row, "dest_name");
+
+        nm.add (name, kid);
+    }
+
+    return nm.feed_by (feed_by);
+}
+
+//  return a topology
 //
 //  from    - iname of asset where topology starts
 //  filter  - (datacenter,row,rack,room,device) - show only selected types
@@ -59,8 +173,7 @@ static tntdb::Result
 s_topologyv2 (
     tntdb::Connection& conn,
     const std::string& from,
-    bool recursive,
-    const std::string& feed_by)
+    bool recursive)
 {
 
     // TODO: db error handling
@@ -114,123 +227,97 @@ s_topologyv2 (
     return st.select ();
 }
 
-static void
-s_print_topology2 (
-    std::ostream& out,
-    tntdb::Result& res,
-    const std::string& _filter
-    ) {
+//so far nonrecursive way
 
-    int id_type = -1;
-    if (!_filter.empty()) {
-        std::string filter = _filter;
-        std::transform (filter.begin(), filter.end(), filter.begin(), ::tolower);
-        if (filter == "rooms") {
-            id_type = persist::asset_type::ROOM;
-        } else if (filter == "rows") {
-            id_type = persist::asset_type::ROW;
-        } else if (filter == "racks") {
-            id_type = persist::asset_type::RACK;
-        } else if (filter == "devices") {
-            id_type = persist::asset_type::DEVICE;
-        } else if (filter == "groups") {
-            id_type = persist::asset_type::GROUP;
-        } else {
-            throw std::invalid_argument ("unknown filter value");
-        }
-    }
+// gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
 
-    std::cerr << "D: id_type=" << id_type << std::endl;
+struct Item
+{
+    std::string id;
+    std::string name;
+    std::string subtype;
+    std::string type;
+    std::string order;
+    std::vector <Item> contains;
+    friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
+};
 
-    for (const auto& row: res) {
-        for (int i = 1; i != 7; i++) {
+struct Topology
+{
+    std::vector <Item> datacenters;
+    std::vector <Item> rooms;
+    std::vector <Item> rows;
+    std::vector <Item> racks;
+    std::vector <Item> devices;
+};
 
-            std::string TYPEID = "TYPEID";
-            TYPEID.append (std::to_string (i));
-
-            if (id_type != -1 && s_geti (row, TYPEID) != id_type)
-                continue;
-
-            std::string ID = "ID";
-            ID.append (std::to_string (i));
-
-            std::string ORDER = "ORDER";
-            ORDER.append (std::to_string (i));
-
-            out << ID << ": " << s_get (row, ID) << ", " << TYPEID << ": " << s_geti (row, TYPEID) << ", " << ORDER << ": " << s_get (row, ORDER) << ", ";
-        }
-
-        out << std::endl;
-    }
+void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
+{
+    si.addMember("name") <<= asset.name;
+    si.addMember("id") <<= asset.id;
+    si.addMember("sub_type") <<= asset.subtype;
+    si.addMember("type") <<= asset.type;
+    si.addMember("order") <<= asset.order;
+    if (!asset.contains.empty ())
+       si.addMember("contains") <<= asset.contains;
 }
 
-static void
-print_non_recursively (std::ostream& out,
-                       tntdb::Result& res,
-                       std::string from)
+void operator<<= (cxxtools::SerializationInfo &si, const Topology &topo)
 {
-    int start;
-    int from_type;
-    std::string tmp;
-    for (int i = 1; i != 6; i++)
-    {
-        for (const auto& row : res)
-        {
-            std::string ID = "ID";
-            std::string TYPEID = "TYPEID";
 
-            ID.append(std::to_string(i));
-            TYPEID.append(std::to_string(i));
-
-            if (s_get (row, ID) != from)
-                continue;
-            else
-            {
-                start = i;
-                from_type = s_geti (row, TYPEID);
-
-                out << ID << ": " << s_get (row, ID) << " " << TYPEID << " : " << s_geti (row, TYPEID) <<  "\n";
-                break;
-            }
-        }
-    }
-
-    for (int t = from_type + 1; t != 7; ++t)
-    {
-        for (int ii = start; ii != 7; ii++)
-        {
-            for (const auto& row : res)
-            {
-                std::string ID = "ID";
-                std::string TYPEID = "TYPEID";
-                std::string ORDER = "ORDER";
-                ID.append (std::to_string (ii));
-                TYPEID.append (std::to_string (ii));
-                ORDER.append (std::to_string (ii));
-
-                if (s_geti (row, TYPEID) == t && s_get (row, ID) != tmp)
-                {
-                    out << ID << " : " << s_get (row, ID) << " " << TYPEID << " : " << s_geti (row, TYPEID) << ", " << ORDER << ": " << s_get (row, ORDER) << "\n";
-                    tmp = s_get (row, ID);
-                }
-            }
-        }
-    }
-
-
+    if (!topo.datacenters.empty ())
+        si.addMember("datacenters") <<= topo.datacenters;
+    if (!topo.rooms.empty ())
+        si.addMember("rooms") <<= topo.rooms;
+    if (!topo.rows.empty ())
+        si.addMember("rows") <<= topo.rows;
+    if (!topo.racks.empty ())
+        si.addMember("racks") <<= topo.racks;
+    if (!topo.devices.empty ())
+        si.addMember("devices") <<= topo.devices;
 }
 
 
 int main () {
 
+    Item asset;
+    Topology topo;
+
+    std::string name  = "datacente-1";
+    std::string subtype = "NA";
+    std::string id = "2";
+    std::string type = "datacenter";
+    std::string order = "1";
+
+    asset.name  = name;
+    asset.type  = type;
+    asset.order  = order;
+    asset.subtype = subtype;
+    asset.id = id;
+    asset.contains.push_back (asset);
+
+    topo.datacenters.push_back (asset);
+
+    cxxtools::JsonSerializer serializer (std::cout);
+    serializer.beautify (true);
+    serializer.serialize(asset).finish();
+    printf("\n");
+    return 0;
+
     tntdb::Connection conn = tntdb::connectCached (url);
 
-    auto res = s_topologyv2 (conn, "room-2", true, "");
-    s_print_topology2 (std::cout, res, "");
-    std::cout << "======================================================" << std::endl;
-    res = s_topologyv2 (conn, "room-2", true, "");
-    s_print_topology2 (std::cout, res, "devices");
-    std::cout << "======================================================" << std::endl;
-    print_non_recursively (std::cout, res, "room-2");
+    // 1. params
+    std::string from {"room-2"};
+    std::string feed_by {"ups-1"};
+
+    // 2. queries
+    auto res = s_topologyv2 (conn, "room-2", true);
+    
+    // 3. feed_by
+    std::set <std::string> feeded_by;
+    if (! feed_by.empty())
+        feeded_by = s_feed_by (conn, feed_by);
+
+    // 4. output TO BE DONE
 
 }
