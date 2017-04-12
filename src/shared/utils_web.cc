@@ -245,7 +245,7 @@ get_path (const std::string& key)
         return "/etc/fty-nut/fty-nut.cfg";
     }
     // general config file
-    return "/etc/default/bios.cfg";
+    return "/etc/default/fty.cfg";
 }
 
 // put new value to zconfig_t - if key has / inside, it create the
