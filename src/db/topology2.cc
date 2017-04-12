@@ -35,6 +35,7 @@ a_elmnt_tp_id_t
     } else
         return asset_type::TUNKNOWN;
 }
+
 std::string
     typeid_to_type
         (a_elmnt_tp_id_t type_id)
@@ -52,6 +53,119 @@ std::string
             return "group";
         case asset_type::DEVICE:
             return "device";
+        default:
+            return "unknown";
+    }
+}
+
+a_elmnt_stp_id_t
+    subtype_to_subtypeid
+        (const std::string &subtype)
+{
+    std::string st(subtype);
+    std::transform(st.begin(), st.end(), st.begin(), ::tolower);
+    if(st == "ups") {
+        return asset_subtype::UPS;
+    }
+    else if(st == "genset") {
+        return asset_subtype::GENSET;
+    }
+    else if(st == "epdu") {
+        return asset_subtype::EPDU;
+    }
+    else if(st == "server") {
+        return asset_subtype::SERVER;
+    }
+    else if(st == "pdu") {
+        return asset_subtype::PDU;
+    }
+    else if(st == "feed") {
+        return asset_subtype::FEED;
+    }
+    else if(st == "sts") {
+        return asset_subtype::STS;
+    }
+    else if(st == "switch") {
+        return asset_subtype::SWITCH;
+    }
+    else if(st == "storage") {
+        return asset_subtype::STORAGE;
+    }
+    else if (st == "vm") {
+        return asset_subtype::VIRTUAL;
+    }
+    else if (st == "router") {
+        return asset_subtype::ROUTER;
+    }
+    else if (st == "rack controller") {
+        return asset_subtype::RACKCONTROLLER;
+    }
+    else if (st == "sensor") {
+        return asset_subtype::SENSOR;
+    }
+    else if (st == "appliance") {
+        return asset_subtype::APPLIANCE;
+    }
+    else if (st == "chassis") {
+        return asset_subtype::CHASSIS;
+    }
+    else if (st == "patch panel") {
+        return asset_subtype::PATCHPANEL;
+    }
+    else if (st == "other") {
+        return asset_subtype::OTHER;
+    }
+    else if(st == "n_a") {
+        return asset_subtype::N_A;
+    }
+    else if(st == "") {
+        return asset_subtype::N_A;
+    }
+    else
+        return asset_subtype::SUNKNOWN;
+}
+
+std::string
+    subtypeid_to_subtype
+        (a_elmnt_tp_id_t subtype_id)
+{
+    switch(subtype_id) {
+        case asset_subtype::UPS:
+            return "ups";
+        case asset_subtype::GENSET:
+            return "genset";
+        case asset_subtype::STORAGE:
+            return "storage";
+        case asset_subtype::STS:
+            return "sts";
+        case asset_subtype::FEED:
+            return "feed";
+        case asset_subtype::EPDU:
+            return "epdu";
+        case asset_subtype::PDU:
+            return "pdu";
+        case asset_subtype::SERVER:
+            return "server";
+        case asset_subtype::SWITCH:
+            return "switch";
+        case asset_subtype::ROUTER:
+            return "router";
+        case asset_subtype::RACKCONTROLLER:
+            return "rack controller";
+        case asset_subtype::SENSOR:
+            return "sensor";
+        case asset_subtype::APPLIANCE:
+            return "appliance";
+        case asset_subtype::CHASSIS:
+            return "chassis";
+        case asset_subtype::PATCHPANEL:
+            return "patch panel";
+        case asset_subtype::OTHER:
+            return "other";
+        case asset_subtype::VIRTUAL:
+            return "vm";
+        case asset_subtype::N_A:
+            return "N_A";
         default:
             return "unknown";
     }
@@ -243,12 +357,12 @@ s_topologyv2 (
         "    t4.id_type AS TYPEID4, "
         "    t5.id_type AS TYPEID5, "
         "    t6.id_type AS TYPEID6, "
-        "    t1.id_subtype AS TYPEID1, "
-        "    t2.id_type AS TYPEID2, "
-        "    t3.id_type AS TYPEID3, "
-        "    t4.id_type AS TYPEID4, "
-        "    t5.id_type AS TYPEID5, "
-        "    t6.id_type AS TYPEID6, "
+        "    t1.id_subtype AS SUBTYPEID1, "
+        "    t2.id_subtype AS SUBTYPEID2, "
+        "    t3.id_subtype AS SUBTYPEID3, "
+        "    t4.id_subtype AS SUBTYPEID4, "
+        "    t5.id_subtype AS SUBTYPEID5, "
+        "    t6.id_subtype AS SUBTYPEID6, "
         "    t1ext.value AS ORDER1, "
         "    t2ext.value AS ORDER2, "
         "    t3ext.value AS ORDER3, "
@@ -314,8 +428,8 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
 {
     si.addMember("name") <<= asset.name;
     si.addMember("id") <<= asset.id;
-    si.addMember("sub_type") <<= asset.subtype;
     si.addMember("type") <<= asset.type;
+    si.addMember("sub_type") <<= asset.subtype;
     //si.addMember("order") <<= asset.order;
     if (!asset.contains.empty ())
        si.addMember("contains") <<= asset.contains;
@@ -359,8 +473,7 @@ s_json (
             std::string ID {"ID"}; ID.append (idx);
             // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
-            // TODO:!!! SUBTYPE!!!! - again, more joins
-            //std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+            std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
             // TODO: filter!!
 
@@ -372,7 +485,7 @@ s_json (
             Item it {
                 id,
                 "(name)",
-                "(subtype)",
+                persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                 persist::typeid_to_type (s_geti (row, TYPE))};
 
             switch (type) {
