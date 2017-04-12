@@ -11,10 +11,11 @@
  *  PoC of a new location_from function, will print DB content to stdout
  *
  *  TODO:
+ *  1. support for unlocated elements
  *  2. more values to be returned (type, subtype, dbid, asset name)
  *  3. recursive = true|false
- *  4. feed_by
  *  5. API between function and REST API
+ *  6. JSON output
  *
  *  g++ -std=c++11 src/db/topology2.cc -lcxxtools -ltntdb && ./a.out ;
  *
@@ -46,6 +47,112 @@ s_geti (const tntdb::Row& row, const std::string& key) {
     }
 }
 
+static std::string
+s_mkspc (int level) {
+    std::string ret;
+    if (level <=0)
+        return ret;
+    for (int i =0; i != level; i++) {
+        ret.append ("  ");
+    }
+    return ret;
+}
+
+//
+//  maps node to it's kids, ideal structure for feed_by queries
+//
+//  eg for topology v_bios_asset_link_topology
+//
+//  feed, ups
+//  ups, epdu1
+//  epdu1, srv1.2
+//  epdu1, srv2.2
+//  epdu2, srv2.2
+//  epdu2, srv2.1
+//
+//  will construct
+//
+//  feed -> ups -> epdu1 -> srv1.2
+//                       -> srv2.2
+//              -> epdu2 -> srv2.1
+//                       -> srv2.2
+//
+//  and will return a subtree of a power chain
+//
+//  Example:
+//  feed_by ("epdu2") -> {"epdu2", "srv2.1", "srv2.2"};
+//
+
+class NodeMap {
+
+    public:
+
+        NodeMap ():
+            _map {}
+        {}
+
+        void add (const std::string &name, const std::string &child) {
+            if (_map.count (name) == 0) {
+                std::set <std::string> s {};
+                _map.emplace (std::make_pair (name, s));
+            }
+            _map [name].insert (child);
+        }
+
+        void print (const std::string &name, int level) {
+            std::cout << s_mkspc (level) << name << ":" << std::endl;
+            for (const auto &child: _map [name]) {
+                print (child, level+1);
+            }
+        }
+
+        void _feed_by (const std::string& name, std::set <std::string> &ret) {
+            if (_map.count (name) == 0)
+                return;
+
+            ret.insert (name);
+            for (const auto& kid: _map [name])
+                _feed_by (kid, ret);
+        }
+
+        std::set <std::string> feed_by (const std::string& name) {
+            std::set <std::string> ret {};
+            _feed_by (name, ret);
+            return ret;
+        }
+
+    private:
+        std::map <std::string, std::set <std::string>> _map;
+};
+
+//  return a set of devices feeded by feed_by
+//
+//  feed_by - return devices feed by given iname
+//
+//  return tntdb::Result
+//
+static std::set <std::string>
+s_feed_by (
+    tntdb::Connection& conn,
+    const std::string& feed_by)
+{
+    std::string query = "SELECT src_name, dest_name FROM v_bios_asset_link_topology WHERE id_asset_link_type = 1";
+    tntdb::Statement st = conn.prepareCached (query);
+
+    NodeMap nm{};
+
+    for (const auto& row: st.select ()) {
+
+        std::string name = s_get (row, "src_name");
+        std::string kid = s_get (row, "dest_name");
+
+        nm.add (name, kid);
+    }
+
+    return nm.feed_by (feed_by);
+}
+
+//  return a topology
 //
 //  from    - iname of asset where topology starts
 //  filter  - (datacenter,row,rack,room,device) - show only selected types
@@ -59,8 +166,7 @@ static tntdb::Result
 s_topologyv2 (
     tntdb::Connection& conn,
     const std::string& from,
-    bool recursive,
-    const std::string& feed_by)
+    bool recursive)
 {
 
     // TODO: db error handling
@@ -118,8 +224,9 @@ static void
 s_print_topology2 (
     std::ostream& out,
     tntdb::Result& res,
-    const std::string& _filter
-    ) {
+    const std::string& _filter,
+    const std::set <std::string> &feeded_by)
+ {
 
     int id_type = -1;
     if (!_filter.empty()) {
@@ -154,10 +261,14 @@ s_print_topology2 (
             std::string ID = "ID";
             ID.append (std::to_string (i));
 
+            std::string id = s_get (row, ID);
+            if (feeded_by.size () > 0 && feeded_by.count (id) == 0)
+                continue;
+
             std::string ORDER = "ORDER";
             ORDER.append (std::to_string (i));
 
-            out << ID << ": " << s_get (row, ID) << ", " << TYPEID << ": " << s_geti (row, TYPEID) << ", " << ORDER << ": " << s_get (row, ORDER) << ", ";
+            out << ID << ": " << id << ", " << TYPEID << ": " << s_geti (row, TYPEID) << ", " << ORDER << ": " << s_get (row, ORDER) << ", ";
         }
 
         out << std::endl;
@@ -225,11 +336,23 @@ int main () {
 
     tntdb::Connection conn = tntdb::connectCached (url);
 
-    auto res = s_topologyv2 (conn, "room-2", true, "");
-    s_print_topology2 (std::cout, res, "");
+    // 1. params
+    std::string from {"room-2"};
+    std::string feed_by {"ups-1"};
+
+    // 2. queries
+    auto res = s_topologyv2 (conn, "room-2", true);
+    
+    // 3. feed_by
+    std::set <std::string> feeded_by;
+    if (! feed_by.empty())
+        feeded_by = s_feed_by (conn, feed_by);
+
+    // 4. output
+    s_print_topology2 (std::cout, res, "", feeded_by);
     std::cout << "======================================================" << std::endl;
-    res = s_topologyv2 (conn, "room-2", true, "");
-    s_print_topology2 (std::cout, res, "devices");
+    res = s_topologyv2 (conn, "room-2", true);
+    s_print_topology2 (std::cout, res, "devices", feeded_by);
     std::cout << "======================================================" << std::endl;
     print_non_recursively (std::cout, res, "room-2");
 
