@@ -10,6 +10,9 @@
 #include <cxxtools/jsonserializer.h>
 
 //so far nonrecursive way
+
+// gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
+
 struct Item
 {
     std::string id;
@@ -58,16 +61,9 @@ inline void operator<<= (cxxtools::SerializationInfo &si, const Topology &topo)
 
 int
 main ()
-{/*
-    std::string url = std::string("mysql:db=box_utf8;user=") +
-                  ((getenv("DB_USER")   == NULL) ? "root" : getenv("DB_USER")) +
-                  ((getenv("DB_PASSWD") == NULL) ? ""     :
-                      std::string(";password=") + getenv("DB_PASSWD"));
- */
-    //    cxxtools::SerializationInfo si;
+{
     Item asset;
     Topology topo;
-    std::vector <Item> buff;
 
     std::string name  = "datacente-1";
     std::string subtype = "NA";
