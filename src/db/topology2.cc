@@ -12,6 +12,166 @@
 
 #include "../../src/include/asset_types.h"
 
+// copy and paste from asset_types.cc
+namespace persist {
+a_elmnt_tp_id_t
+    type_to_typeid
+        (const std::string &type)
+{
+    std::string t (type);
+    std::transform(t.begin(), t.end(), t.begin(), ::tolower);
+    if(t == "datacenter") {
+        return asset_type::DATACENTER;
+    } else if(t == "room") {
+        return asset_type::ROOM;
+    } else if(t == "row") {
+        return asset_type::ROW;
+    } else if(t == "rack") {
+        return asset_type::RACK;
+    } else if(t == "group") {
+        return asset_type::GROUP;
+    } else if(t == "device") {
+        return asset_type::DEVICE;
+    } else
+        return asset_type::TUNKNOWN;
+}
+
+std::string
+    typeid_to_type
+        (a_elmnt_tp_id_t type_id)
+{
+    switch(type_id) {
+        case asset_type::DATACENTER:
+            return "datacenter";
+        case asset_type::ROOM:
+            return "room";
+        case asset_type::ROW:
+            return "row";
+        case asset_type::RACK:
+            return "rack";
+        case asset_type::GROUP:
+            return "group";
+        case asset_type::DEVICE:
+            return "device";
+        default:
+            return "unknown";
+    }
+}
+
+a_elmnt_stp_id_t
+    subtype_to_subtypeid
+        (const std::string &subtype)
+{
+    std::string st(subtype);
+    std::transform(st.begin(), st.end(), st.begin(), ::tolower);
+    if(st == "ups") {
+        return asset_subtype::UPS;
+    }
+    else if(st == "genset") {
+        return asset_subtype::GENSET;
+    }
+    else if(st == "epdu") {
+        return asset_subtype::EPDU;
+    }
+    else if(st == "server") {
+        return asset_subtype::SERVER;
+    }
+    else if(st == "pdu") {
+        return asset_subtype::PDU;
+    }
+    else if(st == "feed") {
+        return asset_subtype::FEED;
+    }
+    else if(st == "sts") {
+        return asset_subtype::STS;
+    }
+    else if(st == "switch") {
+        return asset_subtype::SWITCH;
+    }
+    else if(st == "storage") {
+        return asset_subtype::STORAGE;
+    }
+    else if (st == "vm") {
+        return asset_subtype::VIRTUAL;
+    }
+    else if (st == "router") {
+        return asset_subtype::ROUTER;
+    }
+    else if (st == "rack controller") {
+        return asset_subtype::RACKCONTROLLER;
+    }
+    else if (st == "sensor") {
+        return asset_subtype::SENSOR;
+    }
+    else if (st == "appliance") {
+        return asset_subtype::APPLIANCE;
+    }
+    else if (st == "chassis") {
+        return asset_subtype::CHASSIS;
+    }
+    else if (st == "patch panel") {
+        return asset_subtype::PATCHPANEL;
+    }
+    else if (st == "other") {
+        return asset_subtype::OTHER;
+    }
+    else if(st == "n_a") {
+        return asset_subtype::N_A;
+    }
+    else if(st == "") {
+        return asset_subtype::N_A;
+    }
+    else
+        return asset_subtype::SUNKNOWN;
+}
+
+std::string
+    subtypeid_to_subtype
+        (a_elmnt_tp_id_t subtype_id)
+{
+    switch(subtype_id) {
+        case asset_subtype::UPS:
+            return "ups";
+        case asset_subtype::GENSET:
+            return "genset";
+        case asset_subtype::STORAGE:
+            return "storage";
+        case asset_subtype::STS:
+            return "sts";
+        case asset_subtype::FEED:
+            return "feed";
+        case asset_subtype::EPDU:
+            return "epdu";
+        case asset_subtype::PDU:
+            return "pdu";
+        case asset_subtype::SERVER:
+            return "server";
+        case asset_subtype::SWITCH:
+            return "switch";
+        case asset_subtype::ROUTER:
+            return "router";
+        case asset_subtype::RACKCONTROLLER:
+            return "rack controller";
+        case asset_subtype::SENSOR:
+            return "sensor";
+        case asset_subtype::APPLIANCE:
+            return "appliance";
+        case asset_subtype::CHASSIS:
+            return "chassis";
+        case asset_subtype::PATCHPANEL:
+            return "patch panel";
+        case asset_subtype::OTHER:
+            return "other";
+        case asset_subtype::VIRTUAL:
+            return "vm";
+        case asset_subtype::N_A:
+            return "N_A";
+        default:
+            return "unknown";
+    }
+}
+}
+
 /**
  *  topologyv2.cc
  *
@@ -172,8 +332,8 @@ s_feed_by (
 static tntdb::Result
 s_topologyv2 (
     tntdb::Connection& conn,
-    const std::string& from,
-    bool recursive)
+    const std::string& from
+    )
 {
 
     // TODO: db error handling
@@ -197,6 +357,12 @@ s_topologyv2 (
         "    t4.id_type AS TYPEID4, "
         "    t5.id_type AS TYPEID5, "
         "    t6.id_type AS TYPEID6, "
+        "    t1.id_subtype AS SUBTYPEID1, "
+        "    t2.id_subtype AS SUBTYPEID2, "
+        "    t3.id_subtype AS SUBTYPEID3, "
+        "    t4.id_subtype AS SUBTYPEID4, "
+        "    t5.id_subtype AS SUBTYPEID5, "
+        "    t6.id_subtype AS SUBTYPEID6, "
         "    t1ext.value AS ORDER1, "
         "    t2ext.value AS ORDER2, "
         "    t3ext.value AS ORDER3, "
@@ -237,9 +403,16 @@ struct Item
     std::string name;
     std::string subtype;
     std::string type;
-    std::string order;
+    //std::string order;
     std::vector <Item> contains;
     friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
+    void print () {
+        std::cout << "{.id=" << id;
+        std::cout << ", .name=" << name;
+        std::cout << ", .type=" << type;
+        std::cout << ", .subtype=" << subtype;
+        std::cout << ", .cotaines=<" << contains.size () << subtype;
+    }
 };
 
 struct Topology
@@ -255,9 +428,9 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
 {
     si.addMember("name") <<= asset.name;
     si.addMember("id") <<= asset.id;
-    si.addMember("sub_type") <<= asset.subtype;
     si.addMember("type") <<= asset.type;
-    si.addMember("order") <<= asset.order;
+    si.addMember("sub_type") <<= asset.subtype;
+    //si.addMember("order") <<= asset.order;
     if (!asset.contains.empty ())
        si.addMember("contains") <<= asset.contains;
 }
@@ -277,8 +450,78 @@ void operator<<= (cxxtools::SerializationInfo &si, const Topology &topo)
         si.addMember("devices") <<= topo.devices;
 }
 
+static void
+s_json (
+    std::ostream &out,
+    tntdb::Result &res,
+    const std::string &filter,
+    const std::set <std::string> &feeded_by)
+{
+    cxxtools::JsonSerializer serializer (std::cout);
+    serializer.beautify (true);
+
+    Topology topo {};
+
+    std::set <std::string> processed {};
+
+    for (const auto& row: res) {
+
+        for (int i = 1; i != 7; i++) {
+
+
+            std::string idx = std::to_string (i);
+            std::string ID {"ID"}; ID.append (idx);
+            // TODO:!!!! NAME!!!! - need more joins?
+            std::string TYPE {"TYPEID"}; TYPE.append (idx);
+            std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+
+            // TODO: filter!!
+
+            int type = s_geti (row, TYPE);
+            std::string id = s_get (row, ID);
+            if (processed.count (id) != 0 || id == "(null)")
+                continue;
+
+            Item it {
+                id,
+                "(name)",
+                persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
+                persist::typeid_to_type (s_geti (row, TYPE))};
+
+            switch (type) {
+                case persist::asset_type::DATACENTER:
+                    topo.datacenters.push_back (it);
+                    break;
+                case persist::asset_type::ROOM:
+                    topo.rooms.push_back (it);
+                    break;
+                case persist::asset_type::ROW:
+                    topo.rows.push_back (it);
+                    break;
+                case persist::asset_type::RACK:
+                    topo.racks.push_back (it);
+                    break;
+                default:
+                    topo.devices.push_back (it);
+            }
+            processed.emplace (s_get (row, ID));
+        }
+    }
+    serializer.serialize(topo).finish();
+}
 
 int main () {
+
+    tntdb::Connection conn = tntdb::connectCached (url);
+
+    // 1. params
+    std::string from {"room-2"};
+    std::string feed_by {"ups-1"};
+
+    // 2. queries
+    auto res = s_topologyv2 (conn, "DC1");
+    std::set <std::string> feeded_by {};
+    s_json (std::cout, res, "", feeded_by);
 
     Item asset;
     Topology topo;
@@ -291,30 +534,18 @@ int main () {
 
     asset.name  = name;
     asset.type  = type;
-    asset.order  = order;
+    //asset.order  = order;
     asset.subtype = subtype;
     asset.id = id;
     asset.contains.push_back (asset);
 
     topo.datacenters.push_back (asset);
 
-    cxxtools::JsonSerializer serializer (std::cout);
-    serializer.beautify (true);
-    serializer.serialize(asset).finish();
     printf("\n");
     return 0;
 
-    tntdb::Connection conn = tntdb::connectCached (url);
-
-    // 1. params
-    std::string from {"room-2"};
-    std::string feed_by {"ups-1"};
-
-    // 2. queries
-    auto res = s_topologyv2 (conn, "room-2", true);
-    
     // 3. feed_by
-    std::set <std::string> feeded_by;
+    //std::set <std::string> feeded_by;
     if (! feed_by.empty())
         feeded_by = s_feed_by (conn, feed_by);
 
