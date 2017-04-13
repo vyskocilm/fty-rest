@@ -90,7 +90,7 @@ $(RUN_TNTNET_ENVFILE): $(abs_top_builddir)/Makefile
 	     echo 'export NO_SSL="1"'; \
 	     echo '[ -z "$$BIOS_LOG_LEVEL" ] && BIOS_LOG_LEVEL="LOG_DEBUG"'; \
 	     echo 'export BIOS_LOG_LEVEL'; \
-	     echo 'export DATADIR="$$DATADIR_BASE/bios"'; \
+	     echo 'export DATADIR="$$DATADIR_BASE/fty"'; \
 	} > $@
 
 RUN_TNTNET = cat "$(RUN_TNTNET_ENVFILE)" || exit; \
