@@ -565,10 +565,8 @@ s_topo_recursive (
 
 
         // collect all kids
-        std::cerr << "D: id=" << it.id << ", kids:" << std::endl;
         if (nm.has (id) && ! nm.at (id).empty()) {
             for (const auto &kid: nm.at (id)) {
-                std::cerr << "D:\t" << "id=" << kid << std::endl;
                 kids.insert (kid);
             }
         }
@@ -616,7 +614,6 @@ s_json_recursive (
 
             if (name != "(null)" && kid != "(null)") {
                 nm.add (name, kid);
-                std::cerr << "D: i=" << i << ", name=" << name << ", kid=" << kid << std::endl;
             }
         }
     }
