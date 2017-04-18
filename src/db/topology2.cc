@@ -212,7 +212,13 @@ topology2_from (
         "    t3ext.value AS ORDER3, "
         "    t4ext.value AS ORDER4, "
         "    t5ext.value AS ORDER5, "
-        "    t6ext.value AS ORDER6  "
+        "    t6ext.value AS ORDER6, "
+        "    t1name.value AS NAME1, "
+        "    t2name.value AS NAME2, "
+        "    t3name.value AS NAME3, "
+        "    t4name.value AS NAME4, "
+        "    t5name.value AS NAME5, "
+        "    t6name.value AS NAME6  "
         "  FROM v_bios_asset_element AS t1 "
         "    LEFT JOIN v_bios_asset_element AS t2 ON t2.id_parent = t1.id "
         "    LEFT JOIN v_bios_asset_element AS t3 ON t3.id_parent = t2.id "
@@ -227,6 +233,12 @@ topology2_from (
         "    LEFT JOIN t_bios_asset_ext_attributes AS t4ext ON (t4.id = t4ext.id_asset_element AND t4ext.keytag=\"order\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t5ext ON (t5.id = t5ext.id_asset_element AND t5ext.keytag=\"order\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t6ext ON (t6.id = t6ext.id_asset_element AND t6ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t1name ON (t1.id = t1name.id_asset_element AND t1name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t2name ON (t2.id = t2name.id_asset_element AND t2name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t3name ON (t3.id = t3name.id_asset_element AND t3name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t4name ON (t4.id = t4name.id_asset_element AND t4name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t5name ON (t5.id = t5name.id_asset_element AND t5name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t6name ON (t6.id = t6name.id_asset_element AND t6name.keytag=\"name\") "
         "  WHERE t1.name=:from "
         "  ORDER BY "
         "   ORDER1 ASC, ORDER2 ASC, ORDER3 ASC, ORDER4 ASC, ORDER5 ASC, ORDER6 ASC ";
@@ -370,9 +382,9 @@ topology2_from_json (
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
-            // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+            std::string NAME {"NAME"}; NAME.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
@@ -389,7 +401,7 @@ topology2_from_json (
 
             Item it {
                 id,
-                "(name)",
+                s_get (row, NAME),
                 persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                 persist::typeid_to_type (s_geti (row, TYPE))};
 
