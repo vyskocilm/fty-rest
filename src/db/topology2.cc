@@ -359,6 +359,7 @@ topology2_from_json (
     cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
+    Item item_from {};
     Item::Topology topo {};
 
     std::set <std::string> processed {};
@@ -377,6 +378,15 @@ topology2_from_json (
 
             // feed_by filtering
             std::string id = s_get (row, ID);
+
+            if (id == from) {
+                item_from = Item {
+                    id,
+                    s_get (row, NAME),
+                    persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
+                    persist::typeid_to_type (s_geti (row, TYPE))};
+            }
+
             if (!feeded_by.empty () && feeded_by.count (id) == 0)
                 continue;
 
@@ -410,7 +420,9 @@ topology2_from_json (
             processed.emplace (id);
         }
     }
-    serializer.serialize(topo).finish();
+
+    item_from.contains = topo;
+    serializer.serialize(item_from).finish();
 }
 
 static void
@@ -506,9 +518,9 @@ topology2_from_json_recursive (
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
-            // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+            std::string NAME {"NAME"}; NAME.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
@@ -530,14 +542,14 @@ topology2_from_json_recursive (
                 from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
 
                 it2.id = from;
-                it2.name = "(name)";
+                it2.name = s_get (row, NAME),
                 it2.subtype =  from_subtype;
                 it2.type =  from_type;
 
             }
             Item it {
                 id,
-                    "(name)",
+                    s_get (row, NAME),
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
 
@@ -546,13 +558,8 @@ topology2_from_json_recursive (
         }
     }
 
-<<<<<<< Updated upstream
-    cxxtools::JsonSerializer serializer (out);
-=======
     int depth = 1;
-
-    cxxtools::JsonSerializer serializer (std::cout);
->>>>>>> Stashed changes
+    cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
     Item::Topology topo {};
