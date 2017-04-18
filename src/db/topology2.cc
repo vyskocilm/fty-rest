@@ -546,13 +546,8 @@ topology2_from_json_recursive (
         }
     }
 
-<<<<<<< Updated upstream
-    cxxtools::JsonSerializer serializer (out);
-=======
     int depth = 1;
-
-    cxxtools::JsonSerializer serializer (std::cout);
->>>>>>> Stashed changes
+    cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
     Item::Topology topo {};
