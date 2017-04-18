@@ -237,7 +237,6 @@ topology2_from (
     return st.select ();
 }
 
-//so far nonrecursive way
 
 // gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
 
@@ -246,7 +245,6 @@ struct Item
 
 struct Topology
 {
-    std::vector <Item> datacenters;
     std::vector <Item> rooms;
     std::vector <Item> rows;
     std::vector <Item> racks;
@@ -256,7 +254,6 @@ struct Topology
 
     size_t empty () const {
         return \
-        datacenters.empty () && \
         rooms.empty () && \
         rows.empty () && \
         racks.empty () && \
@@ -283,7 +280,6 @@ struct Topology
     std::string subtype;
     std::string type;
     Topology contains;
-    //std::string order;
     friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
 };
 
@@ -308,8 +304,6 @@ struct Topology
 */
 void operator<<= (cxxtools::SerializationInfo &si, const Item::Topology &topo)
 {
-    if (!topo.datacenters.empty ())
-        si.addMember("datacenters") <<= topo.datacenters;
     if (!topo.rooms.empty ())
         si.addMember("rooms") <<= topo.rooms;
     if (!topo.rows.empty ())
@@ -327,7 +321,6 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
     si.addMember("id") <<= asset.id;
     si.addMember("type") <<= asset.type;
     si.addMember("sub_type") <<= asset.subtype;
-    //si.addMember("order") <<= asset.order;
     if (!asset.contains.empty ())
        si.addMember("contains") <<= asset.contains;
 }
@@ -394,9 +387,6 @@ topology2_from_json (
                 persist::typeid_to_type (s_geti (row, TYPE))};
 
             switch (type) {
-                case persist::asset_type::DATACENTER:
-                    topo.datacenters.push_back (it);
-                    break;
                 case persist::asset_type::ROOM:
                     topo.rooms.push_back (it);
                     break;
@@ -420,11 +410,12 @@ s_topo_recursive (
     Item::Topology &topo,
     std::set <std::string> from,
     const NodeMap &nm,
-    std::map <std::string, Item> &im)
+    std::map <std::string, Item> &im,
+    int depth)
 {
     if (from.empty ())
         return;
-
+    printf("1 .hloubka, %d\n", depth);
     for (const std::string &id : from) {
         Item it;
         try {
@@ -434,7 +425,6 @@ s_topo_recursive (
         }
         std::set <std::string> kids;
         int type = persist::type_to_typeid (it.type);
-
 
         // collect all kids
         if (nm.has (id) && ! nm.at (id).empty()) {
@@ -446,13 +436,14 @@ s_topo_recursive (
         // add kids recursivelly to topology
         if (! kids.empty ()) {
             it.contains = Item::Topology {};
-            s_topo_recursive (it.contains, kids, nm, im);
+            s_topo_recursive (it.contains, kids, nm, im, depth + 1);
         }
 
-        switch (type) {
-            case persist::asset_type::DATACENTER:
-                topo.datacenters.push_back (it);
-                break;
+        printf("2. hloubka, %d\n", depth);
+        printf("id , %s\n", id.c_str());
+
+        //if ( depth > 1) {
+            switch (type) {
             case persist::asset_type::ROOM:
                 topo.rooms.push_back (it);
                 break;
@@ -464,7 +455,10 @@ s_topo_recursive (
                 break;
             default:
                 topo.devices.push_back (it);
-        }
+            }
+            //}
+        printf("3. hloubka, %d\n", depth);
+
     }
 }
 
@@ -495,6 +489,9 @@ topology2_from_json_recursive (
     // create a map id -> Item
     std::set <std::string> processed {};
     std::map <std::string, Item> im {};
+    std::string from_type;
+    std::string from_subtype;
+    Item it2;
     for (const auto& row: res) {
 
         for (int i = 1; i != 7; i++) {
@@ -518,6 +515,18 @@ topology2_from_json_recursive (
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
+            if (!id.compare (from))
+            {
+
+                from_type = persist::typeid_to_type (s_geti (row, TYPE));
+                from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
+
+                it2.id = from;
+                it2.name = "(name)";
+                it2.subtype =  from_subtype;
+                it2.type =  from_type;
+
+            }
             Item it {
                 id,
                     "(name)",
@@ -529,7 +538,13 @@ topology2_from_json_recursive (
         }
     }
 
+<<<<<<< Updated upstream
     cxxtools::JsonSerializer serializer (out);
+=======
+    int depth = 1;
+
+    cxxtools::JsonSerializer serializer (std::cout);
+>>>>>>> Stashed changes
     serializer.beautify (true);
 
     Item::Topology topo {};
@@ -537,9 +552,11 @@ topology2_from_json_recursive (
         topo,
         std::set <std::string> {from},
         nm,
-        im);
+        im,
+        depth);
 
-    serializer.serialize(topo).finish();
+    it2.contains = topo;
+    serializer.serialize(it2).finish();
 }
 
 }// namespace persist
@@ -550,11 +567,11 @@ int main () {
     tntdb::Connection conn = tntdb::connectCached (url);
 
     // 1. params
-    std::string from {"DC1"};
+    std::string from {"ROOM1"};
     std::string feed_by {"ups-1"};
 
     // 2. queries
-    auto res = s_topologyv2 (conn, "DC1");
+    auto res = s_topologyv2 (conn, "ROOM1");
     std::set <std::string> feeded_by {};
     s_json (std::cout, res, "", feeded_by);
 
@@ -581,7 +598,7 @@ int main () {
     asset.subtype = subtype;
     asset.id = id;
 
-    topo.datacenters.push_back (asset);
+    //topo.datacenters.push_back (asset);
 
     printf("\n");
     return 0;
