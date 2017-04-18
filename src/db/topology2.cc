@@ -368,18 +368,22 @@ topology2_from_json (
 
         for (int i = 1; i != 7; i++) {
 
-
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
             // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
+            // feed_by filtering
+            std::string id = s_get (row, ID);
+            if (!feeded_by.empty () && feeded_by.count (id) == 0)
+                continue;
+
+            // filter - type filtering
             int type = s_geti (row, TYPE);
             if (s_should_filter (filter_type, type))
                 continue;
 
-            std::string id = s_get (row, ID);
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
@@ -501,11 +505,16 @@ topology2_from_json_recursive (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
+            // feed_by filtering
+            std::string id = s_get (row, ID);
+            if (!feeded_by.empty () && feeded_by.count (id) == 0)
+                continue;
+
+            // filter - type filtering
             int type = s_geti (row, TYPE);
             if (s_should_filter (filter_type, type))
                 continue;
 
-            std::string id = s_get (row, ID);
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
