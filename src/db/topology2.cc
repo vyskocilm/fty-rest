@@ -33,16 +33,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 /**
  *  topologyv2.cc
  *
- *  PoC of a new location_from function, will print DB content to stdout
+ *  next generation location_from DB layer
  *
  *  TODO:
  *  1. support for unlocated elements
- *  2. more values to be returned (type, subtype, dbid, asset name)
- *  3. recursive = true|false
- *  5. API between function and REST API
- *  6. JSON output
- *
- *  g++ -std=c++11 src/db/topology2.cc -lcxxtools -ltntdb && ./a.out ;
+ *  2. proper REST API reply
+ *  3. ... pass the tests ...
  *
  */
 
