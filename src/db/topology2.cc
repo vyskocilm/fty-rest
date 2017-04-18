@@ -385,6 +385,7 @@ topology2_from_json (
                     s_get (row, NAME),
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
+                continue;
             }
 
             if (!feeded_by.empty () && feeded_by.count (id) == 0)
@@ -414,7 +415,7 @@ topology2_from_json (
                 case persist::asset_type::RACK:
                     topo.racks.push_back (it);
                     break;
-                default:
+                case persist::asset_type::DEVICE:
                     topo.devices.push_back (it);
             }
             processed.emplace (id);
