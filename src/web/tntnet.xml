@@ -332,6 +332,13 @@
       </args>
     </mapping>
 
+    <!-- development version of a new topology_from call -->
+    <mapping>
+      <target>topology_location_from2@bios_web</target>
+      <url>^/api/v1/_topology_dev_/location.*$</url>
+      <method>GET</method>
+    </mapping>
+
     <!-- topology/location -->
     <mapping>
       <target>topology_location_from@bios_web</target>
