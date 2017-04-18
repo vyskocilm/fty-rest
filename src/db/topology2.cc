@@ -332,6 +332,21 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
        si.addMember("contains") <<= asset.contains;
 }
 
+static int
+s_filter_type (const std::string &_filter) {
+    if (!_filter.empty ()) {
+        std::string filter = _filter;
+        filter.pop_back ();
+        return persist::type_to_typeid (filter);
+    }
+    return -1;
+}
+
+static bool
+s_should_filter (int filter_type, int type) {
+    return filter_type != -1 && type != filter_type;
+}
+
 void
 topology2_from_json (
     std::ostream &out,
@@ -347,6 +362,8 @@ topology2_from_json (
 
     std::set <std::string> processed {};
 
+    int filter_type = s_filter_type (filter);
+
     for (const auto& row: res) {
 
         for (int i = 1; i != 7; i++) {
@@ -358,9 +375,10 @@ topology2_from_json (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
-            // TODO: filter!!
-
             int type = s_geti (row, TYPE);
+            if (s_should_filter (filter_type, type))
+                continue;
+
             std::string id = s_get (row, ID);
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
@@ -451,7 +469,7 @@ topology2_from_json_recursive (
     std::ostream &out,
     tntdb::Result &res,
     const std::string &from,
-    const std::string &_filter,
+    const std::string &filter,
     const std::set <std::string> &feeded_by)
 {
 
@@ -467,13 +485,8 @@ topology2_from_json_recursive (
             }
         }
     }
-
-    int ifilter = -1;
-    if (! _filter.empty ()) {
-        std::string filter = _filter;
-        filter.pop_back ();
-        ifilter = persist::type_to_typeid (filter);
-    }
+    
+    int filter_type = s_filter_type (filter);
 
     // create a map id -> Item
     std::set <std::string> processed {};
@@ -488,11 +501,10 @@ topology2_from_json_recursive (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
-            // TODO: filter!!
-
             int type = s_geti (row, TYPE);
-            if (ifilter != -1 && ifilter != type)
+            if (s_should_filter (filter_type, type))
                 continue;
+
             std::string id = s_get (row, ID);
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
