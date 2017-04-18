@@ -359,6 +359,7 @@ topology2_from_json (
     cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
+    Item item_from {};
     Item::Topology topo {};
 
     std::set <std::string> processed {};
@@ -377,6 +378,15 @@ topology2_from_json (
 
             // feed_by filtering
             std::string id = s_get (row, ID);
+
+            if (id == from) {
+                item_from = Item {
+                    id,
+                    s_get (row, NAME),
+                    persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
+                    persist::typeid_to_type (s_geti (row, TYPE))};
+            }
+
             if (!feeded_by.empty () && feeded_by.count (id) == 0)
                 continue;
 
@@ -410,7 +420,9 @@ topology2_from_json (
             processed.emplace (id);
         }
     }
-    serializer.serialize(topo).finish();
+
+    item_from.contains = topo;
+    serializer.serialize(item_from).finish();
 }
 
 static void
