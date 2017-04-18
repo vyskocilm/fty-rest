@@ -1,3 +1,21 @@
+/*
+Copyright (C) 2017 Eaton
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include <czmq.h>
 #include <tntdb.h>
 #include <algorithm>
@@ -10,167 +28,7 @@
 #include <cxxtools/jsondeserializer.h>
 #include <cxxtools/jsonserializer.h>
 
-#include "../../src/include/asset_types.h"
-
-// copy and paste from asset_types.cc
-namespace persist {
-a_elmnt_tp_id_t
-    type_to_typeid
-        (const std::string &type)
-{
-    std::string t (type);
-    std::transform(t.begin(), t.end(), t.begin(), ::tolower);
-    if(t == "datacenter") {
-        return asset_type::DATACENTER;
-    } else if(t == "room") {
-        return asset_type::ROOM;
-    } else if(t == "row") {
-        return asset_type::ROW;
-    } else if(t == "rack") {
-        return asset_type::RACK;
-    } else if(t == "group") {
-        return asset_type::GROUP;
-    } else if(t == "device") {
-        return asset_type::DEVICE;
-    } else
-        return asset_type::TUNKNOWN;
-}
-
-std::string
-    typeid_to_type
-        (a_elmnt_tp_id_t type_id)
-{
-    switch(type_id) {
-        case asset_type::DATACENTER:
-            return "datacenter";
-        case asset_type::ROOM:
-            return "room";
-        case asset_type::ROW:
-            return "row";
-        case asset_type::RACK:
-            return "rack";
-        case asset_type::GROUP:
-            return "group";
-        case asset_type::DEVICE:
-            return "device";
-        default:
-            return "unknown";
-    }
-}
-
-a_elmnt_stp_id_t
-    subtype_to_subtypeid
-        (const std::string &subtype)
-{
-    std::string st(subtype);
-    std::transform(st.begin(), st.end(), st.begin(), ::tolower);
-    if(st == "ups") {
-        return asset_subtype::UPS;
-    }
-    else if(st == "genset") {
-        return asset_subtype::GENSET;
-    }
-    else if(st == "epdu") {
-        return asset_subtype::EPDU;
-    }
-    else if(st == "server") {
-        return asset_subtype::SERVER;
-    }
-    else if(st == "pdu") {
-        return asset_subtype::PDU;
-    }
-    else if(st == "feed") {
-        return asset_subtype::FEED;
-    }
-    else if(st == "sts") {
-        return asset_subtype::STS;
-    }
-    else if(st == "switch") {
-        return asset_subtype::SWITCH;
-    }
-    else if(st == "storage") {
-        return asset_subtype::STORAGE;
-    }
-    else if (st == "vm") {
-        return asset_subtype::VIRTUAL;
-    }
-    else if (st == "router") {
-        return asset_subtype::ROUTER;
-    }
-    else if (st == "rack controller") {
-        return asset_subtype::RACKCONTROLLER;
-    }
-    else if (st == "sensor") {
-        return asset_subtype::SENSOR;
-    }
-    else if (st == "appliance") {
-        return asset_subtype::APPLIANCE;
-    }
-    else if (st == "chassis") {
-        return asset_subtype::CHASSIS;
-    }
-    else if (st == "patch panel") {
-        return asset_subtype::PATCHPANEL;
-    }
-    else if (st == "other") {
-        return asset_subtype::OTHER;
-    }
-    else if(st == "n_a") {
-        return asset_subtype::N_A;
-    }
-    else if(st == "") {
-        return asset_subtype::N_A;
-    }
-    else
-        return asset_subtype::SUNKNOWN;
-}
-
-std::string
-    subtypeid_to_subtype
-        (a_elmnt_tp_id_t subtype_id)
-{
-    switch(subtype_id) {
-        case asset_subtype::UPS:
-            return "ups";
-        case asset_subtype::GENSET:
-            return "genset";
-        case asset_subtype::STORAGE:
-            return "storage";
-        case asset_subtype::STS:
-            return "sts";
-        case asset_subtype::FEED:
-            return "feed";
-        case asset_subtype::EPDU:
-            return "epdu";
-        case asset_subtype::PDU:
-            return "pdu";
-        case asset_subtype::SERVER:
-            return "server";
-        case asset_subtype::SWITCH:
-            return "switch";
-        case asset_subtype::ROUTER:
-            return "router";
-        case asset_subtype::RACKCONTROLLER:
-            return "rack controller";
-        case asset_subtype::SENSOR:
-            return "sensor";
-        case asset_subtype::APPLIANCE:
-            return "appliance";
-        case asset_subtype::CHASSIS:
-            return "chassis";
-        case asset_subtype::PATCHPANEL:
-            return "patch panel";
-        case asset_subtype::OTHER:
-            return "other";
-        case asset_subtype::VIRTUAL:
-            return "vm";
-        case asset_subtype::N_A:
-            return "N_A";
-        default:
-            return "unknown";
-    }
-}
-}
+#include "asset_types.h"
 
 /**
  *  topologyv2.cc
@@ -188,67 +46,10 @@ std::string
  *
  */
 
-std::string url = std::string("mysql:db=box_utf8;user=") +
-                  ((getenv("DB_USER")   == NULL) ? "root" : getenv("DB_USER")) +
-                  ((getenv("DB_PASSWD") == NULL) ? ""     :
-                      std::string(";password=") + getenv("DB_PASSWD"));
-
-// helper print function to be deleted
-static const std::string
-s_get (const tntdb::Row& row, const std::string& key) {
-    try {
-        return row.getString (key);
-    }
-    catch (const tntdb::NullValue &n) {
-        return "(null)";
-    }
-}
-
-static int
-s_geti (const tntdb::Row& row, const std::string& key) {
-    try {
-        return row.getInt (key);
-    }
-    catch (const tntdb::NullValue &n) {
-        return -1;
-    }
-}
+namespace persist {
 
 static std::string
-s_mkspc (int level) {
-    std::string ret;
-    if (level <=0)
-        return ret;
-    for (int i =0; i != level; i++) {
-        ret.append ("  ");
-    }
-    return ret;
-}
-
-//
-//  maps node to it's kids, ideal structure for feed_by queries
-//
-//  eg for topology v_bios_asset_link_topology
-//
-//  feed, ups
-//  ups, epdu1
-//  epdu1, srv1.2
-//  epdu1, srv2.2
-//  epdu2, srv2.2
-//  epdu2, srv2.1
-//
-//  will construct
-//
-//  feed -> ups -> epdu1 -> srv1.2
-//                       -> srv2.2
-//              -> epdu2 -> srv2.1
-//                       -> srv2.2
-//
-//  and will return a subtree of a power chain
-//
-//  Example:
-//  feed_by ("epdu2") -> {"epdu2", "srv2.1", "srv2.2"};
-//
+s_mkspc (int level);
 
 class NodeMap {
 
@@ -302,14 +103,47 @@ class NodeMap {
         std::map <std::string, std::set <std::string>> _map;
 };
 
+// helper print function to be deleted
+static const std::string
+s_get (const tntdb::Row& row, const std::string& key) {
+    try {
+        return row.getString (key);
+    }
+    catch (const tntdb::NullValue &n) {
+        return "(null)";
+    }
+}
+
+static int
+s_geti (const tntdb::Row& row, const std::string& key) {
+    try {
+        return row.getInt (key);
+    }
+    catch (const tntdb::NullValue &n) {
+        return -1;
+    }
+}
+
+static std::string
+s_mkspc (int level) {
+    std::string ret;
+    if (level <=0)
+        return ret;
+    for (int i =0; i != level; i++) {
+        ret.append ("  ");
+    }
+    return ret;
+}
+
+
 //  return a set of devices feeded by feed_by
 //
 //  feed_by - return devices feed by given iname
 //
 //  return tntdb::Result
 //
-static std::set <std::string>
-s_feed_by (
+std::set <std::string>
+topology2_feed_by (
     tntdb::Connection& conn,
     const std::string& feed_by)
 {
@@ -339,8 +173,8 @@ s_feed_by (
 //  return tntdb::Result
 //
 
-static tntdb::Result
-s_topologyv2 (
+tntdb::Result
+topology2_from (
     tntdb::Connection& conn,
     const std::string& from
     )
@@ -418,6 +252,8 @@ struct Topology
     std::vector <Item> racks;
     std::vector <Item> devices;
 
+    Topology () {}
+
     size_t empty () const {
         return \
         datacenters.empty () && \
@@ -427,6 +263,20 @@ struct Topology
         devices.empty ();
     }
 };
+
+    Item () {}
+
+    Item (
+        const std::string &id,
+        const std::string &name,
+        const std::string &subtype,
+        const std::string &type) :
+        id {id},
+        name {name},
+        subtype {subtype},
+        type {type},
+        contains {}
+        {}
 
     std::string id;
     std::string name;
@@ -482,24 +332,41 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
        si.addMember("contains") <<= asset.contains;
 }
 
-static void
-s_json (
+static int
+s_filter_type (const std::string &_filter) {
+    if (!_filter.empty ()) {
+        std::string filter = _filter;
+        filter.pop_back ();
+        return persist::type_to_typeid (filter);
+    }
+    return -1;
+}
+
+static bool
+s_should_filter (int filter_type, int type) {
+    return filter_type != -1 && type != filter_type;
+}
+
+void
+topology2_from_json (
     std::ostream &out,
     tntdb::Result &res,
+    const std::string &from,
     const std::string &filter,
     const std::set <std::string> &feeded_by)
 {
-    cxxtools::JsonSerializer serializer (std::cout);
+    cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
     Item::Topology topo {};
 
     std::set <std::string> processed {};
 
+    int filter_type = s_filter_type (filter);
+
     for (const auto& row: res) {
 
         for (int i = 1; i != 7; i++) {
-
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
@@ -507,10 +374,16 @@ s_json (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
-            // TODO: filter!!
-
-            int type = s_geti (row, TYPE);
+            // feed_by filtering
             std::string id = s_get (row, ID);
+            if (!feeded_by.empty () && feeded_by.count (id) == 0)
+                continue;
+
+            // filter - type filtering
+            int type = s_geti (row, TYPE);
+            if (s_should_filter (filter_type, type))
+                continue;
+
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
@@ -557,8 +430,7 @@ s_topo_recursive (
         try {
             it = im.at (id);
         } catch (std::exception &e) {
-            std::cerr << "E: id=" << id << ", e.what()=" << e.what () << std::endl;
-            return;
+            continue;
         }
         std::set <std::string> kids;
         int type = persist::type_to_typeid (it.type);
@@ -596,8 +468,8 @@ s_topo_recursive (
     }
 }
 
-static void
-s_json_recursive (
+void
+topology2_from_json_recursive (
     std::ostream &out,
     tntdb::Result &res,
     const std::string &from,
@@ -617,6 +489,8 @@ s_json_recursive (
             }
         }
     }
+    
+    int filter_type = s_filter_type (filter);
 
     // create a map id -> Item
     std::set <std::string> processed {};
@@ -631,10 +505,16 @@ s_json_recursive (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
 
-            // TODO: filter!!
-
-            int type = s_geti (row, TYPE);
+            // feed_by filtering
             std::string id = s_get (row, ID);
+            if (!feeded_by.empty () && feeded_by.count (id) == 0)
+                continue;
+
+            // filter - type filtering
+            int type = s_geti (row, TYPE);
+            if (s_should_filter (filter_type, type))
+                continue;
+
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
@@ -649,7 +529,7 @@ s_json_recursive (
         }
     }
 
-    cxxtools::JsonSerializer serializer (std::cout);
+    cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
     Item::Topology topo {};
@@ -662,6 +542,9 @@ s_json_recursive (
     serializer.serialize(topo).finish();
 }
 
+}// namespace persist
+
+/*
 int main () {
 
     tntdb::Connection conn = tntdb::connectCached (url);
@@ -711,3 +594,4 @@ int main () {
     // 4. output TO BE DONE
 
 }
+*/
