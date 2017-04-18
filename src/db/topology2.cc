@@ -518,9 +518,9 @@ topology2_from_json_recursive (
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
-            // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+            std::string NAME {"NAME"}; NAME.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
@@ -542,14 +542,14 @@ topology2_from_json_recursive (
                 from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
 
                 it2.id = from;
-                it2.name = "(name)";
+                it2.name = s_get (row, NAME),
                 it2.subtype =  from_subtype;
                 it2.type =  from_type;
 
             }
             Item it {
                 id,
-                    "(name)",
+                    s_get (row, NAME),
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
 
