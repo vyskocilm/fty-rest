@@ -474,7 +474,7 @@ s_topo_recursive (
             case persist::asset_type::RACK:
                 topo.racks.push_back (it);
                 break;
-            default:
+            case persist::asset_type::DEVICE:
                 topo.devices.push_back (it);
             }
             //}
@@ -566,7 +566,7 @@ topology2_from_json_recursive (
     Item::Topology topo {};
     s_topo_recursive (
         topo,
-        std::set <std::string> {from},
+        nm.at (from),
         nm,
         im,
         depth);
