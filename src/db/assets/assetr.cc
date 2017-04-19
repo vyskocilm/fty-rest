@@ -687,6 +687,7 @@ int
             "   v_bios_asset_ext_attributes"
             " WHERE "
             "   read_only = 0"
+            " ORDER BY keytag "
         );
 
         tntdb::Result res = st.select();
