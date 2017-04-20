@@ -193,7 +193,7 @@ topology2_groups (
                 "group"
                 });
     }
-    log_debug ("group.size ()=%zu", );
+    log_debug ("group.size ()=%zu");
     return ret;
 }
 
@@ -490,7 +490,7 @@ topology2_from_json_recursive (
             }
         }
     }
-    
+
     int filter_type = s_filter_type (filter);
 
     // create a map id -> Item
