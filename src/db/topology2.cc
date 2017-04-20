@@ -313,6 +313,94 @@ topology2_from (
 
 // gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
 
+<<<<<<< HEAD
+struct Item
+{
+
+struct Topology
+{
+    std::vector <Item> rooms;
+    std::vector <Item> rows;
+    std::vector <Item> racks;
+    std::vector <Item> devices;
+
+    Topology () {}
+
+    size_t empty () const {
+        return \
+        rooms.empty () && \
+        rows.empty () && \
+        racks.empty () && \
+        devices.empty ();
+    }
+};
+
+    Item () {}
+
+    Item (
+        const std::string &id,
+        const std::string &name,
+        const std::string &subtype,
+        const std::string &type) :
+        id {id},
+        name {name},
+        subtype {subtype},
+        type {type},
+        contains {}
+        {}
+
+    std::string id;
+    std::string name;
+    std::string subtype;
+    std::string type;
+    Topology contains;
+    friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
+};
+
+/*
+struct Topology
+{
+    std::vector <Item> datacenters;
+    std::vector <Item> rooms;
+    std::vector <Item> rows;
+    std::vector <Item> racks;
+    std::vector <Item> devices;
+
+    size_t empty () const {
+        return \
+        datacenters.empty () && \
+        rooms.empty () && \
+        rows.empty () && \
+        racks.empty () && \
+        devices.empty ();
+    }
+};
+*/
+void operator<<= (cxxtools::SerializationInfo &si, const Item::Topology &topo)
+{
+    if (!topo.rooms.empty ())
+        si.addMember("rooms") <<= topo.rooms;
+    if (!topo.rows.empty ())
+        si.addMember("rows") <<= topo.rows;
+    if (!topo.racks.empty ())
+        si.addMember("racks") <<= topo.racks;
+    if (!topo.devices.empty ())
+        si.addMember("devices") <<= topo.devices;
+}
+
+
+void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
+{
+    si.addMember("name") <<= asset.name;
+    si.addMember("id") <<= asset.id;
+    si.addMember("type") <<= asset.type;
+    si.addMember("sub_type") <<= asset.subtype;
+    if (!asset.contains.empty ())
+       si.addMember("contains") <<= asset.contains;
+}
+
+=======
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
 static int
 s_filter_type (const std::string &_filter) {
     if (!_filter.empty ()) {
@@ -529,7 +617,11 @@ topology2_from_json_recursive (
                 from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
 
                 it2.id = from;
+<<<<<<< HEAD
+                it2.name = "(name)";
+=======
                 it2.name = s_get (row, NAME),
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
                 it2.subtype =  from_subtype;
                 it2.type =  from_type;
 
@@ -545,8 +637,17 @@ topology2_from_json_recursive (
         }
     }
 
+<<<<<<< HEAD
+<<<<<<< Updated upstream
+=======
     int depth = 1;
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
     cxxtools::JsonSerializer serializer (out);
+=======
+    int depth = 1;
+
+    cxxtools::JsonSerializer serializer (std::cout);
+>>>>>>> Stashed changes
     serializer.beautify (true);
 
     Item::Topology topo {};
@@ -557,8 +658,11 @@ topology2_from_json_recursive (
         im,
         depth);
 
+<<<<<<< HEAD
+=======
     if (!groups.empty ())
         topo.groups = groups;
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
     it2.contains = topo;
     serializer.serialize(it2).finish();
 }
