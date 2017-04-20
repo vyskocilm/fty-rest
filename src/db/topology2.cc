@@ -29,20 +29,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <cxxtools/jsonserializer.h>
 
 #include "asset_types.h"
+#include "topology2.h"
+#include "log.h"
 
 /**
  *  topologyv2.cc
  *
- *  PoC of a new location_from function, will print DB content to stdout
+ *  next generation location_from DB layer
  *
  *  TODO:
  *  1. support for unlocated elements
- *  2. more values to be returned (type, subtype, dbid, asset name)
- *  3. recursive = true|false
- *  5. API between function and REST API
- *  6. JSON output
- *
- *  g++ -std=c++11 src/db/topology2.cc -lcxxtools -ltntdb && ./a.out ;
+ *  2. proper REST API reply
+ *  3. ... pass the tests ...
  *
  */
 
@@ -103,6 +101,31 @@ class NodeMap {
         std::map <std::string, std::set <std::string>> _map;
 };
 
+void operator<<= (cxxtools::SerializationInfo &si, const Item::Topology &topo)
+{
+    if (!topo.rooms.empty ())
+        si.addMember("rooms") <<= topo.rooms;
+    if (!topo.rows.empty ())
+        si.addMember("rows") <<= topo.rows;
+    if (!topo.racks.empty ())
+        si.addMember("racks") <<= topo.racks;
+    if (!topo.groups.empty ())
+        si.addMember("groups") <<= topo.groups;
+    if (!topo.devices.empty ())
+        si.addMember("devices") <<= topo.devices;
+}
+
+
+void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
+{
+    si.addMember("name") <<= asset.name;
+    si.addMember("id") <<= asset.id;
+    si.addMember("type") <<= asset.type;
+    si.addMember("sub_type") <<= asset.subtype;
+    if (!asset.contains.empty ())
+       si.addMember("contains") <<= asset.contains;
+}
+
 // helper print function to be deleted
 static const std::string
 s_get (const tntdb::Row& row, const std::string& key) {
@@ -135,6 +158,44 @@ s_mkspc (int level) {
     return ret;
 }
 
+std::vector <Item>
+topology2_groups (
+    tntdb::Connection& conn,
+    const std::string& id) {
+
+    const std::string query = \
+        " SELECT "
+        "   el.name AS id, "
+        "   ext.value AS name "
+        " FROM "
+        "   t_bios_asset_group_relation AS rel "
+        " JOIN "
+        "   t_bios_asset_element AS el "
+        " ON rel.id_asset_group=el.id_asset_element "
+        " JOIN "
+        "   t_bios_asset_element AS el2 "
+        " ON rel.id_asset_element=el2.id_asset_element "
+        " LEFT JOIN "
+        "   t_bios_asset_ext_attributes AS ext "
+        " ON ext.id_asset_element=el.id_asset_element "
+        " WHERE el2.name=:id "
+        "       AND keytag=\"name\" ";
+    log_debug ("query=%s", query.c_str ());
+    tntdb::Statement st = conn.prepareCached (query);
+    st.set ("id", id);
+
+    std::vector <Item> ret {};
+    for (const auto& row: st.select ()) {
+        ret.push_back (Item {
+                s_get (row, "id"),
+                s_get (row, "name"),
+                "N_A",
+                "group"
+                });
+    }
+    log_debug ("group.size ()=%zu", );
+    return ret;
+}
 
 //  return a set of devices feeded by feed_by
 //
@@ -212,7 +273,13 @@ topology2_from (
         "    t3ext.value AS ORDER3, "
         "    t4ext.value AS ORDER4, "
         "    t5ext.value AS ORDER5, "
-        "    t6ext.value AS ORDER6  "
+        "    t6ext.value AS ORDER6, "
+        "    t1name.value AS NAME1, "
+        "    t2name.value AS NAME2, "
+        "    t3name.value AS NAME3, "
+        "    t4name.value AS NAME4, "
+        "    t5name.value AS NAME5, "
+        "    t6name.value AS NAME6  "
         "  FROM v_bios_asset_element AS t1 "
         "    LEFT JOIN v_bios_asset_element AS t2 ON t2.id_parent = t1.id "
         "    LEFT JOIN v_bios_asset_element AS t3 ON t3.id_parent = t2.id "
@@ -227,6 +294,12 @@ topology2_from (
         "    LEFT JOIN t_bios_asset_ext_attributes AS t4ext ON (t4.id = t4ext.id_asset_element AND t4ext.keytag=\"order\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t5ext ON (t5.id = t5ext.id_asset_element AND t5ext.keytag=\"order\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t6ext ON (t6.id = t6ext.id_asset_element AND t6ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t1name ON (t1.id = t1name.id_asset_element AND t1name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t2name ON (t2.id = t2name.id_asset_element AND t2name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t3name ON (t3.id = t3name.id_asset_element AND t3name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t4name ON (t4.id = t4name.id_asset_element AND t4name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t5name ON (t5.id = t5name.id_asset_element AND t5name.keytag=\"name\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t6name ON (t6.id = t6name.id_asset_element AND t6name.keytag=\"name\") "
         "  WHERE t1.name=:from "
         "  ORDER BY "
         "   ORDER1 ASC, ORDER2 ASC, ORDER3 ASC, ORDER4 ASC, ORDER5 ASC, ORDER6 ASC ";
@@ -240,6 +313,7 @@ topology2_from (
 
 // gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
 
+<<<<<<< HEAD
 struct Item
 {
 
@@ -325,6 +399,8 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
        si.addMember("contains") <<= asset.contains;
 }
 
+=======
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
 static int
 s_filter_type (const std::string &_filter) {
     if (!_filter.empty ()) {
@@ -346,11 +422,14 @@ topology2_from_json (
     tntdb::Result &res,
     const std::string &from,
     const std::string &filter,
-    const std::set <std::string> &feeded_by)
+    const std::set <std::string> &feeded_by,
+    const std::vector <Item> &groups
+    )
 {
     cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
+    Item item_from {};
     Item::Topology topo {};
 
     std::set <std::string> processed {};
@@ -363,12 +442,22 @@ topology2_from_json (
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
-            // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+            std::string NAME {"NAME"}; NAME.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
+
+            if (id == from) {
+                item_from = Item {
+                    id,
+                    s_get (row, NAME),
+                    persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
+                    persist::typeid_to_type (s_geti (row, TYPE))};
+                continue;
+            }
+
             if (!feeded_by.empty () && feeded_by.count (id) == 0)
                 continue;
 
@@ -382,7 +471,7 @@ topology2_from_json (
 
             Item it {
                 id,
-                "(name)",
+                s_get (row, NAME),
                 persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                 persist::typeid_to_type (s_geti (row, TYPE))};
 
@@ -396,13 +485,17 @@ topology2_from_json (
                 case persist::asset_type::RACK:
                     topo.racks.push_back (it);
                     break;
-                default:
+                case persist::asset_type::DEVICE:
                     topo.devices.push_back (it);
             }
             processed.emplace (id);
         }
+        if (!groups.empty ())
+            topo.groups = groups;
     }
-    serializer.serialize(topo).finish();
+
+    item_from.contains = topo;
+    serializer.serialize(item_from).finish();
 }
 
 static void
@@ -453,7 +546,7 @@ s_topo_recursive (
             case persist::asset_type::RACK:
                 topo.racks.push_back (it);
                 break;
-            default:
+            case persist::asset_type::DEVICE:
                 topo.devices.push_back (it);
             }
             //}
@@ -468,7 +561,9 @@ topology2_from_json_recursive (
     tntdb::Result &res,
     const std::string &from,
     const std::string &filter,
-    const std::set <std::string> &feeded_by)
+    const std::set <std::string> &feeded_by,
+    const std::vector <Item> &groups
+    )
 {
 
     NodeMap nm {};
@@ -498,9 +593,9 @@ topology2_from_json_recursive (
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
-            // TODO:!!!! NAME!!!! - need more joins?
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
+            std::string NAME {"NAME"}; NAME.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
@@ -522,14 +617,18 @@ topology2_from_json_recursive (
                 from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
 
                 it2.id = from;
+<<<<<<< HEAD
                 it2.name = "(name)";
+=======
+                it2.name = s_get (row, NAME),
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
                 it2.subtype =  from_subtype;
                 it2.type =  from_type;
 
             }
             Item it {
                 id,
-                    "(name)",
+                    s_get (row, NAME),
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
 
@@ -538,7 +637,11 @@ topology2_from_json_recursive (
         }
     }
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
+=======
+    int depth = 1;
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
     cxxtools::JsonSerializer serializer (out);
 =======
     int depth = 1;
@@ -550,11 +653,16 @@ topology2_from_json_recursive (
     Item::Topology topo {};
     s_topo_recursive (
         topo,
-        std::set <std::string> {from},
+        nm.at (from),
         nm,
         im,
         depth);
 
+<<<<<<< HEAD
+=======
+    if (!groups.empty ())
+        topo.groups = groups;
+>>>>>>> 298da1d2f3cc5d442726d3571d16deeecfae5412
     it2.contains = topo;
     serializer.serialize(it2).finish();
 }
