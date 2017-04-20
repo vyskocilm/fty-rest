@@ -28,6 +28,50 @@
 #define SRC_INCLUDE_TOPOLOGY2
 
 namespace persist {
+
+struct Item
+{
+
+struct Topology
+{
+    std::vector <Item> rooms;
+    std::vector <Item> rows;
+    std::vector <Item> racks;
+    std::vector <Item> devices;
+    std::vector <Item> groups;
+
+    Topology () {}
+
+    size_t empty () const {
+        return \
+        rooms.empty () && \
+        rows.empty () && \
+        racks.empty () && \
+        devices.empty ();
+    }
+};
+
+    Item () {}
+
+    Item (
+        const std::string &id,
+        const std::string &name,
+        const std::string &subtype,
+        const std::string &type) :
+        id {id},
+        name {name},
+        subtype {subtype},
+        type {type},
+        contains {}
+        {}
+
+    std::string id;
+    std::string name;
+    std::string subtype;
+    std::string type;
+    Topology contains;
+    friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
+};
 //
 //  maps node to it's kids, ideal structure for feed_by queries
 //
@@ -53,6 +97,12 @@ namespace persist {
 //  feed_by ("epdu2") -> {"epdu2", "srv2.1", "srv2.2"};
 //
 
+//  return all groups for given id
+//
+std::vector <Item>
+topology2_groups (
+    tntdb::Connection& conn,
+    const std::string& id);
 
 //  return a set of devices feeded by feed_by
 //
@@ -86,6 +136,8 @@ topology2_from (
 //  ret - tntdb::Result from topology2_from
 //  filter - show only given devices
 //  feeded_by - if not empty - show only devices from this set
+//  groups - list of groups device belongs to
+//
 
 void
 topology2_from_json (
@@ -93,7 +145,9 @@ topology2_from_json (
     tntdb::Result &res,
     const std::string &from,
     const std::string &filter,
-    const std::set <std::string> &feeded_by);
+    const std::set <std::string> &feeded_by,
+    const std::vector <Item> &groups
+    );
 
 //  serialize topology returned by topology2_from to ostream
 //  recursive variant
@@ -102,13 +156,18 @@ topology2_from_json (
 //  ret - tntdb::Result from topology2_from
 //  filter - show only given devices
 //  feeded_by - if not empty - show only devices from this set
+//  groups - list of groups device belongs to
+//
+
 void
 topology2_from_json_recursive (
     std::ostream &out,
     tntdb::Result &res,
     const std::string &from,
     const std::string &_filter,
-    const std::set <std::string> &feeded_by);
+    const std::set <std::string> &feeded_by,
+    const std::vector <Item> &groups
+    );
 
 };  // namespace persist
 

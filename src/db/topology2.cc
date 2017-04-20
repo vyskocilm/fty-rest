@@ -29,6 +29,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <cxxtools/jsonserializer.h>
 
 #include "asset_types.h"
+#include "topology2.h"
+#include "log.h"
 
 /**
  *  topologyv2.cc
@@ -99,6 +101,31 @@ class NodeMap {
         std::map <std::string, std::set <std::string>> _map;
 };
 
+void operator<<= (cxxtools::SerializationInfo &si, const Item::Topology &topo)
+{
+    if (!topo.rooms.empty ())
+        si.addMember("rooms") <<= topo.rooms;
+    if (!topo.rows.empty ())
+        si.addMember("rows") <<= topo.rows;
+    if (!topo.racks.empty ())
+        si.addMember("racks") <<= topo.racks;
+    if (!topo.groups.empty ())
+        si.addMember("groups") <<= topo.groups;
+    if (!topo.devices.empty ())
+        si.addMember("devices") <<= topo.devices;
+}
+
+
+void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
+{
+    si.addMember("name") <<= asset.name;
+    si.addMember("id") <<= asset.id;
+    si.addMember("type") <<= asset.type;
+    si.addMember("sub_type") <<= asset.subtype;
+    if (!asset.contains.empty ())
+       si.addMember("contains") <<= asset.contains;
+}
+
 // helper print function to be deleted
 static const std::string
 s_get (const tntdb::Row& row, const std::string& key) {
@@ -131,6 +158,44 @@ s_mkspc (int level) {
     return ret;
 }
 
+std::vector <Item>
+topology2_groups (
+    tntdb::Connection& conn,
+    const std::string& id) {
+
+    const std::string query = \
+        " SELECT "
+        "   el.name AS id, "
+        "   ext.value AS name "
+        " FROM "
+        "   t_bios_asset_group_relation AS rel "
+        " JOIN "
+        "   t_bios_asset_element AS el "
+        " ON rel.id_asset_group=el.id_asset_element "
+        " JOIN "
+        "   t_bios_asset_element AS el2 "
+        " ON rel.id_asset_element=el2.id_asset_element "
+        " LEFT JOIN "
+        "   t_bios_asset_ext_attributes AS ext "
+        " ON ext.id_asset_element=el.id_asset_element "
+        " WHERE el2.name=:id "
+        "       AND keytag=\"name\" ";
+    log_debug ("query=%s", query.c_str ());
+    tntdb::Statement st = conn.prepareCached (query);
+    st.set ("id", id);
+
+    std::vector <Item> ret {};
+    for (const auto& row: st.select ()) {
+        ret.push_back (Item {
+                s_get (row, "id"),
+                s_get (row, "name"),
+                "N_A",
+                "group"
+                });
+    }
+    log_debug ("group.size ()=%zu", );
+    return ret;
+}
 
 //  return a set of devices feeded by feed_by
 //
@@ -248,91 +313,6 @@ topology2_from (
 
 // gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
 
-struct Item
-{
-
-struct Topology
-{
-    std::vector <Item> rooms;
-    std::vector <Item> rows;
-    std::vector <Item> racks;
-    std::vector <Item> devices;
-
-    Topology () {}
-
-    size_t empty () const {
-        return \
-        rooms.empty () && \
-        rows.empty () && \
-        racks.empty () && \
-        devices.empty ();
-    }
-};
-
-    Item () {}
-
-    Item (
-        const std::string &id,
-        const std::string &name,
-        const std::string &subtype,
-        const std::string &type) :
-        id {id},
-        name {name},
-        subtype {subtype},
-        type {type},
-        contains {}
-        {}
-
-    std::string id;
-    std::string name;
-    std::string subtype;
-    std::string type;
-    Topology contains;
-    friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
-};
-
-/*
-struct Topology
-{
-    std::vector <Item> datacenters;
-    std::vector <Item> rooms;
-    std::vector <Item> rows;
-    std::vector <Item> racks;
-    std::vector <Item> devices;
-
-    size_t empty () const {
-        return \
-        datacenters.empty () && \
-        rooms.empty () && \
-        rows.empty () && \
-        racks.empty () && \
-        devices.empty ();
-    }
-};
-*/
-void operator<<= (cxxtools::SerializationInfo &si, const Item::Topology &topo)
-{
-    if (!topo.rooms.empty ())
-        si.addMember("rooms") <<= topo.rooms;
-    if (!topo.rows.empty ())
-        si.addMember("rows") <<= topo.rows;
-    if (!topo.racks.empty ())
-        si.addMember("racks") <<= topo.racks;
-    if (!topo.devices.empty ())
-        si.addMember("devices") <<= topo.devices;
-}
-
-
-void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
-{
-    si.addMember("name") <<= asset.name;
-    si.addMember("id") <<= asset.id;
-    si.addMember("type") <<= asset.type;
-    si.addMember("sub_type") <<= asset.subtype;
-    if (!asset.contains.empty ())
-       si.addMember("contains") <<= asset.contains;
-}
-
 static int
 s_filter_type (const std::string &_filter) {
     if (!_filter.empty ()) {
@@ -354,7 +334,9 @@ topology2_from_json (
     tntdb::Result &res,
     const std::string &from,
     const std::string &filter,
-    const std::set <std::string> &feeded_by)
+    const std::set <std::string> &feeded_by,
+    const std::vector <Item> &groups
+    )
 {
     cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
@@ -420,6 +402,8 @@ topology2_from_json (
             }
             processed.emplace (id);
         }
+        if (!groups.empty ())
+            topo.groups = groups;
     }
 
     item_from.contains = topo;
@@ -489,7 +473,9 @@ topology2_from_json_recursive (
     tntdb::Result &res,
     const std::string &from,
     const std::string &filter,
-    const std::set <std::string> &feeded_by)
+    const std::set <std::string> &feeded_by,
+    const std::vector <Item> &groups
+    )
 {
 
     NodeMap nm {};
@@ -571,6 +557,8 @@ topology2_from_json_recursive (
         im,
         depth);
 
+    if (!groups.empty ())
+        topo.groups = groups;
     it2.contains = topo;
     serializer.serialize(it2).finish();
 }
