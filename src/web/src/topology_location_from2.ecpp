@@ -188,14 +188,17 @@ UserInfo user;
 		feeded_by = persist::topology2_feed_by (conn, feed_by);
 
 	auto result = persist::topology2_from (conn, from);
-	
+    auto groups = persist::topology2_groups (conn, from);
+
 	if (checked_recursive) {
 			persist::topology2_from_json_recursive (
 				reply.out (),
 				result,
 				from,
 				filter,
-				feeded_by);
+				feeded_by,
+                groups
+                );
 	}
 	else {
 			persist::topology2_from_json (
@@ -203,6 +206,8 @@ UserInfo user;
 				result,
 				from,
 				filter,
-				feeded_by);
+				feeded_by,
+                groups
+                );
 	}
 </%cpp>
