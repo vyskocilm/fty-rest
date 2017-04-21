@@ -324,6 +324,8 @@ s_should_filter (int filter_type, int type) {
     return filter_type != -1 && type != filter_type;
 }
 
+// MVY: TODO - it turns out that topology call is way more simpler than this
+//             therefor simply change SQL SELECT to get devices with id_parent==id (fom)
 void
 topology2_from_json (
     std::ostream &out,
@@ -346,7 +348,7 @@ topology2_from_json (
 
     for (const auto& row: res) {
 
-        for (int i = 1; i != 7; i++) {
+        for (int i = 1; i != 3; i++) {
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
@@ -395,11 +397,13 @@ topology2_from_json (
                     break;
                 case persist::asset_type::DEVICE:
                     topo.devices.push_back (it);
+                    break;
+                case persist::asset_type::GROUP:
+                    topo.groups.push_back (it);
             }
             processed.emplace (id);
         }
-        if (!groups.empty ())
-            topo.groups = groups;
+        topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
     }
 
     item_from.contains = topo;
@@ -450,6 +454,9 @@ s_topo_recursive (
             break;
         case persist::asset_type::DEVICE:
             topo.devices.push_back (it);
+            break;
+        case persist::asset_type::GROUP:
+            topo.groups.push_back (it);
         }
 
     }
@@ -543,8 +550,7 @@ topology2_from_json_recursive (
         nm,
         im);
 
-    if (!groups.empty ())
-        topo.groups = groups;
+    topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
     it2.contains = topo;
     serializer.serialize(it2).finish();
 }
