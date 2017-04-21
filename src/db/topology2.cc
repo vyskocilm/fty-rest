@@ -158,10 +158,36 @@ s_mkspc (int level) {
     return ret;
 }
 
+static void
+s_topology2_devices_in_groups (
+    tntdb::Connection& conn,
+    Item &item)
+{
+
+    const std::string query = \
+        "SELECT el.name AS id, el.id_type AS type, el.id_subtype AS subtype, ext.value AS name, el2.name AS group_name FROM t_bios_asset_group_relation rel JOIN t_bios_asset_element AS el ON rel.id_asset_element=el.id_asset_element JOIN t_bios_asset_element AS el2 ON rel.id_asset_group=el2.id_asset_element JOIN t_bios_asset_ext_attributes AS ext ON el.id_asset_element=ext.id_asset_element WHERE ext.keytag=\"name\" AND el2.name=:id";
+
+    tntdb::Statement st = conn.prepareCached (query);
+
+    st.set ("id", item.id);
+
+    for (const auto& row: st.select ()) {
+        item.contains.push_back (Item {
+            s_get (row, "id"),
+            s_get (row, "name"),
+            persist::subtypeid_to_subtype (s_geti (row, "subtype")),
+            persist::typeid_to_type (s_geti (row, "type"))
+        });
+    }
+}
+
+
 std::vector <Item>
 topology2_groups (
     tntdb::Connection& conn,
-    const std::string& id) {
+    const std::string& id,
+    bool recursive
+    ) {
 
     const std::string query = \
         " SELECT "
@@ -185,12 +211,17 @@ topology2_groups (
 
     std::vector <Item> ret {};
     for (const auto& row: st.select ()) {
-        ret.push_back (Item {
+                
+        Item item {
                 s_get (row, "id"),
                 s_get (row, "name"),
                 "N_A",
                 "group"
-                });
+                };
+
+        if (recursive)
+            s_topology2_devices_in_groups (conn, item);
+        ret.push_back (item);
     }
     return ret;
 }
@@ -379,28 +410,13 @@ topology2_from_json (
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
-            Item it {
+            Item item {
                 id,
                 s_get (row, NAME),
                 persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                 persist::typeid_to_type (s_geti (row, TYPE))};
+            topo.push_back (item);
 
-            switch (type) {
-                case persist::asset_type::ROOM:
-                    topo.rooms.push_back (it);
-                    break;
-                case persist::asset_type::ROW:
-                    topo.rows.push_back (it);
-                    break;
-                case persist::asset_type::RACK:
-                    topo.racks.push_back (it);
-                    break;
-                case persist::asset_type::DEVICE:
-                    topo.devices.push_back (it);
-                    break;
-                case persist::asset_type::GROUP:
-                    topo.groups.push_back (it);
-            }
             processed.emplace (id);
         }
         topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
@@ -427,7 +443,6 @@ s_topo_recursive (
             continue;
         }
         std::set <std::string> kids;
-        int type = persist::type_to_typeid (it.type);
 
         // collect all kids
         if (nm.has (id) && ! nm.at (id).empty()) {
@@ -441,30 +456,14 @@ s_topo_recursive (
             it.contains = Item::Topology {};
             s_topo_recursive (it.contains, kids, nm, im);
         }
-
-        switch (type) {
-        case persist::asset_type::ROOM:
-            topo.rooms.push_back (it);
-            break;
-        case persist::asset_type::ROW:
-            topo.rows.push_back (it);
-            break;
-        case persist::asset_type::RACK:
-            topo.racks.push_back (it);
-            break;
-        case persist::asset_type::DEVICE:
-            topo.devices.push_back (it);
-            break;
-        case persist::asset_type::GROUP:
-            topo.groups.push_back (it);
-        }
-
+        topo.push_back (it);
     }
 }
 
 void
 topology2_from_json_recursive (
     std::ostream &out,
+    tntdb::Connection &conn,
     tntdb::Result &res,
     const std::string &from,
     const std::string &filter,
@@ -535,8 +534,12 @@ topology2_from_json_recursive (
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
 
+            if (s_geti (row, TYPE) == persist::asset_type::GROUP)
+                s_topology2_devices_in_groups (conn, it);
+
             im.insert (std::make_pair (id, it));
             processed.emplace (id);
+
         }
     }
 
@@ -551,6 +554,7 @@ topology2_from_json_recursive (
         im);
 
     topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
+
     it2.contains = topo;
     serializer.serialize(it2).finish();
 }
