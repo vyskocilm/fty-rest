@@ -49,6 +49,26 @@ struct Topology
         racks.empty () && \
         devices.empty ();
     }
+
+    void push_back (const Item &it) {
+        int type = persist::type_to_typeid (it.type);
+        switch (type) {
+            case persist::asset_type::ROOM:
+                rooms.push_back (it);
+                break;
+            case persist::asset_type::ROW:
+                rows.push_back (it);
+                break;
+            case persist::asset_type::RACK:
+                racks.push_back (it);
+                break;
+            case persist::asset_type::DEVICE:
+                devices.push_back (it);
+                break;
+            case persist::asset_type::GROUP:
+                groups.push_back (it);
+        }
+    }
 };
 
     Item () {}
@@ -99,10 +119,14 @@ struct Topology
 
 //  return all groups for given id
 //
+//  if recursive, return all devices in this group
+//
 std::vector <Item>
 topology2_groups (
     tntdb::Connection& conn,
-    const std::string& id);
+    const std::string& id,
+    bool recursive
+    );
 
 //  return a set of devices feeded by feed_by
 //
@@ -162,6 +186,7 @@ topology2_from_json (
 void
 topology2_from_json_recursive (
     std::ostream &out,
+    tntdb::Connection &conn,
     tntdb::Result &res,
     const std::string &from,
     const std::string &_filter,
