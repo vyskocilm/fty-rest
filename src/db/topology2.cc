@@ -180,7 +180,6 @@ topology2_groups (
         " ON ext.id_asset_element=el.id_asset_element "
         " WHERE el2.name=:id "
         "       AND keytag=\"name\" ";
-    log_debug ("query=%s", query.c_str ());
     tntdb::Statement st = conn.prepareCached (query);
     st.set ("id", id);
 
@@ -193,7 +192,6 @@ topology2_groups (
                 "group"
                 });
     }
-    log_debug ("group.size ()=%zu");
     return ret;
 }
 
@@ -311,8 +309,6 @@ topology2_from (
 }
 
 
-// gcc -lstdc++ -std=c++11 -lcxxtools -lczmq -ltntdb -lmlm json.cc -o json && ./json
-
 static int
 s_filter_type (const std::string &_filter) {
     if (!_filter.empty ()) {
@@ -328,6 +324,8 @@ s_should_filter (int filter_type, int type) {
     return filter_type != -1 && type != filter_type;
 }
 
+// MVY: TODO - it turns out that topology call is way more simpler than this
+//             therefor simply change SQL SELECT to get devices with id_parent==id (fom)
 void
 topology2_from_json (
     std::ostream &out,
@@ -350,7 +348,7 @@ topology2_from_json (
 
     for (const auto& row: res) {
 
-        for (int i = 1; i != 7; i++) {
+        for (int i = 1; i != 3; i++) {
 
             std::string idx = std::to_string (i);
             std::string ID {"ID"}; ID.append (idx);
@@ -399,11 +397,13 @@ topology2_from_json (
                     break;
                 case persist::asset_type::DEVICE:
                     topo.devices.push_back (it);
+                    break;
+                case persist::asset_type::GROUP:
+                    topo.groups.push_back (it);
             }
             processed.emplace (id);
         }
-        if (!groups.empty ())
-            topo.groups = groups;
+        topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
     }
 
     item_from.contains = topo;
@@ -415,12 +415,10 @@ s_topo_recursive (
     Item::Topology &topo,
     std::set <std::string> from,
     const NodeMap &nm,
-    std::map <std::string, Item> &im,
-    int depth)
+    std::map <std::string, Item> &im)
 {
     if (from.empty ())
         return;
-    printf("1 .hloubka, %d\n", depth);
     for (const std::string &id : from) {
         Item it;
         try {
@@ -441,28 +439,25 @@ s_topo_recursive (
         // add kids recursivelly to topology
         if (! kids.empty ()) {
             it.contains = Item::Topology {};
-            s_topo_recursive (it.contains, kids, nm, im, depth + 1);
+            s_topo_recursive (it.contains, kids, nm, im);
         }
 
-        printf("2. hloubka, %d\n", depth);
-        printf("id , %s\n", id.c_str());
-
-        //if ( depth > 1) {
-            switch (type) {
-            case persist::asset_type::ROOM:
-                topo.rooms.push_back (it);
-                break;
-            case persist::asset_type::ROW:
-                topo.rows.push_back (it);
-                break;
-            case persist::asset_type::RACK:
-                topo.racks.push_back (it);
-                break;
-            case persist::asset_type::DEVICE:
-                topo.devices.push_back (it);
-            }
-            //}
-        printf("3. hloubka, %d\n", depth);
+        switch (type) {
+        case persist::asset_type::ROOM:
+            topo.rooms.push_back (it);
+            break;
+        case persist::asset_type::ROW:
+            topo.rows.push_back (it);
+            break;
+        case persist::asset_type::RACK:
+            topo.racks.push_back (it);
+            break;
+        case persist::asset_type::DEVICE:
+            topo.devices.push_back (it);
+            break;
+        case persist::asset_type::GROUP:
+            topo.groups.push_back (it);
+        }
 
     }
 }
@@ -545,7 +540,6 @@ topology2_from_json_recursive (
         }
     }
 
-    int depth = 1;
     cxxtools::JsonSerializer serializer (out);
     serializer.beautify (true);
 
@@ -554,65 +548,11 @@ topology2_from_json_recursive (
         topo,
         nm.at (from),
         nm,
-        im,
-        depth);
+        im);
 
-    if (!groups.empty ())
-        topo.groups = groups;
+    topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
     it2.contains = topo;
     serializer.serialize(it2).finish();
 }
 
 }// namespace persist
-
-/*
-int main () {
-
-    tntdb::Connection conn = tntdb::connectCached (url);
-
-    // 1. params
-    std::string from {"ROOM1"};
-    std::string feed_by {"ups-1"};
-
-    // 2. queries
-    auto res = s_topologyv2 (conn, "ROOM1");
-    std::set <std::string> feeded_by {};
-    s_json (std::cout, res, "", feeded_by);
-
-    std::cout << "===============================================================" << std::endl;
-    s_json_recursive (
-        std::cout,
-        res,
-        from,
-        "",
-        feeded_by);
-
-    Item asset;
-    Item::Topology topo;
-
-    std::string name  = "datacente-1";
-    std::string subtype = "NA";
-    std::string id = "2";
-    std::string type = "datacenter";
-    std::string order = "1";
-
-    asset.name  = name;
-    asset.type  = type;
-    //asset.order  = order;
-    asset.subtype = subtype;
-    asset.id = id;
-
-    //topo.datacenters.push_back (asset);
-
-    printf("\n");
-    return 0;
-
-    // 3. feed_by
-    //std::set <std::string> feeded_by;
-    if (! feed_by.empty())
-        feeded_by = s_feed_by (conn, feed_by);
-
-    // 4. output TO BE DONE
-
-}
-*/
