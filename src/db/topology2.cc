@@ -521,8 +521,20 @@ topology2_from_json_recursive (
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
             std::string NAME {"NAME"}; NAME.append (idx);
 
-            // feed_by filtering
             std::string id = s_get (row, ID);
+
+            if (!id.compare (from)) {
+
+                from_type = persist::typeid_to_type (s_geti (row, TYPE));
+                from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
+
+                it2.id = from;
+                it2.name = s_get (row, NAME),
+                it2.subtype =  from_subtype;
+                it2.type =  from_type;
+            }
+
+            // feed_by filtering
             if (!feeded_by.empty () && feeded_by.count (id) == 0)
                 continue;
 
@@ -534,18 +546,6 @@ topology2_from_json_recursive (
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
-            if (!id.compare (from))
-            {
-
-                from_type = persist::typeid_to_type (s_geti (row, TYPE));
-                from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
-
-                it2.id = from;
-                it2.name = s_get (row, NAME),
-                it2.subtype =  from_subtype;
-                it2.type =  from_type;
-
-            }
             Item it {
                 id,
                     s_get (row, NAME),
