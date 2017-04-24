@@ -170,7 +170,8 @@ s_topology2_devices_in_groups (
         "   el.id_type AS type, "
         "   el.id_subtype AS subtype, "
         "   ext.value AS name, "
-        "   el2.name AS group_name "
+        "   el2.name AS group_name, "
+        "   torder.value AS order "
         " FROM "
         "   t_bios_asset_group_relation rel "
         " JOIN t_bios_asset_element AS el "
@@ -179,7 +180,10 @@ s_topology2_devices_in_groups (
         "   ON rel.id_asset_group=el2.id_asset_element "
         " JOIN t_bios_asset_ext_attributes AS ext "
         "   ON el.id_asset_element=ext.id_asset_element "
-        " WHERE ext.keytag=\"name\" AND el2.name=:id ";
+        " LEFT JOIN t_bios_asset_ext_attributes AS torder ON (el.id_asset_element=torder.id_asset_element AND torder.keytag=\"order\") "
+        " WHERE ext.keytag=\"name\" AND el2.name=:id "
+        " ORDER BY "
+        "   order ASC ";
 
     tntdb::Statement st = conn.prepareCached (query);
 
