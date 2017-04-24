@@ -165,7 +165,21 @@ s_topology2_devices_in_groups (
 {
 
     const std::string query = \
-        "SELECT el.name AS id, el.id_type AS type, el.id_subtype AS subtype, ext.value AS name, el2.name AS group_name FROM t_bios_asset_group_relation rel JOIN t_bios_asset_element AS el ON rel.id_asset_element=el.id_asset_element JOIN t_bios_asset_element AS el2 ON rel.id_asset_group=el2.id_asset_element JOIN t_bios_asset_ext_attributes AS ext ON el.id_asset_element=ext.id_asset_element WHERE ext.keytag=\"name\" AND el2.name=:id";
+        " SELECT "
+        "   el.name AS id, "
+        "   el.id_type AS type, "
+        "   el.id_subtype AS subtype, "
+        "   ext.value AS name, "
+        "   el2.name AS group_name "
+        " FROM "
+        "   t_bios_asset_group_relation rel "
+        " JOIN t_bios_asset_element AS el "
+        "   ON rel.id_asset_element=el.id_asset_element "
+        " JOIN t_bios_asset_element AS el2 "
+        "   ON rel.id_asset_group=el2.id_asset_element "
+        " JOIN t_bios_asset_ext_attributes AS ext "
+        "   ON el.id_asset_element=ext.id_asset_element "
+        " WHERE ext.keytag=\"name\" AND el2.name=:id ";
 
     tntdb::Statement st = conn.prepareCached (query);
 
