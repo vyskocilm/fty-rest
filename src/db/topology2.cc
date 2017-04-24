@@ -372,7 +372,6 @@ static bool
 s_should_filter (int filter_type, int type) {
     return filter_type != -1 && type != filter_type;
 }
-
 // MVY: TODO - it turns out that topology call is way more simpler than this
 //             therefor simply change SQL SELECT to get devices with id_parent==id (fom)
 void
@@ -478,6 +477,21 @@ s_topo_recursive (
     }
 }
 
+static bool
+s_should_filter_recursive (int query_type, int asset_type) {
+
+    // do not filter if no filter= has been specified in query
+    if (query_type == -1)
+        return false;
+
+    // if we're asking about groups, return groups only
+    if (query_type == persist::asset_type::GROUP)
+        return asset_type != persist::asset_type::GROUP;
+
+    // else filter all types with number lower than asked for
+    return query_type < asset_type || asset_type == persist::asset_type::GROUP;
+}
+
 void
 topology2_from_json_recursive (
     std::ostream &out,
@@ -503,7 +517,7 @@ topology2_from_json_recursive (
         }
     }
 
-    int filter_type = s_filter_type (filter);
+    int query_type = s_filter_type (filter);
 
     // create a map id -> Item
     std::set <std::string> processed {};
@@ -540,7 +554,7 @@ topology2_from_json_recursive (
 
             // filter - type filtering
             int type = s_geti (row, TYPE);
-            if (s_should_filter (filter_type, type))
+            if (s_should_filter_recursive (query_type, type))
                 continue;
 
             if (processed.count (id) != 0 || id == "(null)")
@@ -571,7 +585,8 @@ topology2_from_json_recursive (
         nm,
         im);
 
-    topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
+    if (query_type == persist::asset_type::GROUP)
+        topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
 
     it2.contains = topo;
     serializer.serialize(it2).finish();
