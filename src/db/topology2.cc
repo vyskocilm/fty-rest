@@ -165,7 +165,25 @@ s_topology2_devices_in_groups (
 {
 
     const std::string query = \
-        "SELECT el.name AS id, el.id_type AS type, el.id_subtype AS subtype, ext.value AS name, el2.name AS group_name FROM t_bios_asset_group_relation rel JOIN t_bios_asset_element AS el ON rel.id_asset_element=el.id_asset_element JOIN t_bios_asset_element AS el2 ON rel.id_asset_group=el2.id_asset_element JOIN t_bios_asset_ext_attributes AS ext ON el.id_asset_element=ext.id_asset_element WHERE ext.keytag=\"name\" AND el2.name=:id";
+        " SELECT "
+        "   el.name AS id, "
+        "   el.id_type AS type, "
+        "   el.id_subtype AS subtype, "
+        "   ext.value AS name, "
+        "   el2.name AS group_name, "
+        "   torder.value AS element_order "
+        " FROM "
+        "   t_bios_asset_group_relation rel "
+        " JOIN t_bios_asset_element AS el "
+        "   ON rel.id_asset_element=el.id_asset_element "
+        " JOIN t_bios_asset_element AS el2 "
+        "   ON rel.id_asset_group=el2.id_asset_element "
+        " JOIN t_bios_asset_ext_attributes AS ext "
+        "   ON el.id_asset_element=ext.id_asset_element "
+        " LEFT JOIN t_bios_asset_ext_attributes AS torder ON (el.id_asset_element=torder.id_asset_element AND torder.keytag=\"order\") "
+        " WHERE ext.keytag=\"name\" AND el2.name=:id "
+        " ORDER BY "
+        "   element_order ASC ";
 
     tntdb::Statement st = conn.prepareCached (query);
 
@@ -503,8 +521,20 @@ topology2_from_json_recursive (
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
             std::string NAME {"NAME"}; NAME.append (idx);
 
-            // feed_by filtering
             std::string id = s_get (row, ID);
+
+            if (!id.compare (from)) {
+
+                from_type = persist::typeid_to_type (s_geti (row, TYPE));
+                from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
+
+                it2.id = from;
+                it2.name = s_get (row, NAME),
+                it2.subtype =  from_subtype;
+                it2.type =  from_type;
+            }
+
+            // feed_by filtering
             if (!feeded_by.empty () && feeded_by.count (id) == 0)
                 continue;
 
@@ -516,18 +546,6 @@ topology2_from_json_recursive (
             if (processed.count (id) != 0 || id == "(null)")
                 continue;
 
-            if (!id.compare (from))
-            {
-
-                from_type = persist::typeid_to_type (s_geti (row, TYPE));
-                from_subtype = persist::subtypeid_to_subtype (s_geti (row, SUBTYPE));
-
-                it2.id = from;
-                it2.name = s_get (row, NAME),
-                it2.subtype =  from_subtype;
-                it2.type =  from_type;
-
-            }
             Item it {
                 id,
                     s_get (row, NAME),
