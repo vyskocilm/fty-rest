@@ -182,6 +182,8 @@ UserInfo user;
 	else if (!recursive.empty() && recursive != "false") {
 		http_die("request-param-bad", "recursive", recursive.c_str(), "'true'/'false'");
 	}
+    if (from.empty ())
+        http_die("request-param-bad", "from");
 
 	std::set <std::string> feeded_by;
 	if (!feed_by.empty ())
