@@ -73,8 +73,12 @@ UserInfo user;
             http_die("request-param-bad", "recursive", recursive.c_str(), "'true'/'false'");
         }
 
+        std::transform (filter.begin(), filter.end(), filter.begin(), ::tolower);
+        if (!filter.empty ())
+            checked_filter = filter;
+
         if (!feed_by.empty ())
-            if (checked_filter.compare ( "devices"))
+            if (filter.compare ( "devices"))
                 http_die("parameter-conflict", "Variable 'feed_by' can be specified only with 'filter=devices'");
             else
                 checked_feed_by = feed_by;
@@ -85,10 +89,6 @@ UserInfo user;
         else {
             http_die("request-param-bad", "from");
         }
-
-        std::transform (filter.begin(), filter.end(), filter.begin(), ::tolower);
-        if (!filter.empty ())
-            checked_filter = filter;
     }
 
 	tntdb::Connection conn = tntdb::connectCached (url);
