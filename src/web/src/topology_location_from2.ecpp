@@ -94,11 +94,17 @@ UserInfo user;
 	tntdb::Connection conn = tntdb::connectCached (url);
 
     std::set <std::string> fed_by;
-	if (!fed_by.empty ())
+	if (!checked_feed_by.empty ())
 		fed_by = persist::topology2_feed_by (conn, checked_feed_by);
 
 	auto result = persist::topology2_from (conn, checked_from);
+    if (result.empty())
+        http_die("request-param-bad", "from", checked_from.c_str(), "valid asset name.");
+
     auto groups = persist::topology2_groups (conn, checked_from, checked_recursive);
+    if (groups.empty())
+        http_die("request-param-bad", "from", checked_from.c_str(), "valid asset name.");
+
 
 	if (checked_recursive) {
 			persist::topology2_from_json_recursive (
