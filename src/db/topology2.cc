@@ -555,12 +555,13 @@ topology2_from_json_recursive (
                 it2.type =  from_type;
             }
 
-            // feed_by filtering
-            if (!feeded_by.empty () && feeded_by.count (id) == 0)
+            // feed_by filtering - for devices only
+            int type = s_geti (row, TYPE);
+            if (type == persist::asset_type::DEVICE \
+            && (!feeded_by.empty () && feeded_by.count (id) == 0))
                 continue;
 
             // filter - type filtering
-            int type = s_geti (row, TYPE);
             if (s_should_filter_recursive (query_type, type))
                 continue;
 
