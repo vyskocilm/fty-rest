@@ -58,11 +58,15 @@ class NodeMap {
         {}
 
         void add (const std::string &name, const std::string &child) {
+            add (name);
+            _map [name].insert (child);
+        }
+
+        void add (const std::string &name) {
             if (_map.count (name) == 0) {
                 std::set <std::string> s {};
                 _map.emplace (std::make_pair (name, s));
             }
-            _map [name].insert (child);
         }
 
         void print (const std::string &name, int level) {
@@ -511,8 +515,11 @@ topology2_from_json_recursive (
             std::string name = s_get (row, "ID" + std::to_string (i));
             std::string kid = s_get (row, "ID" + std::to_string (i+1));
 
-            if (name != "(null)" && kid != "(null)") {
-                nm.add (name, kid);
+            if (name != "(null)") {
+                if (kid != "(null)")
+                    nm.add (name, kid);
+                else
+                    nm.add (name);
             }
         }
     }
