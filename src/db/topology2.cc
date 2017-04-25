@@ -77,12 +77,15 @@ class NodeMap {
         }
 
         void _feed_by (const std::string& name, std::set <std::string> &ret) {
+
+            ret.insert (name);
+
             if (_map.count (name) == 0)
                 return;
 
-            ret.insert (name);
-            for (const auto& kid: _map [name])
+            for (const auto& kid: _map [name]) {
                 _feed_by (kid, ret);
+            }
         }
 
         // return a subtree - recursively
