@@ -32,16 +32,10 @@
 #include <exception>
 #include <czmq.h>
 
-#include "log.h"
-#include "defs.h"
 #include "dbpath.h"
 #include "data.h"
-#include "common_msg.h"
 #include "location_helpers.h"
 #include "asset_types.h"
-#include "assettopology.h"
-#include "utils_web.h"
-#include "cleanup.h"
 #include "helpers.h"
 #include "topology2.h"
 </%pre>
@@ -49,7 +43,9 @@
 UserInfo user;
 </%request>
 <%cpp>
+    // Sanity check end
 
+    // ##################################################
     // check user permissions
     static const std::map <BiosProfile, std::string> PERMISSIONS = {
             {BiosProfile::Dashboard, "R"},
@@ -57,149 +53,61 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
-	/*
     // checked parameters
-    a_elmnt_id_t checked_from = 0;
-    int checked_recursive = 0;
-    int checked_filter = 0;
-    a_elmnt_id_t checked_feed_by = 0;
+    bool checked_recursive = false;
+    std::string checked_filter;
+    std::string checked_feed_by;
+    std::string  checked_from;
 
-    // ##################################################
-    // BLOCK 1
-    // Sanity parameter check
     {
-        // dirty parameters
-        // Arguments parsed from URL: -> request.getArg("agrgumentName")
-        // Real parameters  in URL (after '?': -> qparam.param("parameterName")
         std::string from = qparam.param("from");
-        std::string to = qparam.param("to");
-        std::string recursive = qparam.param("recursive");
         std::string filter = qparam.param("filter");
         std::string feed_by = qparam.param("feed_by");
+        std::string recursive = qparam.param("recursive");
 
-        // Check url validity
-        // 1. Exactly one parameter has to be specified: 'from' or 'to'
-        if (!from.empty() && !to.empty()) {
-            http_die("parameter-conflict", "Only one parameter can be specified at once: 'from' or 'to'");
-        }
-        // 2. At least one parameter should be specified
-        if (from.empty() && to.empty()) {
-            http_die("request-param-required", "from/to");
-        }
-        // 3. Check values of 'recursive'
         std::transform (recursive.begin(), recursive.end(), recursive.begin(), ::tolower);
         if (recursive == "true") {
-            checked_recursive = 1;
-        } else if (!recursive.empty() && recursive != "false") {
+            checked_recursive = true;
+        }
+        else if (!recursive.empty() && recursive != "false") {
             http_die("request-param-bad", "recursive", recursive.c_str(), "'true'/'false'");
         }
-        // 4. Check values of 'filter'
+
+        if (!feed_by.empty ())
+            if (checked_filter.compare ( "devices"))
+                http_die("parameter-conflict", "Variable 'feed_by' can be specified only with 'filter=devices'");
+            else
+                checked_feed_by = feed_by;
+
+        if (!from.empty ()) {
+            checked_from = from;
+        }
+        else {
+            http_die("request-param-bad", "from");
+        }
+
         std::transform (filter.begin(), filter.end(), filter.begin(), ::tolower);
-        if (filter.empty()) {
-            checked_filter = 7;
-        } else if (filter == "rooms") {
-            checked_filter = persist::asset_type::ROOM;
-        } else if (filter == "rows") {
-            checked_filter = persist::asset_type::ROW;
-        } else if (filter == "racks") {
-            checked_filter = persist::asset_type::RACK;
-        } else if (filter == "devices") {
-            checked_filter = persist::asset_type::DEVICE;
-        } else if (filter == "groups") {
-            checked_filter = persist::asset_type::GROUP;
-        } else {
-            // Note: datacenter is not a valid filter parameter according to rfc-11 4.1.13
-            http_die("request-param-bad","filter", filter.c_str(), "'rooms'/'rows'/'racks'/'groups'/'devices'");
-        }
-
-        // 5. Check if 'feed_by' is allowed
-        if ( !feed_by.empty() ) {
-            if ( checked_filter != persist::asset_type::DEVICE ) {
-                http_die("parameter-conflict", "With variable 'feed_by' can be specified only 'filter=devices'");
-            }
-            if ( from == "none" ) {
-                http_die("parameter-conflict", "With variable 'feed_by' variable 'from' can not be 'none'");
-            }
-        }
-        // 6. if it is not 'from' request, process it as 'to' request in another ecpp file
-        if ( from.empty() ) {
-            // pass control to to next file in the chain
-            return DECLINED;
-        }
-        // From now on, we are sure, that we are qoing to respond on "location_from" request
-
-        // 6. Check if 'from' has valid asset id
-        http_errors_t errors;
-        if ( from != "none" &&
-                !check_element_identifier ("from", from, checked_from, errors) ) {
-            http_die_error (errors);
-        }
-
-        if ( !feed_by.empty() ) {
-            if ( !check_element_identifier ("feed_by", feed_by, checked_feed_by, errors) ) {
-                http_die_error (errors);
-            }
-		}
-
-		/*TODO: there is different function to perform such check
-            auto tmp = asset_mgr.get_item1 (checked_feed_by);
-            if ( tmp.status == 0 ) {
-                switch ( tmp.errsubtype ) {
-                    case DB_ERROR_NOTFOUND:
-                        http_die("element-not-found", std::to_string(checked_feed_by).c_str());
-                    case DB_ERROR_BADINPUT:
-                    case DB_ERROR_INTERNAL:
-                    default:
-                        http_die("internal-error", tmp.msg.c_str());
-                }
-            }
-            if ( tmp.item.basic.type_id != persist::asset_type::DEVICE ) {
-                http_die("request-param-bad", "feed_by", feed_by.c_str(), "be a device");
-            }
-        }
-		*/
-    //}
-    // Sanity check end
-
-    // ##################################################
+        if (!filter.empty ())
+            checked_filter = filter;
+    }
 
 	tntdb::Connection conn = tntdb::connectCached (url);
 
+    std::set <std::string> fed_by;
+	if (!fed_by.empty ())
+		fed_by = persist::topology2_feed_by (conn, checked_feed_by);
 
-	// TODO: redo the checking code
-	// assumption, dirty parameters have been already checked above
-    std::string from = qparam.param("from");
-    std::string filter = qparam.param("filter");
-    std::string feed_by = qparam.param("feed_by");
-    std::string recursive = qparam.param("recursive");
-
-	bool checked_recursive = false;
-	// 3. Check values of 'recursive'
-	std::transform (recursive.begin(), recursive.end(), recursive.begin(), ::tolower);
-	if (recursive == "true") {
-		checked_recursive = true;
-	}
-	else if (!recursive.empty() && recursive != "false") {
-		http_die("request-param-bad", "recursive", recursive.c_str(), "'true'/'false'");
-	}
-    if (from.empty ())
-        http_die("request-param-bad", "from");
-
-	std::set <std::string> feeded_by;
-	if (!feed_by.empty ())
-		feeded_by = persist::topology2_feed_by (conn, feed_by);
-
-	auto result = persist::topology2_from (conn, from);
-    auto groups = persist::topology2_groups (conn, from, checked_recursive);
+	auto result = persist::topology2_from (conn, checked_from);
+    auto groups = persist::topology2_groups (conn, checked_from, checked_recursive);
 
 	if (checked_recursive) {
 			persist::topology2_from_json_recursive (
 				reply.out (),
                 conn,
 				result,
-				from,
-				filter,
-				feeded_by,
+				checked_from,
+				checked_filter,
+				fed_by,
                 groups
                 );
 	}
@@ -207,9 +115,9 @@ UserInfo user;
 			persist::topology2_from_json (
 				reply.out (),
 				result,
-				from,
-				filter,
-				feeded_by,
+				checked_from,
+				checked_filter,
+				fed_by,
                 groups
                 );
 	}
