@@ -102,9 +102,6 @@ UserInfo user;
         http_die("request-param-bad", "from", checked_from.c_str(), "valid asset name.");
 
     auto groups = persist::topology2_groups (conn, checked_from, checked_recursive);
-    if (groups.empty())
-        http_die("request-param-bad", "from", checked_from.c_str(), "valid asset name.");
-
 
 	if (checked_recursive) {
 			persist::topology2_from_json_recursive (
