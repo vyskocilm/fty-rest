@@ -82,11 +82,18 @@ UserInfo user;
 
         std::transform (filter.begin(), filter.end(), filter.begin(), ::tolower);
         if (!filter.empty ())
-            checked_filter = filter;
+            if (filter == "rooms"   ||
+                filter == "rows"    ||
+                filter == "racks"   ||
+                filter == "devices" ||
+                filter == "groups" )
+                checked_filter = filter;
+            else
+                http_die("request-param-bad","filter", filter.c_str(), "'rooms'/'rows'/'racks'/'groups'/'devices'");
 
         if (!feed_by.empty ())
         {
-            if (filter.compare ( "devices"))
+            if (filter == "devices")
                 http_die("parameter-conflict", "Variable 'feed_by' can be specified only with 'filter=devices'");
             if ( from == "none")
                 http_die("parameter-conflict", "With variable 'feed_by' variable 'from' can not be 'none'");
