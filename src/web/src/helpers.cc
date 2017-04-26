@@ -318,7 +318,7 @@ get_current_license_file (void)
     char *current_license = NULL;
     char *env = getenv (EV_LICENSE_DIR);
 
-    int rv = asprintf (&current_license, "%s/current", env ? env : "/usr/share/bios/license");
+    int rv = asprintf (&current_license, "%s/current", env ? env : "/usr/share/fty/license");
     if ( rv == -1 ) {
         return NULL;
     }
@@ -331,7 +331,7 @@ get_accepted_license_file (void)
     char *accepted_license = NULL;
     char *env = getenv (EV_DATA_DIR);
 
-    if (asprintf (&accepted_license, "%s/license", env ? env : "/var/lib/bios" ) == -1) {
+    if (asprintf (&accepted_license, "%s/license", env ? env : "/var/lib/fty" ) == -1) {
         return NULL;
     }
     return accepted_license;
@@ -369,7 +369,7 @@ get_current_license_version (const char* license_file)
 }
 // drop the last / in a developer friendly way
 // this is intended to fix issue we've on rhel
-// "version" : "/usr/share/bios/license/1.0"
+// "version" : "/usr/share/fty/license/1.0"
 // if there's no / in inp, then it's noop
 // if so, then it returns character AFTER last /
 const char*

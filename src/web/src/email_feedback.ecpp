@@ -88,7 +88,7 @@ s_rm_rf (const std::vector <std::string>& paths, char **dir_p)
 static off_t
 s_max_attachment_size () {
     off_t ret = 1024 * 1024;
-    zconfig_t *config = zconfig_load ("/etc/agent-smtp/bios-agent-smtp.conf");
+    zconfig_t *config = zconfig_load ("/etc/fty-email/fty-email.cfg");
     if (!config)
         return ret;
 

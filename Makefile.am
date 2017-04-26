@@ -90,7 +90,7 @@ $(RUN_TNTNET_ENVFILE): $(abs_top_builddir)/Makefile
 	     echo 'export NO_SSL="1"'; \
 	     echo '[ -z "$$BIOS_LOG_LEVEL" ] && BIOS_LOG_LEVEL="LOG_DEBUG"'; \
 	     echo 'export BIOS_LOG_LEVEL'; \
-	     echo 'export DATADIR="$$DATADIR_BASE/bios"'; \
+	     echo 'export DATADIR="$$DATADIR_BASE/fty"'; \
 	} > $@
 
 RUN_TNTNET = cat "$(RUN_TNTNET_ENVFILE)" || exit; \
@@ -319,7 +319,9 @@ libpriv_utils_la_SOURCES = 	\
 			src/msg/asset_msg.c \
 			src/msg/asset_msg.h \
 			src/msg/common_msg.c \
-			src/msg/common_msg.h
+			src/msg/common_msg.h \
+			src/include/topology2.h \
+			src/db/topology2.cc
 
 libpriv_utils_la_LDFLAGS = ${CXXTOOLS_LIBS} -ltntdb ${LIBCZMQ_LIBS}
 
@@ -735,6 +737,7 @@ BUILT_SOURCES_bios_web_la = \
                       src/web/src/rack_total.cpp                              \
                       src/web/src/topology_location_from.cpp                  \
                       src/web/src/topology_location_to.cpp                    \
+                      src/web/src/topology_location_from2.cpp                  \
                       src/web/src/datacenter_indicators.cpp                   \
                       src/web/src/average.cpp src/web/src/asset_import.cpp    \
                       src/web/src/netcfg.cpp            \

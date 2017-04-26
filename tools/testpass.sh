@@ -33,7 +33,7 @@ set -e
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export LC_ALL=C
 
-# Some defaults from our default PAM config /etc/pam.d/bios
+# Some defaults from our default PAM config /etc/pam.d/fty
 ###    password   requisite       pam_cracklib.so enforce_for_root minlen=8 dcredit=-1 ocredit=-1 ucredit=0 lcredit=0
 # Scoring follows cracklib: http://wpollock.com/AUnix2/PAM-Help.htm#cracklib
 # + 1 point for each char of length
@@ -51,9 +51,9 @@ CHARS_OTHER_MIN=1
 CHARS_OTHER_CREDIT=1
 
 PAMCFG=""
-if [ -s /etc/pam.d/bios ] && [ -r /etc/pam.d/bios ]; then
-    echo "Sourcing settings from /etc/pam.d/bios"
-    PAMCFG="`egrep 'password.*req.*pam_cracklib\.so' /etc/pam.d/bios | egrep -v '^[ \t]*#' | (read _P _R _L OPTS; echo "$OPTS")`" || PAMCFG=""
+if [ -s /etc/pam.d/fty ] && [ -r /etc/pam.d/fty ]; then
+    echo "Sourcing settings from /etc/pam.d/fty"
+    PAMCFG="`egrep 'password.*req.*pam_cracklib\.so' /etc/pam.d/fty | egrep -v '^[ \t]*#' | (read _P _R _L OPTS; echo "$OPTS")`" || PAMCFG=""
 
     for T in $PAMCFG; do
         # Take the token after '=' (if any) and strip the first minus (if any)
