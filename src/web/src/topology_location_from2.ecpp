@@ -61,9 +61,16 @@ UserInfo user;
 
     {
         std::string from = qparam.param("from");
+        std::string to = qparam.param("to");
         std::string filter = qparam.param("filter");
         std::string feed_by = qparam.param("feed_by");
         std::string recursive = qparam.param("recursive");
+
+        // forward to other ecpp files - topology2 does not (yet) support
+        // ... unlockated elements or to=
+        // ... so fall back to older implementation
+        if (from.empty () || !to.empty ())
+            return DECLINED;
 
         std::transform (recursive.begin(), recursive.end(), recursive.begin(), ::tolower);
         if (recursive == "true") {
