@@ -64,6 +64,7 @@ UserInfo user;
         free (license_file); license_file = NULL;
         http_die ("internal-error", "Cannot get the path to the actual status of the accepted license");
     }
+    log_debug ("variable accepted_license_file == '%s'", accepted_license_file);
     FILE *f = fopen (accepted_license_file, "w");
     if ( f == NULL ) {
         free (accepted_license_file); accepted_license_file = NULL;
