@@ -57,7 +57,8 @@ UserInfo user;
     bool checked_recursive = false;
     std::string checked_filter;
     std::string checked_feed_by;
-    std::string  checked_from;
+    std::string checked_from;
+	tntdb::Connection conn = tntdb::connectCached (url);
 
     {
         std::string from = qparam.param("from");
@@ -93,12 +94,14 @@ UserInfo user;
 
         if (!feed_by.empty ())
         {
-            if (filter == "devices")
+            if (filter != "devices")
                 http_die("parameter-conflict", "Variable 'feed_by' can be specified only with 'filter=devices'");
             if ( from == "none")
                 http_die("parameter-conflict", "With variable 'feed_by' variable 'from' can not be 'none'");
-
-            checked_feed_by = feed_by;
+            if (!persist::is_power_device (conn, feed_by))
+                http_die("request-param-bad", "feed_by", feed_by.c_str(), "must be a power device.");
+            else
+                checked_feed_by = feed_by;
         }
 
         if (!from.empty ()) {
@@ -109,11 +112,14 @@ UserInfo user;
         }
     }
 
-	tntdb::Connection conn = tntdb::connectCached (url);
-
     std::set <std::string> fed_by;
-	if (!checked_feed_by.empty ())
+    if (!checked_feed_by.empty ())
+    {
 		fed_by = persist::topology2_feed_by (conn, checked_feed_by);
+        if (fed_by.empty ())
+            http_die("request-param-bad", "feed_by", checked_feed_by.c_str(), "must be a device.");
+    }
+
 
 	auto result = persist::topology2_from (conn, checked_from);
     if (result.empty () && checked_from != "none")

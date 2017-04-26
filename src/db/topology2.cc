@@ -236,7 +236,7 @@ topology2_groups (
 
     std::vector <Item> ret {};
     for (const auto& row: st.select ()) {
-                
+
         Item item {
                 s_get (row, "id"),
                 s_get (row, "name"),
@@ -250,8 +250,40 @@ topology2_groups (
     }
     return ret;
 }
+bool
+is_power_device (tntdb::Connection &conn, std::string &asset_name)
+{
+    std::string query = "SELECT         "
+                        "    id_subtype "
+                        "FROM           "
+                        "     t_bios_asset_element WHERE name=:asset_name";
+    tntdb::Statement st = conn.prepareCached (query);
+    try {
+        tntdb::Result res = st.set("asset_name", asset_name).select ();
+        std::string subtype;
 
-//  return a set of devices feeded by feed_by
+        for (auto &row : res)
+            subtype = s_get (row, "id_subtype");
+
+        if (subtype == "1" ||
+            subtype == "2" ||
+            subtype == "3" ||
+            subtype == "4" ||
+            subtype == "6" ||
+            subtype == "7"
+        )
+            return true;
+        else
+            return false;
+    }
+    catch (const std::exception &e)
+    {
+        zsys_error ("Exception caught: is_power_device %s", e.what ());
+        return false;
+    }
+}
+
+//  RETURN A SET of devices feeded by feed_by
 //
 //  feed_by - return devices feed by given iname
 //
@@ -262,14 +294,15 @@ topology2_feed_by (
     tntdb::Connection& conn,
     const std::string& feed_by)
 {
-    std::string query = "SELECT src_name, dest_name FROM v_bios_asset_link_topology WHERE id_asset_link_type = 1";
+    std::string query = "SELECT src_name, dest_name, src_type_name FROM v_bios_asset_link_topology WHERE id_asset_link_type = 1";
     tntdb::Statement st = conn.prepareCached (query);
 
     NodeMap nm{};
 
-    for (const auto& row: st.select ()) {
+    for  (const auto& row: st.select ()) {
 
         std::string name = s_get (row, "src_name");
+
         std::string kid = s_get (row, "dest_name");
 
         nm.add (name, kid);
