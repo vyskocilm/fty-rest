@@ -85,10 +85,14 @@ UserInfo user;
             checked_filter = filter;
 
         if (!feed_by.empty ())
+        {
             if (filter.compare ( "devices"))
                 http_die("parameter-conflict", "Variable 'feed_by' can be specified only with 'filter=devices'");
-            else
-                checked_feed_by = feed_by;
+            if ( from == "none")
+                http_die("parameter-conflict", "With variable 'feed_by' variable 'from' can not be 'none'");
+
+            checked_feed_by = feed_by;
+        }
 
         if (!from.empty ()) {
             checked_from = from;
@@ -105,7 +109,7 @@ UserInfo user;
 		fed_by = persist::topology2_feed_by (conn, checked_feed_by);
 
 	auto result = persist::topology2_from (conn, checked_from);
-    if (result.empty())
+    if (result.empty () && checked_from != "none")
         http_die("request-param-bad", "from", checked_from.c_str(), "valid asset name.");
 
     auto groups = persist::topology2_groups (conn, checked_from, checked_recursive);
