@@ -47,7 +47,8 @@ struct Topology
         rooms.empty () && \
         rows.empty () && \
         racks.empty () && \
-        devices.empty ();
+        devices.empty () && \
+        groups.empty ();
     }
 
     void push_back (const Item &it) {
