@@ -283,7 +283,7 @@ is_power_device (tntdb::Connection &conn, std::string &asset_name)
     }
 }
 
-//  RETURN A SET of devices feeded by feed_by
+//  return a set of devices feeded by feed_by
 //
 //  feed_by - return devices feed by given iname
 //
@@ -294,12 +294,12 @@ topology2_feed_by (
     tntdb::Connection& conn,
     const std::string& feed_by)
 {
-    std::string query = "SELECT src_name, dest_name, src_type_name FROM v_bios_asset_link_topology WHERE id_asset_link_type = 1";
+    std::string query = "SELECT src_name, dest_name FROM v_bios_asset_link_topology WHERE id_asset_link_type = 1";
     tntdb::Statement st = conn.prepareCached (query);
 
     NodeMap nm{};
 
-    for  (const auto& row: st.select ()) {
+    for (const auto& row: st.select ()) {
 
         std::string name = s_get (row, "src_name");
 
