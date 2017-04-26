@@ -195,7 +195,11 @@ topology2_from_json_recursive (
     const std::vector <Item> &groups
     );
 
+// returns TRUE if asset_name is power device
+// returns FALSE if otherwise
+bool
+    is_power_device (tntdb::Connection &conn, std::string &asset_name);
+
 };  // namespace persist
 
 #endif //SRC_INCLUDE_TOPOLOGY2
-
