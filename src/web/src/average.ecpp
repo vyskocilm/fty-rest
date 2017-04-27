@@ -278,6 +278,7 @@ UserInfo user;
                 zstr_free (&step_rep);
                 zstr_free (&start_date_rep);
                 zstr_free (&units_rep);
+                zstr_free (&end_date_rep);
                 zstr_free (&ordered);
 
                 csv_data.push_back (std::vector <std::string> {type_rep});
