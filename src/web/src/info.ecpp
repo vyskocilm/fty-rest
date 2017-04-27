@@ -83,7 +83,7 @@ get_rc_info (std::string &output)
     output += utils::json::jsonify("port", srv_port);
     output += "\n},";
     
-    output += "\"attributes\": [\n";
+    output += "\"attributes\": {\n";
     char *value = (char *) zhash_first (infos);   // first value
     while ( value != NULL )
     {
@@ -93,7 +93,7 @@ get_rc_info (std::string &output)
         value = (char *) zhash_next (infos);   // next value
         if (value != NULL) output += ",\n";
     }
-    output += "\n]";
+    output += "\n}";
     output += "\n}";
     zstr_free(&srv_name);
     zstr_free(&srv_type);
