@@ -70,7 +70,7 @@ UserInfo user;
         // forward to other ecpp files - topology2 does not (yet) support
         // ... unlockated elements or to=
         // ... so fall back to older implementation
-        if (from.empty () || !to.empty ())
+        if (from.empty () || !to.empty () || from == "none")
             return DECLINED;
 
         std::transform (recursive.begin(), recursive.end(), recursive.begin(), ::tolower);
