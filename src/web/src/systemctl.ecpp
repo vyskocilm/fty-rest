@@ -38,6 +38,7 @@
 #include "subprocess.h"
 #include "helpers.h"
 
+using namespace shared;
 
 // allow REST API to use old names for backward compatibility reasons
 // usefull for REST API tests and web UI
@@ -56,22 +57,37 @@ static std::map <std::string, std::string> LEGACY_MAP = {
 //      and as a consequence, systemctl call becomes MORE
 //      expensive than today, which harms testing, but not
 //      the UI and UX for the product
-int s_output(const shared::Argv& args, std::string& o, std::string& e) {
-    cxxtools::posix::CommandOutput cmd {args.at (0)};
-    for (auto it = args.begin ()+1; it != args.end (); ++it)
-        cmd.push_back (*it);
-    cmd.run ();
-    // thanks to Pavel Benacek for sharing the latest industrial trends in synchronization techniques
-    zclock_sleep (7000);
+// 84879e8952f3ce647729627dd95518477483ba60
+static int s_output(const Argv& args, std::string& o, std::string& e) {
 
-    std::stringstream s;
-    
-    std::string line;
-    while (std::getline(cmd, line))
-        s << line;
-    o = s.str ();
-    e = "";
-    return 0;
+    static unsigned timeout = 5;
+    SubProcess p(args, SubProcess::STDOUT_PIPE | SubProcess::STDERR_PIPE);
+    p.run();
+
+    unsigned int tme = 0;
+    int ret = 0;
+
+    std::string out;
+    std::string err;
+
+    while((tme < timeout) && p.isRunning()) {
+        ret = p.wait((unsigned int)1);
+        out += wait_read_all(p.getStdout());
+        err += wait_read_all(p.getStderr());
+        tme++;
+    }
+    if( p.isRunning() ) {
+        p.terminate();
+        ret = p.wait();
+    }
+    else
+        ret = p.poll ();
+    out += wait_read_all(p.getStdout());
+    err += wait_read_all(p.getStderr());
+
+    o.assign(out);
+    e.assign(err);
+    return ret;
 }
 
 static
