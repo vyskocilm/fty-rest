@@ -500,7 +500,6 @@ UserInfo user;
 </%request>
 <%cpp>
 {
-    log_debug ("SYSTEMCTL: start");
     // check user permissions
     static const std::map <BiosProfile, std::string> PERMISSIONS = {
             {BiosProfile::Dashboard, "R"},
@@ -508,7 +507,6 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
-    log_debug ("SYSTEMCTL: before sanity checks");
     std::string checked_operation;
     std::string checked_service_name;
     // sanity checks
@@ -520,7 +518,6 @@ UserInfo user;
         if ( get_operations.count(operation) == 0 && post_operations.count(operation) == 0 ) {
             http_die ("request-param-bad", "operation", operation.c_str(), "status/list/enable/disable/start/stop/restart");
         }
-        log_debug ("%zu", get_operations.count (checked_operation) );
         if ( request.getMethod() == "GET"  && ( get_operations.count (operation) == 0 ) )  {
             http_die ("request-param-bad", "operation", operation.c_str(), "an operation allowed for GET method");
         }
@@ -580,20 +577,15 @@ UserInfo user;
 
         checked_service_name = std::move (service_name);
     }
-    log_debug ("SYSTEMCTL: after sanity checks");
     log_info ("service_name: %s, operation: %s", checked_service_name.c_str(), checked_operation.c_str ());
 
     if ( request.getMethod() == "GET" ) {
         if ( checked_operation == "list" ) {
-            log_debug ("SYSTEMCTL: before process_get_list");
             auto ret= process_get_list (reply);
-            log_debug ("SYSTEMCTL: after process_get_list");
             return ret;
         }
         else if ( checked_operation == "status" ) {
-            log_debug ("SYSTEMCTL: before process_get_status");
             int pgs_rv = process_get_status (reply, checked_service_name);
-            log_debug ("SYSTEMCTL: after process_get_status");
             if (pgs_rv >= 0)
                 return pgs_rv;
             else
@@ -609,9 +601,7 @@ UserInfo user;
     }
 
     if ( request.getMethod() == "POST" ) {
-        log_debug ("SYSTEMCTL: before process_post");
         int pp_rv = process_post (reply, checked_operation, checked_service_name);
-        log_debug ("SYSTEMCTL: after process_post");
         if (pp_rv >= 0)
             return pp_rv;
         else
@@ -628,5 +618,4 @@ UserInfo user;
             }
     }
 }
-log_debug ("SYSTEMCTL: end of file");
 </%cpp>
