@@ -27,6 +27,7 @@
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/jsondeserializer.h>
 #include <cxxtools/split.h>
+#include <cxxtools/posix/commandoutput.h>
 
 #include <stdexcept>
 #include <vector>
@@ -45,6 +46,33 @@ static std::map <std::string, std::string> LEGACY_MAP = {
     {"bios-agent-smtp", "fty-email"},
     {"bios-agent-rt", "fty-metric-cache"},
 };
+
+// MVY: dumber version of shared::output
+//      it seems that zloop+tntnet threads are not compatible
+//      it crashes the stack
+//      it can't be easily debuged
+//      it can't be easily fixed
+//      this is just workaround
+//      and as a consequence, systemctl call becomes MORE
+//      expensive than today, which harms testing, but not
+//      the UI and UX for the product
+int s_output(const shared::Argv& args, std::string& o, std::string& e) {
+    cxxtools::posix::CommandOutput cmd {args.at (0)};
+    for (auto it = args.begin ()+1; it != args.end (); ++it)
+        cmd.push_back (*it);
+    cmd.run ();
+    // thanks to Pavel Benacek for sharing the latest industrial trends in synchronization techniques
+    zclock_sleep (7000);
+
+    std::stringstream s;
+    
+    std::string line;
+    while (std::getline(cmd, line))
+        s << line;
+    o = s.str ();
+    e = "";
+    return 0;
+}
 
 static
 std::string s_handle_legacy_name (const std::string& name) {
@@ -122,14 +150,14 @@ call_systemctl (
         proc_cmd_str += piece;
     }
 
-    proc_rv = shared::output (proc_cmd, proc_out, proc_err);
+    proc_rv = s_output (proc_cmd, proc_out, proc_err);
 
     if ( proc_rv != 0 ) {
         // trim trailing whitespaces in stderr copy for logging
         size_t endpos = proc_err.find_last_not_of(" \t\n");
 
         std::string message =
-            "shared::output (command = '" + proc_cmd_str + "') failed. "
+            "s_output (command = '" + proc_cmd_str + "') failed. "
             "Return value = '" + std::to_string (proc_rv) + "', stderr = '" +
             ( ( std::string::npos == endpos ) ? proc_err : proc_err.substr( 0, endpos+1 ) ) + "'.";
         log_error ("%s", message.c_str ());
@@ -472,6 +500,7 @@ UserInfo user;
 </%request>
 <%cpp>
 {
+    log_debug ("SYSTEMCTL: start");
     // check user permissions
     static const std::map <BiosProfile, std::string> PERMISSIONS = {
             {BiosProfile::Dashboard, "R"},
@@ -479,6 +508,7 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
+    log_debug ("SYSTEMCTL: before sanity checks");
     std::string checked_operation;
     std::string checked_service_name;
     // sanity checks
@@ -550,14 +580,20 @@ UserInfo user;
 
         checked_service_name = std::move (service_name);
     }
-    log_info ("service_name: %s", checked_service_name.c_str());
+    log_debug ("SYSTEMCTL: after sanity checks");
+    log_info ("service_name: %s, operation: %s", checked_service_name.c_str(), checked_operation.c_str ());
 
     if ( request.getMethod() == "GET" ) {
         if ( checked_operation == "list" ) {
-            return process_get_list (reply);
+            log_debug ("SYSTEMCTL: before process_get_list");
+            auto ret= process_get_list (reply);
+            log_debug ("SYSTEMCTL: after process_get_list");
+            return ret;
         }
         else if ( checked_operation == "status" ) {
+            log_debug ("SYSTEMCTL: before process_get_status");
             int pgs_rv = process_get_status (reply, checked_service_name);
+            log_debug ("SYSTEMCTL: after process_get_status");
             if (pgs_rv >= 0)
                 return pgs_rv;
             else
@@ -573,7 +609,9 @@ UserInfo user;
     }
 
     if ( request.getMethod() == "POST" ) {
+        log_debug ("SYSTEMCTL: before process_post");
         int pp_rv = process_post (reply, checked_operation, checked_service_name);
+        log_debug ("SYSTEMCTL: after process_post");
         if (pp_rv >= 0)
             return pp_rv;
         else
@@ -590,4 +628,5 @@ UserInfo user;
             }
     }
 }
+log_debug ("SYSTEMCTL: end of file");
 </%cpp>
