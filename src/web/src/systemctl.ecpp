@@ -287,9 +287,7 @@ UserInfo user;
     // remaining operations are POST only
     
     // MVY's request
-    if (checked_service_name == "networking" || checked_service_name == "networking.service"
-        || checked_service_name == "bios-networking" || checked_service_name == "bios-networking.service"
-        || checked_service_name == "tntnet@bios")
+    if (checked_service_name == "tntnet@bios")
     {
         reply.out () << "{}";
         return HTTP_OK;
