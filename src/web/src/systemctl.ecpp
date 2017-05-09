@@ -20,7 +20,6 @@
 /*!
  * \file systemctl.ecpp
  * \author Karol Hrdina <KarolHrdina@Eaton.com>
- * \author Jim Klimov <EvgenyKlimov@Eaton.com>
  * \brief  Provide Users ability to manipulate with some specified services
  */
  #><%pre>
@@ -40,13 +39,30 @@
 
 using namespace shared;
 
-// allow REST API to use old names for backward compatibility reasons
-// usefull for REST API tests and web UI
-// XXX: The document response will have a real service name
-static std::map <std::string, std::string> LEGACY_MAP = {
-    {"bios-agent-smtp", "fty-email"},
-    {"bios-agent-rt", "fty-metric-cache"},
-};
+bool
+is_GET_operation (const std::string& operation)
+{
+    if (operation.compare ("list") == 0
+        || operation.compare ("status") == 0)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool
+is_POST_operation (const std::string& operation)
+{
+    if (operation.compare ("start") == 0
+        || operation.compare ("stop") == 0
+        || operation.compare ("restart") == 0
+        || operation.compare ("enable") == 0
+        || operation.compare ("disable") == 0)
+    {
+        return true;
+    }
+    return false;
+}
 
 // MVY: dumber version of shared::output
 //      it seems that zloop+tntnet threads are not compatible
@@ -57,11 +73,16 @@ static std::map <std::string, std::string> LEGACY_MAP = {
 //      and as a consequence, systemctl call becomes MORE
 //      expensive than today, which harms testing, but not
 //      the UI and UX for the product
-// 84879e8952f3ce647729627dd95518477483ba60
-static int s_output(const Argv& args, std::string& o, std::string& e) {
+
+// returns
+//      positive return value of a process
+//      negative is a number of a signal which terminates process
+static int
+s_output (const Argv& args, std::string& o, std::string& e)
+{
 
     static unsigned timeout = 5;
-    SubProcess p(args, SubProcess::STDOUT_PIPE | SubProcess::STDERR_PIPE);
+    SubProcess p (args, SubProcess::STDOUT_PIPE | SubProcess::STDERR_PIPE);
     p.run();
 
     unsigned int tme = 0;
@@ -70,452 +91,79 @@ static int s_output(const Argv& args, std::string& o, std::string& e) {
     std::string out;
     std::string err;
 
-    while((tme < timeout) && p.isRunning()) {
-        ret = p.wait((unsigned int)1);
-        out += wait_read_all(p.getStdout());
-        err += wait_read_all(p.getStderr());
+    while ((tme < timeout) && p.isRunning ()) {
+        ret = p.wait ((unsigned int) 1);
+        out += wait_read_all (p.getStdout ());
+        err += wait_read_all (p.getStderr ());
         tme++;
     }
-    if( p.isRunning() ) {
-        p.terminate();
-        ret = p.wait();
+    if (p.isRunning ()) {
+        p.terminate ();
+        ret = p.wait ();
     }
     else
         ret = p.poll ();
-    out += wait_read_all(p.getStdout());
-    err += wait_read_all(p.getStderr());
+    out += wait_read_all (p.getStdout ());
+    err += wait_read_all (p.getStderr ());
 
-    o.assign(out);
-    e.assign(err);
+    o.assign (out);
+    e.assign (err);
     return ret;
 }
 
-static
-std::string s_handle_legacy_name (const std::string& name) {
-    if (LEGACY_MAP.count (name) == 0)
-        return name;
-    return LEGACY_MAP [name];
-}
-
-struct SystemdUnitState {
-    std::string LoadState;     // loaded/
-    std::string ActiveState;   // active/
-    std::string UnitFileState; // enabled/disabled
-    std::string SubState;      // running/
-};
-
-enum SystemctlOperationState {
-    SYSTEMCTL_ERROR_EXEC = -2,
-        /* system exec errors, systemctl errors (Action not allowed etc.),
-         * as well as incompatible markup for parsing - either way, the called
-         * program output was useless. */
-    SYSTEMCTL_ERROR_PARAM = -1,
-        /* this REST API servlet logic detected invalid input. */
-    SYSTEMCTL_HTTP_OK = 200,
-    SYSTEMCTL_HTTP_NOTFOUND = 404
-};
-
-/* List of services and other systemd units that we know at runtime as allowed
- * to be manipulated through REST API (as deemed by systemctl wrapper script)
- * and their current states.
- */
-std::map<std::string, struct SystemdUnitState> allowed_unit_list{};
-
-/* List of allowed REST API operations for services and other supported units. */
-static std::set<std::string> get_operations {"list", "status"};
-static std::set<std::string> post_operations {"start", "stop", "restart", "enable", "disable", "show"};
-
-/* Detect at runtime - if we are under systemd at all (the envvar below is our
- * project extension), with what unit instance name: "tntnet@bios.service" */
-/* TODO REVIEW : Should this be mutexed, or can this be const/static?
- * (is the variable shared by threads here?) */
-/* If tntnet_unit==NULL - no envvar, tntnet is not running under systemd */
-char * tntnet_unit = getenv("SYSTEMD_UNIT_FULLNAME");
-
-int
-call_systemctl (
-    shared::Argv proc_cmd_systemctl_args,
-    std::string &proc_out,
-    std::string &proc_err,
-    int &proc_rv,
-    std::map<std::string,
-    struct SystemdUnitState> *discovered_unit_list)
-{
-    /* This routine finds unit names or further details according to
-     * passed argument list (this may include a pattern of unit names
-     * to look for, etc.) and saves into the map provided by caller.
-     * The caller also gets a copy of the called process stdout, stderr
-     * and exitcode into provided reference variables.
-     * Returns the amount of added or updated entries (0+), or a negative
-     * number for errors (note that http_die() needs the "reply" object,
-     * so caller would die properly instead of a helper routine like this).
-     * If (discovered_unit_list==NULL) then the routine only calls systemctl
-     * and reports the outcome, and quickly returns 0 on success. */
-
-    int counter = 0;
-    shared::Argv proc_cmd {"sudo", "systemctl"};
-    if (proc_cmd_systemctl_args.size() > 0)
-        proc_cmd.insert( proc_cmd.end(), proc_cmd_systemctl_args.begin(), proc_cmd_systemctl_args.end());
-    /* else : it is likely gonna fail with bad arg list soon */
-
-    // Concat Argv into a string, prepare in advance for error-messages
-    std::string proc_cmd_str;
-    for (const auto &piece : proc_cmd) {
-        if (!proc_cmd_str.empty())
-            proc_cmd_str += " ";
-        proc_cmd_str += piece;
-    }
-
-    proc_rv = s_output (proc_cmd, proc_out, proc_err);
-
-    if ( proc_rv != 0 ) {
-        // trim trailing whitespaces in stderr copy for logging
-        size_t endpos = proc_err.find_last_not_of(" \t\n");
-
-        std::string message =
-            "s_output (command = '" + proc_cmd_str + "') failed. "
-            "Return value = '" + std::to_string (proc_rv) + "', stderr = '" +
-            ( ( std::string::npos == endpos ) ? proc_err : proc_err.substr( 0, endpos+1 ) ) + "'.";
-        log_error ("%s", message.c_str ());
-        return SYSTEMCTL_ERROR_EXEC;
-    }
-
-    if (discovered_unit_list == NULL)
-        return 0;
-
-    if (proc_out.empty ()) {
-        std::string message = "shared::output (command = '" + proc_cmd_str + "') succeeded, "
-            "but returned empty output. Is host OS misconfigured (lack of registered units)?" ;
-        log_error ("%s", message.c_str ());
-        return 0;
-    }
-
-    /* An example of `systemctl list-ipm-units --detailed` format is:
-     *   malamute.service	L:loaded	A:inactive	U:disabled	S:dead
-     * TAB-separated sequence of "<Id>\tL:<LoadState>\tA:<ActiveState>\tU:<UnitFileState>\tS:<SubState>\n"
-     * The unit Id is not-empty; any state can be empty or single-word token.
-     * This command returns only the installed units that pass the filter
-     * defined in systemctl wrapper script as the components of our project,
-     * so unrelated services can not be manipulated by end-user over REST API
-     * (nor CLI sudo).
-     */
-
-    std::vector<std::string> line_tokens;
-    cxxtools::split("\n", proc_out, std::back_inserter(line_tokens));
-    for (auto&& i : line_tokens) {
-        if (i.empty ()) {
-            continue;
-        }
-
-        std::string unit_name;
-        SystemdUnitState sus; // std::strings inside are initialized to empty
-
-        std::vector<std::string> sub_tokens;
-        cxxtools::split("\t", i, std::back_inserter(sub_tokens));
-        for (auto&& j : sub_tokens) {
-            if (j.empty ()) {
-                continue;
-            }
-
-            if (unit_name.empty ()) {
-                unit_name = j;  /* The first sub-token in the string */
-            } else {
-                std::string key = j.substr (0, 2);
-                if (j.size() > 2) { /* else keep the original empty value */
-                    std::string value = j.substr (2, std::string::npos);
-                    if (key.compare("L:") == 0) {
-                        sus.LoadState = value;
-                    } else if (key.compare("A:") == 0) {
-                        sus.ActiveState = value;
-                    } else if (key.compare("U:") == 0) {
-                        sus.UnitFileState = value;
-                    } else if (key.compare("S:") == 0) {
-                        sus.SubState = value;
-                    }
-                }
-            }
-        }
-
-        if (unit_name.empty()) {
-            std::string message = "Could not parse output of command = '" + proc_cmd_str + "', perhaps due to different expected output format.";
-            log_error ("%s", message.c_str ());
-            return SYSTEMCTL_ERROR_EXEC;
-        } else {
-            (*discovered_unit_list)[unit_name] = sus;
-            counter++;
-        }
-    }
-
-    if (counter == 0) {
-        std::string message = "Could not find anything in output of command = '" + proc_cmd_str + "' due to different expected format or lack of matching registered units.";
-        log_error ("%s", message.c_str ());
-    }
-
-    return counter;
-}
-
-int
-call_systemctl (
-    shared::Argv proc_cmd_systemctl_args,
-    std::map<std::string,
-    struct SystemdUnitState> *discovered_unit_list)
-{
-    /* Ignorance is bliss? Caller of this version does not want
-     * to see and manage the stdout/stderr/exitcode values.
-     * Returns the amount of added or updated entries, or a negative
-     * number for errors.
-     */
-
-    std::string proc_out, proc_err;
-    int proc_rv;
-    return call_systemctl(proc_cmd_systemctl_args, proc_out, proc_err, proc_rv, discovered_unit_list);
-}
-
-int
-learn_allowed_units_details (
-    const char *service_name)
-{
-    /* If the provided service_name is NULL, request details for all known
-     * BIOS services; otherwise query the specified service_name only.
-     * Returns the amount of added or updated entries, or a negative
-     * number for errors.
-     */
-
-    /* TODO REVIEW: Is this code shared in threads? Should changes be mutexed?
-     * Then - How? Or just better try to avoid global shared variable? :)
-     */
-
-    if (allowed_unit_list.size() != 0)
-        allowed_unit_list.clear();
-
-    shared::Argv proc_cmd_systemctl_args {"list-ipm-units", "--detailed"};
-    if (service_name != NULL) {
-        proc_cmd_systemctl_args.push_back(service_name);
-    }
-
-    int counter = call_systemctl(proc_cmd_systemctl_args, &allowed_unit_list);
-    if ( counter >= 0)
-        assert (counter == (int)allowed_unit_list.size());
-    return counter;
-}
-
 bool
-service_name_valid (
-    std::string &service_name)
+systemctl_service_status (const std::string& service_name, std::string& load, std::string& active, std::string& unit_file, std::string& sub)
 {
-    /* NOTE: The service_name reference is intentionally not const,
-     * this routine can change it (e.g. convert a short-name unit
-     * into a full-name one as locally detected at run-time - in
-     * this case, the first match wins - as can be important for
-     * e.g. the "bios.service" vs. "bios.target" units). */
+    shared::Argv proc_cmd {"sudo", "/bin/systemctl", "show", service_name,
+                           "-p", "LoadState", "-p", "ActiveState", "-p", "UnitFileState", "-p", "SubState"};
+    std::string proc_out, proc_err;
 
-    if (allowed_unit_list.size() == 0)
+    int rv = s_output (proc_cmd, proc_out, proc_err);
+
+    if (rv != 0) {
+        std::string message;
+        message = "`sudo /bin/systemctl show " + service_name + " -p LoadState -p ActiveState "
+                  "-p UnitFileState -p SubState` failed. Return value = '" + std::to_string (rv) + "', stderr = '" + proc_err + "'.";
+        log_error (message.c_str ());
         return false;
-
-    std::map<std::string, SystemdUnitState>::iterator it;
-
-    it = allowed_unit_list.find(service_name);
-    if (it != allowed_unit_list.end())
-        return true;
-
-    /* TODO: Refactor the supported extension parsing into a loop with one piece of code */
-    it = allowed_unit_list.find(service_name + ".service");
-    if (it != allowed_unit_list.end()) {
-        service_name += ".service";
-        return true;
     }
 
-    it = allowed_unit_list.find(service_name + ".target");
-    if (it != allowed_unit_list.end()) {
-        service_name += ".target";
-        return true;
-    }
-
-    it = allowed_unit_list.find(service_name + ".timer");
-    if (it != allowed_unit_list.end()) {
-        service_name += ".timer";
-        return true;
-    }
-
-    it = allowed_unit_list.find(service_name + ".path");
-    if (it != allowed_unit_list.end()) {
-        service_name += ".path";
-        return true;
-    }
-
-    return false;
-}
-
-unsigned int
-process_get_list (
-    tnt::HttpReply& replyx)
-{
-    /* TODO: If "allowed_unit_list.empty()", return HTTP-404? */
-
-    std::string message;
-
-    message.assign (
-"{\n"
-"\t\"systemctl_services\" : [\n");
-    bool first = true;
-    for (auto& element : allowed_unit_list) {
-        if (element.first.empty())
+    std::vector<std::string> tokens;
+    cxxtools::split ("\n", proc_out, std::back_inserter (tokens));
+    for (const auto& item: tokens) {
+        if (item.empty ()) {
             continue;
-
-        message.append (first ? "\t\t\"" : ",\t\t\"").
-                append (element.first).
-                append ("\"\n");
-
-        if (first)
-            first = false;
-    }
-
-    message.append (
-"\t]\n"
-"}");
-    replyx.out() << message;
-    return HTTP_OK;
-}
-
-int
-process_get_status (
-    tnt::HttpReply& replyx,
-    const std::string& service_name)
-{
-    /* Return values:
-     * -1   SYSTEMCTL_ERROR_PARAM => caller context should http_die("request-param-bad",...)
-     * >0   http status
-     */
-
-    std::string message;
-    std::map<std::string, SystemdUnitState>::iterator it = allowed_unit_list.find(service_name);
-    if ( it == allowed_unit_list.end()) {
-        message = "Denying request for systemd unit not among those allowed by filter: '" + service_name +"'.";
-        log_error ("%s", message.c_str ());
-        return SYSTEMCTL_ERROR_PARAM;
-    }
-
-    /* TODO: Maybe use `systemctl list-json` for flexibility with supported attributes etc. instead? */
-    message.assign (
-            "{\n"
-            "\t\"" + it->first + "\" : {\n" +
-            "\t\t\"ActiveState\"\t:\t\"" + it->second.ActiveState + "\",\n"
-            "\t\t\"SubState\"\t:\t\"" + it->second.SubState + "\",\n"
-            "\t\t\"LoadState\"\t:\t\"" + it->second.LoadState + "\",\n"
-            "\t\t\"UnitFileState\"\t:\t\"" + it->second.UnitFileState + "\"\n"
-            "\t}\n"
-            "}");
-    replyx.out() << message;
-    return HTTP_OK;
-}
-
-int process_post (
-    tnt::HttpReply& replyx,
-    const std::string& operation,
-    const std::string& service_name)
-{
-    /* Return values:
-     * -2   SYSTEMCTL_ERROR_EXEC => caller context should http_die("internal-error",...)
-     * -1   SYSTEMCTL_ERROR_PARAM => caller context should http_die("request-param-bad",...)
-     * >0   http status
-     */
-
-    std::string message;
-
-    // for some services, we can do the real operation with another name
-    std::string service_name_op = service_name;
-
-    // networking is different animal, treat differently
-    if (service_name == "networking" || service_name == "networking.service" ||
-        service_name == "bios-networking" || service_name == "bios-networking.service"
-    ) {
-        if (operation != "restart" && operation != "show") {
-            message = "For the '" + service_name + "' service only the 'restart' and 'show' operations are supported; the requested '" + operation + "' is invalid here.";
-            log_error ("%s", message.c_str ());
-            return SYSTEMCTL_ERROR_PARAM;
         }
-        // restart is done using special script
-        if (operation == "restart") {
-            service_name_op = "bios-networking.service";
+        std::size_t found = item.find ("=");
+        if (found == std::string::npos) {
+            return false;
+        }
+        std::string key = item.substr (0, found);
+        std::string value  = item.substr (found + 1, std::string::npos);
+
+        if (key.compare ("LoadState") == 0) {
+            load = value;
+        }
+        else if (key.compare ("ActiveState") == 0) {
+            active = value;
+        }
+        else if (key.compare ("UnitFileState") == 0) {
+            unit_file = value;
+        }
+        else if (key.compare ("SubState") == 0) {
+            sub = value;
+        }
+        else {
+            return false;
         }
     }
-
-    shared::Argv proc_cmd_systemctl_args_op {operation, service_name_op};
-    bool changing_tntnet_dependency = false;
-
-    if (operation == "restart" || operation == "stop" || operation == "disable" ) {
-        if (tntnet_unit == NULL) {
-            /* We can also be here if under systemd, but not covered
-             * by OUR unit definition with the extra envvar in place. */
-            message = "Got command = 'sudo systemctl " + operation + " " + service_name_op + "' which can potentially impact the tntnet web-server unit; however the current webserver seems to run outside of systemd care... broken connections etc. can appear after this action.";
-            log_warning ("%s", message.c_str ());
-        } else {
-            /* Check if the service manipulation would impact this webserver */
-            std::map<std::string, struct SystemdUnitState> required_by_tntnet_unit_list{};
-            shared::Argv proc_cmd_systemctl_args {"list-requires", "--plain", "--recursive", tntnet_unit};
-
-            message = "Got operation '" + operation +"' for unit '" + service_name + "'; inspecting dependencies";
-            log_info("%s", message.c_str());
-
-            int counter = call_systemctl(proc_cmd_systemctl_args, &required_by_tntnet_unit_list);
-            if ( counter < 0 ) {
-                return SYSTEMCTL_ERROR_EXEC;
-            }
-
-            assert (counter == (int)required_by_tntnet_unit_list.size());
-
-            if ( counter > 0 ) {
-                std::map<std::string, SystemdUnitState>::iterator it = required_by_tntnet_unit_list.find(service_name);
-                if ( it != required_by_tntnet_unit_list.end()) {
-                    changing_tntnet_dependency = true;
-                }
-            }
-        }
-    }
-
-    if (changing_tntnet_dependency) {
-        message = "command = 'sudo systemctl " + operation + " " + service_name_op + "' can impact the web-server unit '" + tntnet_unit +"'";
-        log_warning ("%s", message.c_str ());
-        /* Do not wait for "systemctl" to complete, because this
-         * webserver will be restarted and that systemctl would
-         * be killed and we end up with false-alarms of errors
-         * in the logs. */
-        proc_cmd_systemctl_args_op.push_back("--no-block");
-    }
-
-    int counter;
-    counter = call_systemctl(proc_cmd_systemctl_args_op, NULL);
-    /* TODO MAYBE: For --no-block case, sleep several sec here? */
-    if ( counter < 0 ) {
-        return SYSTEMCTL_ERROR_EXEC;
-    }
-
-    /* Refresh the service status after systemctl has completed */
-    counter = learn_allowed_units_details(service_name.c_str());
-    if ( counter <= 0 ) {
-        /* Note that "==0" is an error too - we do not expect the unit
-         * definitions to vanish (masked/disabled are also "defined") */
-        return SYSTEMCTL_ERROR_EXEC;
-    }
-
-    /* Note: if we restart a dependency of the webserver, the status of the
-     * restart-target unit returned here is misleading: the webserver must die
-     * before that unit begins to stop (and so webserver can not report that
-     * unit state other than CURRENTLY it is STILL "running"). This should
-     * not be an issue with other "unrelated" services. */
-    if (changing_tntnet_dependency) {
-        message = "The post-systemctl service status of '" + service_name_op + "' reported below is probably not useful because this web-server unit '" + tntnet_unit +"' should stop before that service begins to '" + operation + "'";
-        log_warning ("%s", message.c_str ());
-    }
-
-    return process_get_status (replyx, service_name);
+    return true;
 }
 </%pre>
 <%request scope="global">
 UserInfo user;
 </%request>
 <%cpp>
-{
     // check user permissions
     static const std::map <BiosProfile, std::string> PERMISSIONS = {
             {BiosProfile::Dashboard, "R"},
@@ -523,46 +171,56 @@ UserInfo user;
             };
     CHECK_USER_PERMISSIONS_OR_DIE (PERMISSIONS);
 
+    // check method
+    if (request.getMethod () != "GET" && request.getMethod () != "POST")
+        http_die ("method-not-allowed", request.getMethod ().c_str ());
+
     std::string checked_operation;
     std::string checked_service_name;
-    // sanity checks
-    {
-        // get user-input
-        std::string operation = request.getArg("operation");
-        // convert to lower case; 'admin/systemctl/list' request is equivalent to 'admin/systemctl/LIST' request
-        std::transform (operation.begin(), operation.end(), operation.begin(), ::tolower);
-        if ( get_operations.count(operation) == 0 && post_operations.count(operation) == 0 ) {
-            http_die ("request-param-bad", "operation", operation.c_str(), "status/list/enable/disable/start/stop/restart");
-        }
-        if ( request.getMethod() == "GET"  && ( get_operations.count (operation) == 0 ) )  {
-            http_die ("request-param-bad", "operation", operation.c_str(), "an operation allowed for GET method");
-        }
-        if ( request.getMethod() == "POST" && ( post_operations.count (operation) == 0 ) ) {
-            http_die ("request-param-bad", "operation", operation.c_str(), "an operation allowed for POST method");
-        }
-        checked_operation = std::move (operation);
 
-        // get user-input
+    // check operation
+    {
+        std::string operation = request.getArg ("operation");
+        std::transform (operation.begin(), operation.end(), operation.begin(), ::tolower);
+        if (!is_GET_operation (operation) && !is_POST_operation (operation))
+            http_die ("request-param-bad", "operation", operation.c_str (), "status/list/enable/disable/start/stop/restart");
+
+        if (request.getMethod() == "GET" && is_POST_operation (operation))
+            http_die ("request-param-bad", "operation", operation.c_str(), "an operation allowed for GET method: status/list.");
+
+        if (request.getMethod() == "POST" && is_GET_operation (operation))
+            http_die ("request-param-bad", "operation", operation.c_str(), "an operation allowed for POST method: enable/disable/start/stop/restart.");
+        checked_operation = operation;
+    }
+    log_info ("checked_operation: '%s'", checked_operation.c_str ());
+
+    // check service name
+    {
         std::string service_name;
-        if ( request.getMethod() == "POST" ) {
-            if ( request.getBody().empty() ) {
-                http_die("bad-request-document", "Expected json document  { \"service_name\" : \"<service_name>\" }. Received empty request document.");
-            }
+        if (request.getMethod() == "GET")
+        {
+            service_name = request.getArg ("service_name");
+        }
+        else
+        if (request.getMethod() == "POST")
+        {
+            if (request.getBody().empty ())
+                http_die ("bad-request-document", "Expected json document  { \"service_name\" : \"<service_name>\" }. Received empty request document.");
 
             try {
-                std::stringstream input (request.getBody(), std::ios_base::in);
+                std::stringstream input (request.getBody (), std::ios_base::in);
                 cxxtools::JsonDeserializer deserializer (input);
                 cxxtools::SerializationInfo si;
                 deserializer.deserialize (si);
-                if ( si.category () != cxxtools::SerializationInfo::Object ) {
+                if (si.category () != cxxtools::SerializationInfo::Object) {
                     throw cxxtools::SerializationError ("Received document's root is not json object.");
                 }
-                si.getMember("service_name") >>= service_name;
+                si.getMember ("service_name") >>= service_name;
             }
             catch (const cxxtools::SerializationError& e) {
                 std::string message;
-                message.assign("Expected json document { \"service_name\" : \"<service_name>\" }. ").append (e.what ());
-                http_die( "bad-request-document", message.c_str() );
+                message.assign ("Expected json document { \"service_name\" : \"<service_name>\" }. ").append (e.what ());
+                http_die ("bad-request-document", message.c_str ());
             }
             catch (const std::exception& e) {
                 std::string message;
@@ -570,68 +228,100 @@ UserInfo user;
                 log_error ("%s", message.c_str ());
                 http_die( "internal-error", "Exception caught. Please check logs for more details.");
             }
-        } else {
-            service_name = request.getArg("service_name");
         }
 
-        service_name = s_handle_legacy_name (service_name);
+        if (service_name.empty () && checked_operation != "list")
+            http_die ("request-param-bad", "service_name", service_name.c_str (), "one of service names that can be obtained through systemctl/list call");
 
-        if ( checked_operation == "list" ) {
-            if ( learn_allowed_units_details(NULL) <= 0 ) {
-                /* The error is logged in detail by the function */
-                http_die("internal-error", "Executing systemctl failed. Please check logs for more details.");
-            }
-        } else {
-            if ( (learn_allowed_units_details(service_name.c_str()) <= 0 ) ||
-                 (!service_name_valid (service_name) )
-            ) { /* In case of wildcards or short names, the service_name
-                 * value can get changed by the call above; e.g. a
-                 * "tntnet@bios" would become "tntnet@bios.service" */
-                http_die ("request-param-bad", "service_name", service_name.c_str(), "one of service names that can be obtained through systemctl/list call (case-sensitive!)");
-            }
-        }
+        if (!systemctl_valid_service_name (service_name))
+            http_die ("request-param-bad", "service_name", service_name.c_str (), "one of service names that can be obtained through systemctl/list call");
 
-        checked_service_name = std::move (service_name);
+        checked_service_name.assign (service_name);
     }
-    log_info ("service_name: %s, operation: %s", checked_service_name.c_str(), checked_operation.c_str ());
+    log_info ("checked_service_name: '%s'", checked_service_name.c_str ());
 
-    if ( request.getMethod() == "GET" ) {
-        if ( checked_operation == "list" ) {
-            auto ret= process_get_list (reply);
-            return ret;
+    if (checked_operation == "list") {
+        std::string message;
+        message.assign (
+            "{\n"
+            "\t\"systemctl_services\" : [\n");
+        
+        std::vector <std::string> v;
+        systemctl_get_service_names (v);
+
+        bool first = true;
+        for (const auto& element : v) {
+            message.append (first ? "\t\t\"" : ",\t\t\"").
+                    append (element).
+                    append ("\"\n");
+            if (first)
+                first = false;
         }
-        else if ( checked_operation == "status" ) {
-            int pgs_rv = process_get_status (reply, checked_service_name);
-            if (pgs_rv >= 0)
-                return pgs_rv;
-            else
-                switch (pgs_rv) {
-                    case SYSTEMCTL_ERROR_PARAM:
-                        http_die ("request-param-bad", "service_name", checked_service_name.c_str(), "one of service names that can be obtained through systemctl/list call");
-                        break;
-                    default:
-                        http_die("internal-error", "Processing of the systemctl operation failed with unexpected status. Please check logs for more details.");
-                        break;
-                }
-        }
+
+        message.append (
+            "\t]\n"
+            "}");
+        reply.out () << message;
+        return HTTP_OK;
+    }
+    else
+    if (checked_operation == "status") {
+        std::string ActiveState, SubState, LoadState, UnitFileState;
+        if (!systemctl_service_status (checked_service_name, LoadState, ActiveState, UnitFileState, SubState))
+            http_die ("internal-error", "Executing systemctl failed. Please check logs for more details.");
+
+        std::string message;
+        message.assign (
+            "{\n"
+            "\t\"" + checked_service_name + "\" : {\n" +
+            "\t\t\"ActiveState\"\t:\t\"" + ActiveState + "\",\n"
+            "\t\t\"SubState\"\t:\t\"" + SubState + "\",\n"
+            "\t\t\"LoadState\"\t:\t\"" + LoadState + "\",\n"
+            "\t\t\"UnitFileState\"\t:\t\"" + UnitFileState + "\"\n"
+            "\t}\n"
+            "}");
+        reply.out () << message;
+        return HTTP_OK;
     }
 
-    if ( request.getMethod() == "POST" ) {
-        int pp_rv = process_post (reply, checked_operation, checked_service_name);
-        if (pp_rv >= 0)
-            return pp_rv;
-        else
-            switch (pp_rv) {
-                case SYSTEMCTL_ERROR_PARAM:
-                    http_die("request-param-bad", "operation", checked_operation.c_str(), "'show' or 'restart'");
-                    break;
-                case SYSTEMCTL_ERROR_EXEC:
-                    http_die("internal-error", "Executing systemctl failed. Please check logs for more details.");
-                    break;
-                default:
-                    http_die("internal-error", "Processing of the systemctl operation failed with unexpected status. Please check logs for more details.");
-                    break;
-            }
+    // remaining operations are POST only
+    
+    // MVY's request
+    if (checked_service_name == "networking" || checked_service_name == "networking.service"
+        || checked_service_name == "bios-networking" || checked_service_name == "bios-networking.service"
+        || checked_service_name == "tntnet@bios")
+    {
+        reply.out () << "{}";
+        return HTTP_OK;
     }
-}
+
+    {
+        shared::Argv proc_cmd {"sudo", "/bin/systemctl", checked_operation, checked_service_name};
+        std::string proc_out, proc_err;
+
+        int rv = s_output (proc_cmd, proc_out, proc_err);
+
+        if (rv != 0) {
+            std::string message;
+            message = "`sudo /bin/systemctl " + checked_operation + " " + checked_service_name  + "'.";
+            log_error (message.c_str ());
+            http_die ("internal-error", "Executing systemctl failed. Please check logs for more details.");
+        }
+
+        std::string ActiveState, SubState, LoadState, UnitFileState;
+        if (!systemctl_service_status (checked_service_name, LoadState, ActiveState, UnitFileState, SubState))
+            http_die ("internal-error", "Executing systemctl failed. Please check logs for more details.");
+        std::string message;
+        message.assign (
+            "{\n"
+            "\t\"" + checked_service_name + "\" : {\n" +
+            "\t\t\"ActiveState\"\t:\t\"" + ActiveState + "\",\n"
+            "\t\t\"SubState\"\t:\t\"" + SubState + "\",\n"
+            "\t\t\"LoadState\"\t:\t\"" + LoadState + "\",\n"
+            "\t\t\"UnitFileState\"\t:\t\"" + UnitFileState + "\"\n"
+            "\t}\n"
+            "}");
+        reply.out () << message;
+        return HTTP_OK;       
+    }
 </%cpp>

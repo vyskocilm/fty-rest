@@ -29,6 +29,89 @@
 #include "log.h"
 #include "dbpath.h"
 
+static
+std::map <std::string, std::string> systemctl_service_names = {
+    // external (copied from 'fty-core.git/tools/systemctl' wrapper)
+    { "mariadb", "" },
+    { "mysql", "" },
+    { "mysqld", "" },
+    { "ntp", "" },
+    { "ntpd", "" },
+    { "ntpdate", "" },
+    { "sntp", "" },
+    { "networking", "" },
+    { "network", "" },
+    { "nut-monitor", "" },
+    { "nut-server", "" },
+    { "malamute", "" },
+    { "saslauthd", "" },
+    { "rsyslog", "" },
+    { "rsyslogd", "" },
+    // internal (copied from 'fty-core.git/tools/systemctl' wrapper)
+    { "bios", "" },
+    { "tntnet@bios", "" },
+    { "fty-outage", "" },
+    { "fty-metric-store", ""  },
+    { "fty-kpi-power-uptime", "" },
+    { "fty-alert-list", "" },
+    { "fty-asset", "" },
+    { "fty-metric-store-cleaner", "" },
+    { "fty-alert-engine", "" },
+    { "fty-email", "" },
+    { "fty-metric-composite-configurator", "" },
+    { "fty-metric-tpower", "" },
+    { "bios-agent-inventory", "" },
+    { "fty-info", "" },
+    { "fty-mdns-sd", "" },
+    { "fty-metric-snmp", "" },
+    { "bios-db-init", "" },
+    { "bios-fake-th", "" },
+    { "bios-networking", "" },
+    { "bios-reset-button", "" },
+    { "bios-ssh-last-resort", "" },
+    { "biostimer-compress-logs", "" },
+    { "biostimer-verify-fs", "" },
+    { "biostimer-loghost-rsyslog-netconsole", "" },
+    { "fty-nut", "" },
+    { "biostimer-warranty-metric", "" },
+    { "ifplug-dhcp-autoconf", "" },
+    { "ipc-meta-setup", "" },
+    { "fty-sensor-env", "" },
+    { "fty-nut-configuator", "" },
+    { "fty-metric-compute", "" },
+    { "fty-metric-cache", "" },
+    { "fty-alert-flexible", "" },
+    // legacy compatibility
+    { "bios-agent-smtp", "fty-email" },
+    { "bios-agent-rt", "fty-metric-cache" }
+};
+
+bool
+systemctl_valid_service_name (std::string& service_name)
+{
+    if (service_name.empty ())
+        return true; // for 'list' operation service name is empty
+
+    auto find = systemctl_service_names.find (service_name);
+    if (find != systemctl_service_names.end ()) {
+        if (!find->second.empty ())
+            service_name.assign (find->second);
+        return true;
+    }
+    return false;
+}
+
+void
+systemctl_get_service_names (std::vector <std::string>& v) 
+{
+    for (const auto& i : systemctl_service_names) {
+        v.push_back (i.first);
+    }
+}
+
+
+
+
 const char* UserInfo::toString() {
     switch (_profile) {
         case  BiosProfile::Dashboard: return "Dashboard";
