@@ -26,6 +26,7 @@
 #include <cxxtools/serializationinfo.h>
 #include <cxxtools/jsondeserializer.h>
 #include <cxxtools/split.h>
+#include <cxxtools/posix/commandoutput.h>
 
 #include <stdexcept>
 #include <vector>
