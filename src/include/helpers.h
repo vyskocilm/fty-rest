@@ -31,6 +31,13 @@
 #include "utils_web.h"
 #include <tnt/httprequest.h>
 
+bool
+systemctl_valid_service_name (std::string& service_name);
+
+void
+systemctl_get_service_names (std::vector <std::string>& v);
+
+    
 /*!
  \brief BiosProfile enum - defines levels of permissions
 
