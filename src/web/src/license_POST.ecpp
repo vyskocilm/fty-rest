@@ -103,6 +103,13 @@ UserInfo user;
             http_die ("internal-error", "Cannot enable mysql. Consult system logs");
 
         // enable fty-db-upgrade
+        shared::Argv proc_cmd {"sudo", "/bin/systemctl", "enable", "fty-db-init"};
+        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
+        if (rv != 0)
+            http_die ("internal-error", "Cannot enable fty-db-init. Consult system logs");
+
+
+        // enable fty-db-upgrade
         shared::Argv proc_cmd {"sudo", "/bin/systemctl", "enable", "fty-db-upgrade"};
         rv = shared::simple_output (proc_cmd, proc_out, proc_err);
         if (rv != 0)
