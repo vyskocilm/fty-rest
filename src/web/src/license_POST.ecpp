@@ -79,9 +79,8 @@ UserInfo user;
     fclose (f);
     log_debug("License: version='%s',tme='%" PRIu64 "',user='%s')",
                 current_license_version, tme, user.login().c_str());
-</%cpp>
-{ "success" : "License version <$ current_license_version $> accepted." }
-<%cpp>
+
+    std::string clv {current_license_version};
     free (accepted_license_file); accepted_license_file = NULL;
     free (current_license_version); current_license_version = NULL;
     free (license_file); license_file = NULL;
@@ -131,5 +130,8 @@ UserInfo user;
         putenv (db_user);
         putenv (db_passwd);
     }
+</%cpp>
+{ "success" : "License version <$ clv $> accepted." }
+<%cpp>
 }
 </%cpp>
