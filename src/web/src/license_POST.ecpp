@@ -88,7 +88,7 @@ UserInfo user;
 
     // once done, read and setup environment files for accessing the database
     static const char* PASSWD_FILE = "/var/lib/fty/sql/mysql/bios-db-rw";
-    if (!shared::is_file (PASSWD_FILE))
+    if (!shared::is_file (PASSWD_FILE)) {
 
         // call fty-db-init to start mysql and initialize the database
         shared::Argv proc_cmd {"sudo", "/bin/systemctl", "start", "fty-db-init"};
