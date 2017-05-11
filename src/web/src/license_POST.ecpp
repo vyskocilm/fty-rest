@@ -79,15 +79,14 @@ UserInfo user;
     fclose (f);
     log_debug("License: version='%s',tme='%" PRIu64 "',user='%s')",
                 current_license_version, tme, user.login().c_str());
-</%cpp>
-{ "success" : "License version <$ current_license_version $> accepted." }
-<%cpp>
+
+    std::string clv {current_license_version};
     free (accepted_license_file); accepted_license_file = NULL;
     free (current_license_version); current_license_version = NULL;
     free (license_file); license_file = NULL;
 
     // once done, read and setup environment files for accessing the database
-    static const char* PASSWD_FILE = "/var/lib/fty/sql/mysql/bios-db-rw";
+    static const char* PASSWD_FILE = "/etc/default/bios-db-rw";
     if (!shared::is_file (PASSWD_FILE)) {
 
         // call fty-db-init to start mysql and initialize the database
@@ -131,5 +130,8 @@ UserInfo user;
         putenv (db_user);
         putenv (db_passwd);
     }
+</%cpp>
+{ "success" : "License version <$ clv $> accepted." }
+<%cpp>
 }
 </%cpp>
