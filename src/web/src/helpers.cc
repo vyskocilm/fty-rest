@@ -65,6 +65,8 @@ std::map <std::string, std::string> systemctl_service_names = {
     { "fty-mdns-sd", "" },
     { "fty-metric-snmp", "" },
     { "bios-db-init", "" },
+    { "fty-db-init", "" },
+    { "fty-db-upgrade", "" },
     { "bios-fake-th", "" },
     { "bios-networking", "" },
     { "bios-reset-button", "" },

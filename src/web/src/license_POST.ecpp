@@ -36,6 +36,8 @@
 #include "cleanup.h"
 #include "helpers.h"
 #include "log.h"
+#include "subprocess.h"
+#include "filesystem.h"
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -83,5 +85,51 @@ UserInfo user;
     free (accepted_license_file); accepted_license_file = NULL;
     free (current_license_version); current_license_version = NULL;
     free (license_file); license_file = NULL;
+
+    // once done, read and setup environment files for accessing the database
+    static const char* PASSWD_FILE = "/var/lib/fty/sql/mysql/bios-db-rw";
+    if (!shared::is_file (PASSWD_FILE))
+
+        // call fty-db-init to start mysql and initialize the database
+        shared::Argv proc_cmd {"sudo", "/bin/systemctl", "start", "fty-db-init"};
+        std::string proc_out, proc_err;
+
+        int rv = shared::simple_output (proc_cmd, proc_out, proc_err);
+        if (rv != 0)
+            http_die ("internal-error", "Starting of fty-db-init have failed. Consult system logs");
+
+        // once done, check environment files for accessing the database
+        if (!shared::is_file (PASSWD_FILE))
+            http_die ("internal-error", "Database password file is missing");
+
+        // enable mysql
+        proc_cmd = {"sudo", "/bin/systemctl", "enable", "mysql"};
+        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
+        if (rv != 0)
+            http_die ("internal-error", "Cannot enable mysql. Consult system logs");
+
+        // enable fty-db-init
+        proc_cmd = {"sudo", "/bin/systemctl", "enable", "fty-db-init"};
+        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
+        if (rv != 0)
+            http_die ("internal-error", "Cannot enable fty-db-init. Consult system logs");
+
+        // enable fty-db-upgrade
+        proc_cmd = {"sudo", "/bin/systemctl", "enable", "fty-db-upgrade"};
+        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
+        if (rv != 0)
+            http_die ("internal-error", "Cannot enable fty-db-upgrade. Consult system logs");
+
+        // and setup db username/password
+        std::ifstream dbpasswd {PASSWD_FILE};
+        char db_user[256];
+        dbpasswd.getline (db_user, 256);
+        char db_passwd[256];
+        dbpasswd.getline (db_passwd, 256);
+        dbpasswd.close ();
+
+        putenv (db_user);
+        putenv (db_passwd);
+    }
 }
 </%cpp>
