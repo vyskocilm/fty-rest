@@ -108,7 +108,7 @@ UserInfo user;
         if (rv != 0)
             http_die ("internal-error", "Cannot enable mysql. Consult system logs");
 
-        // enable fty-db-upgrade
+        // enable fty-db-init
         proc_cmd = {"sudo", "/bin/systemctl", "enable", "fty-db-init"};
         rv = shared::simple_output (proc_cmd, proc_out, proc_err);
         if (rv != 0)
