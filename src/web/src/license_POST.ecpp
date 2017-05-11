@@ -87,7 +87,7 @@ UserInfo user;
     free (license_file); license_file = NULL;
 
     // once done, read and setup environment files for accessing the database
-    static const char* PASSWD_FILE = "/var/lib/fty/sql/mysql/bios-db-rw";
+    static const char* PASSWD_FILE = "/etc/default/bios-db-rw";
     if (!shared::is_file (PASSWD_FILE)) {
 
         // call fty-db-init to start mysql and initialize the database
