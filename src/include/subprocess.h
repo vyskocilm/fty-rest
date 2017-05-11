@@ -223,6 +223,21 @@ output(
     std::string& e,
     const std::string& i, uint64_t timeout = 0, size_t timestep = 500);
 
+// MVY: dumber version of shared::output
+//      it seems that zloop+tntnet threads are not compatible
+//      it crashes the stack
+//      it can't be easily debuged
+//      it can't be easily fixed
+//      this is just workaround
+//      and as a consequence, systemctl call becomes MORE
+//      expensive than today, which harms testing, but not
+//      the UI and UX for the product
+
+// returns
+//      positive return value of a process
+//      negative is a number of a signal which terminates process
+int
+simple_output (const Argv& args, std::string& o, std::string& e);
 } //namespace shared
 
 #endif //_SRC_SHARED_SUBPROCESS_H
