@@ -64,53 +64,6 @@ is_POST_operation (const std::string& operation)
     return false;
 }
 
-// MVY: dumber version of shared::output
-//      it seems that zloop+tntnet threads are not compatible
-//      it crashes the stack
-//      it can't be easily debuged
-//      it can't be easily fixed
-//      this is just workaround
-//      and as a consequence, systemctl call becomes MORE
-//      expensive than today, which harms testing, but not
-//      the UI and UX for the product
-
-// returns
-//      positive return value of a process
-//      negative is a number of a signal which terminates process
-static int
-s_output (const Argv& args, std::string& o, std::string& e)
-{
-
-    static unsigned timeout = 5;
-    SubProcess p (args, SubProcess::STDOUT_PIPE | SubProcess::STDERR_PIPE);
-    p.run();
-
-    unsigned int tme = 0;
-    int ret = 0;
-
-    std::string out;
-    std::string err;
-
-    while ((tme < timeout) && p.isRunning ()) {
-        ret = p.wait ((unsigned int) 1);
-        out += wait_read_all (p.getStdout ());
-        err += wait_read_all (p.getStderr ());
-        tme++;
-    }
-    if (p.isRunning ()) {
-        p.terminate ();
-        ret = p.wait ();
-    }
-    else
-        ret = p.poll ();
-    out += wait_read_all (p.getStdout ());
-    err += wait_read_all (p.getStderr ());
-
-    o.assign (out);
-    e.assign (err);
-    return ret;
-}
-
 bool
 systemctl_service_status (const std::string& service_name, std::string& load, std::string& active, std::string& unit_file, std::string& sub)
 {
@@ -118,7 +71,7 @@ systemctl_service_status (const std::string& service_name, std::string& load, st
                            "-p", "LoadState", "-p", "ActiveState", "-p", "UnitFileState", "-p", "SubState"};
     std::string proc_out, proc_err;
 
-    int rv = s_output (proc_cmd, proc_out, proc_err);
+    int rv = shared::simple_output (proc_cmd, proc_out, proc_err);
 
     if (rv != 0) {
         std::string message;
@@ -297,7 +250,7 @@ UserInfo user;
         shared::Argv proc_cmd {"sudo", "/bin/systemctl", checked_operation, checked_service_name};
         std::string proc_out, proc_err;
 
-        int rv = s_output (proc_cmd, proc_out, proc_err);
+        int rv = shared::simple_output (proc_cmd, proc_out, proc_err);
 
         if (rv != 0) {
             std::string message;
