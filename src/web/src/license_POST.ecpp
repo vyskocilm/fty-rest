@@ -90,34 +90,16 @@ UserInfo user;
     if (!shared::is_file (PASSWD_FILE)) {
 
         // call fty-db-init to start mysql and initialize the database
-        shared::Argv proc_cmd {"sudo", "/bin/systemctl", "start", "fty-db-init"};
+        shared::Argv proc_cmd {"/usr/libexec/fty/start-db-services"};
         std::string proc_out, proc_err;
 
         int rv = shared::simple_output (proc_cmd, proc_out, proc_err);
         if (rv != 0)
-            http_die ("internal-error", "Starting of fty-db-init have failed. Consult system logs");
+            http_die ("internal-error", "Starting of start-db-services have failed. Consult system logs");
 
         // once done, check environment files for accessing the database
         if (!shared::is_file (PASSWD_FILE))
             http_die ("internal-error", "Database password file is missing");
-
-        // enable mysql
-        proc_cmd = {"sudo", "/bin/systemctl", "enable", "mysql"};
-        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
-        if (rv != 0)
-            http_die ("internal-error", "Cannot enable mysql. Consult system logs");
-
-        // enable fty-db-init
-        proc_cmd = {"sudo", "/bin/systemctl", "enable", "fty-db-init"};
-        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
-        if (rv != 0)
-            http_die ("internal-error", "Cannot enable fty-db-init. Consult system logs");
-
-        // enable fty-db-upgrade
-        proc_cmd = {"sudo", "/bin/systemctl", "enable", "fty-db-upgrade"};
-        rv = shared::simple_output (proc_cmd, proc_out, proc_err);
-        if (rv != 0)
-            http_die ("internal-error", "Cannot enable fty-db-upgrade. Consult system logs");
 
         // and setup db username/password
         std::ifstream dbpasswd {PASSWD_FILE};
