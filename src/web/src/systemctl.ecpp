@@ -198,7 +198,7 @@ UserInfo user;
         message.assign (
             "{\n"
             "\t\"systemctl_services\" : [\n");
-        
+
         std::vector <std::string> v;
         systemctl_get_service_names (v);
 
@@ -238,7 +238,7 @@ UserInfo user;
     }
 
     // remaining operations are POST only
-    
+
     // MVY's request
     if (checked_service_name == "tntnet@bios")
     {
@@ -273,6 +273,6 @@ UserInfo user;
             "\t}\n"
             "}");
         reply.out () << message;
-        return HTTP_OK;       
+        return HTTP_OK;
     }
 </%cpp>
