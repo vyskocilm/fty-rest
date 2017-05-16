@@ -36,8 +36,27 @@
 #include "cleanup.h"
 #include "helpers.h"
 #include "log.h"
+#include "dbpath.h"
 #include "subprocess.h"
 #include "filesystem.h"
+
+// drop double quotes from a string
+// needed for reading of db passwd file
+// DB_USER="user" -> DB_USER=user
+// modify buffer in place
+static void
+s_dropdq (char* buffer) {
+    char* dq_ptr = NULL;
+    char* buf = buffer;
+    while ((dq_ptr = strchr (buf, '"')) != NULL) {
+
+        buf = dq_ptr;
+        while (*dq_ptr) {
+            *dq_ptr = *(dq_ptr+1);
+            dq_ptr++;
+        }
+    }
+}
 </%pre>
 <%request scope="global">
 UserInfo user;
@@ -103,14 +122,19 @@ UserInfo user;
 
         // and setup db username/password
         std::ifstream dbpasswd {PASSWD_FILE};
-        char db_user[256];
+        static char db_user[256];
+        memset (db_user, '\0', 256);
         dbpasswd.getline (db_user, 256);
-        char db_passwd[256];
+        s_dropdq (db_user);
+        static char db_passwd[256];
+        memset (db_passwd, '\0', 256);
         dbpasswd.getline (db_passwd, 256);
+        s_dropdq (db_passwd);
         dbpasswd.close ();
 
         putenv (db_user);
         putenv (db_passwd);
+        dbpath ();
     }
 </%cpp>
 { "success" : "License version <$ clv $> accepted." }
