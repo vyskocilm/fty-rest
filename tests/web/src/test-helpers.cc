@@ -25,6 +25,7 @@
  */
 #include <catch.hpp>
 #include "helpers.h"
+#include "dbpath.h"
 
 TEST_CASE ("unicode related stuff", "[helpers]") {
 
