@@ -29,6 +29,19 @@
 #include "log.h"
 #include "dbpath.h"
 
+/**
+ * TODO: This list should not be precompiled once and forever in the
+ * REST API component that can not know about future added components
+ * (e.g. bundling with third-party connectors), but be derived from
+ * data delivered by packages that provide each piece of our system.
+ * Also, the wrapper's `systemctl list-ipm-units` is not that expensive
+ * to call (e.g. once to initialize this map after webserver startup)
+ * and get a list of allowed services for this particular installation,
+ * and allows to leave the decision point in one place rather than
+ * scatter this list (inevitably inconsistently at some point).
+ * Alternately, this can be done during the webserver service unit
+ * startup, to generate a file under /tmp with needed current data.
+ **/
 static
 std::map <std::string, std::string> systemctl_service_names = {
     // external (copied from 'fty-core.git/tools/systemctl' wrapper)
@@ -48,6 +61,7 @@ std::map <std::string, std::string> systemctl_service_names = {
     { "rsyslog", "" },
     { "rsyslogd", "" },
     // internal (copied from 'fty-core.git/tools/systemctl' wrapper)
+    // note that at Karol's discretion, some units could be omitted
     { "bios", "" },
     { "tntnet@bios", "" },
     { "fty-outage", "" },
