@@ -74,7 +74,7 @@
         }
 
         if (preferences.empty()) {
-            // This should never happens, only if someone manually changes this directly in DB
+            // before licence POST = first login
             preferences = DEFAULT_PREFERENCES;
         }
 </%cpp>
