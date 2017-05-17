@@ -117,12 +117,12 @@
                 preferences = s.str();
                 int rv = persist::save_agent_info (uid, preferences);
                 if ( rv != 0 ) {
-                    http_die("internal-error", "Cannot save changes");
+                    log_debug ("my_profile: Cannot save changes");
                 }
             }
         } catch (const std::exception& e) {
             LOG_END_ABNORMAL(e);
-            http_die("bad-request-document", e.what());
+            log_debug ("my_profile: Exception caught %s", e.what());
         }
 </%cpp>
 {
