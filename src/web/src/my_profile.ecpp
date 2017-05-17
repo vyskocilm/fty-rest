@@ -31,7 +31,7 @@
     #include <cxxtools/jsonserializer.h>
     #include "log.h"
     #include "agentstate.h"
-#define DEFAULT_PREFERENCES "\"preferences\":{\"email\" : \" \", \"telephone\" : \" \", \"organization\" : \" \", \"date\":\"DDMMYYYY\", \"temperature\":\"C\", \"language\":\"en-us\", \"time\":\"24h\"}"
+    #define DEFAULT_PREFERENCES "\"preferences\":{\"email\" : \" \", \"telephone\" : \" \", \"organization\" : \" \", \"date\":\"DDMMYYYY\", \"temperature\":\"C\", \"language\":\"en-us\", \"time\":\"24h\"}"
 </%pre>
 <%request scope="global">
     UserInfo user;
@@ -62,13 +62,19 @@
     // GET
     if (method == "GET") {
         std::string preferences = "";
-        int rv = persist::load_agent_info(uid, preferences);
-        if ( rv != 0 ) {
-            http_die("internal-error", "Cannot read user preferences");
+        try
+        {
+            int rv = persist::load_agent_info(uid, preferences);
+            //mitigate the situation DB content is empty - most of the json parsers don't deal well with empty strings
+
         }
-        //mitigate the situation DB content is empty - most of the json parsers don't deal well with empty strings
+        catch (const std::exception &e)
+        {
+            log_debug ("my_profile: exception caugth %s", e.what ());
+        }
+
         if (preferences.empty()) {
-            // This should never happen, only if someone manually changed this directly in DB
+            // before licence POST = first login
             preferences = DEFAULT_PREFERENCES;
         }
 </%cpp>
