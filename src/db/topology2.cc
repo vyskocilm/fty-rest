@@ -127,6 +127,7 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
 {
     si.addMember("name") <<= asset.name;
     si.addMember("id") <<= asset.id;
+    si.addMember ("order") <<= asset.order;
     si.addMember("type") <<= asset.type;
     si.addMember("sub_type") <<= asset.subtype;
     if (!asset.contains.empty ())
@@ -412,6 +413,15 @@ static bool
 s_should_filter (int filter_type, int type) {
     return filter_type != -1 && type != filter_type;
 }
+
+static bool
+s_order13 (const Item &i1, const Item &i2)
+{
+    if (i1.order < i2.order)
+        return true;
+    return false;
+}
+
 // MVY: TODO - it turns out that topology call is way more simpler than this
 //             therefor simply change SQL SELECT to get devices with id_parent==id (fom)
 void
@@ -443,6 +453,7 @@ topology2_from_json (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
             std::string NAME {"NAME"}; NAME.append (idx);
+            std::string ORDER {"ORDER"}; ORDER.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
@@ -472,10 +483,15 @@ topology2_from_json (
                 s_get (row, NAME),
                 persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                 persist::typeid_to_type (s_geti (row, TYPE))};
+            item.order = s_get (row, ORDER);
+            if (item.order == "(null)") {
+                item.order = "";
+            }
             topo.push_back (item);
 
             processed.emplace (id);
         }
+        topo.sort (s_order13);
         topo.groups.insert (topo.groups.end (), groups.begin (), groups.end ());
     }
 
@@ -514,6 +530,7 @@ s_topo_recursive (
             s_topo_recursive (it.contains, kids, nm, im);
         }
         topo.push_back (it);
+        topo.sort (s_order13);
     }
 }
 
@@ -577,6 +594,7 @@ topology2_from_json_recursive (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
             std::string NAME {"NAME"}; NAME.append (idx);
+            std::string ORDER {"ORDER"}; ORDER.append (idx);
 
             std::string id = s_get (row, ID);
 
@@ -609,6 +627,9 @@ topology2_from_json_recursive (
                     s_get (row, NAME),
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
+            it.order = s_get (row, ORDER);
+            if (it.order == "(null)")
+                it.order = "";
 
             if (s_geti (row, TYPE) == persist::asset_type::GROUP)
                 s_topology2_devices_in_groups (conn, it);
