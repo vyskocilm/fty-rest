@@ -109,6 +109,14 @@ UserInfo user;
     if (!shared::is_file (PASSWD_FILE)) {
 
         // call fty-db-init to start mysql and initialize the database
+        // and more importantly - wait for initialization to complete
+        // (it should have got started via systemd .path unit by now)
+        // before we try to re-read credentials below.
+        // TODO: depending on storage and other external conditions,
+        // this operation can take a while. The tntnet web server can
+        // consider this thread "hung" and would self-restart after
+        // 10 minutes; if this does happen - we should add a thread
+        // to report "we're alive" to the server while waiting...
         shared::Argv proc_cmd {"/usr/libexec/fty/start-db-services"};
         std::string proc_out, proc_err;
 
