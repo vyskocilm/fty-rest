@@ -127,7 +127,7 @@ void operator<<= (cxxtools::SerializationInfo &si, const Item &asset)
 {
     si.addMember("name") <<= asset.name;
     si.addMember("id") <<= asset.id;
-    si.addMember ("order") <<= asset.order;
+    si.addMember ("asset_order") <<= asset.asset_order;
     si.addMember("type") <<= asset.type;
     si.addMember("sub_type") <<= asset.subtype;
     if (!asset.contains.empty ())
@@ -179,7 +179,7 @@ s_topology2_devices_in_groups (
         "   el.id_subtype AS subtype, "
         "   ext.value AS name, "
         "   el2.name AS group_name, "
-        "   torder.value AS element_order "
+        "   torder.value AS asset_order "
         " FROM "
         "   t_bios_asset_group_relation rel "
         " JOIN t_bios_asset_element AS el "
@@ -188,10 +188,10 @@ s_topology2_devices_in_groups (
         "   ON rel.id_asset_group=el2.id_asset_element "
         " JOIN t_bios_asset_ext_attributes AS ext "
         "   ON el.id_asset_element=ext.id_asset_element "
-        " LEFT JOIN t_bios_asset_ext_attributes AS torder ON (el.id_asset_element=torder.id_asset_element AND torder.keytag=\"order\") "
+        " LEFT JOIN t_bios_asset_ext_attributes AS torder ON (el.id_asset_element=torder.id_asset_element AND torder.keytag=\"asset_order\") "
         " WHERE ext.keytag=\"name\" AND el2.name=:id "
         " ORDER BY "
-        "   element_order ASC ";
+        "   asset_order ASC ";
 
     tntdb::Statement st = conn.prepareCached (query);
 
@@ -356,12 +356,12 @@ topology2_from (
         "    t4.id_subtype AS SUBTYPEID4, "
         "    t5.id_subtype AS SUBTYPEID5, "
         "    t6.id_subtype AS SUBTYPEID6, "
-        "    t1ext.value AS ORDER1, "
-        "    t2ext.value AS ORDER2, "
-        "    t3ext.value AS ORDER3, "
-        "    t4ext.value AS ORDER4, "
-        "    t5ext.value AS ORDER5, "
-        "    t6ext.value AS ORDER6, "
+        "    t1ext.value AS ASSET_ORDER1, "
+        "    t2ext.value AS ASSET_ORDER2, "
+        "    t3ext.value AS ASSET_ORDER3, "
+        "    t4ext.value AS ASSET_ORDER4, "
+        "    t5ext.value AS ASSET_ORDER5, "
+        "    t6ext.value AS ASSET_ORDER6, "
         "    t1name.value AS NAME1, "
         "    t2name.value AS NAME2, "
         "    t3name.value AS NAME3, "
@@ -376,12 +376,12 @@ topology2_from (
         "    LEFT JOIN v_bios_asset_element AS t6 ON t6.id_parent = t5.id "
         "    INNER JOIN t_bios_asset_device_type v6 "
         "    ON (v6.id_asset_device_type = t1.id_subtype) "
-        "    LEFT JOIN t_bios_asset_ext_attributes AS t1ext ON (t1.id = t1ext.id_asset_element AND t1ext.keytag=\"order\") "
-        "    LEFT JOIN t_bios_asset_ext_attributes AS t2ext ON (t2.id = t2ext.id_asset_element AND t2ext.keytag=\"order\") "
-        "    LEFT JOIN t_bios_asset_ext_attributes AS t3ext ON (t3.id = t3ext.id_asset_element AND t3ext.keytag=\"order\") "
-        "    LEFT JOIN t_bios_asset_ext_attributes AS t4ext ON (t4.id = t4ext.id_asset_element AND t4ext.keytag=\"order\") "
-        "    LEFT JOIN t_bios_asset_ext_attributes AS t5ext ON (t5.id = t5ext.id_asset_element AND t5ext.keytag=\"order\") "
-        "    LEFT JOIN t_bios_asset_ext_attributes AS t6ext ON (t6.id = t6ext.id_asset_element AND t6ext.keytag=\"order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t1ext ON (t1.id = t1ext.id_asset_element AND t1ext.keytag=\"asset_order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t2ext ON (t2.id = t2ext.id_asset_element AND t2ext.keytag=\"asset_order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t3ext ON (t3.id = t3ext.id_asset_element AND t3ext.keytag=\"asset_order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t4ext ON (t4.id = t4ext.id_asset_element AND t4ext.keytag=\"asset_order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t5ext ON (t5.id = t5ext.id_asset_element AND t5ext.keytag=\"asset_order\") "
+        "    LEFT JOIN t_bios_asset_ext_attributes AS t6ext ON (t6.id = t6ext.id_asset_element AND t6ext.keytag=\"asset_order\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t1name ON (t1.id = t1name.id_asset_element AND t1name.keytag=\"name\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t2name ON (t2.id = t2name.id_asset_element AND t2name.keytag=\"name\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t3name ON (t3.id = t3name.id_asset_element AND t3name.keytag=\"name\") "
@@ -417,7 +417,7 @@ s_should_filter (int filter_type, int type) {
 static bool
 s_order13 (const Item &i1, const Item &i2)
 {
-    if (i1.order < i2.order)
+    if (i1.asset_order < i2.asset_order)
         return true;
     return false;
 }
@@ -453,7 +453,7 @@ topology2_from_json (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
             std::string NAME {"NAME"}; NAME.append (idx);
-            std::string ORDER {"ORDER"}; ORDER.append (idx);
+            std::string ASSET_ORDER {"ASSET_ORDER"}; ASSET_ORDER.append (idx);
 
             // feed_by filtering
             std::string id = s_get (row, ID);
@@ -483,9 +483,9 @@ topology2_from_json (
                 s_get (row, NAME),
                 persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                 persist::typeid_to_type (s_geti (row, TYPE))};
-            item.order = s_get (row, ORDER);
-            if (item.order == "(null)") {
-                item.order = "";
+            item.asset_order = s_get (row, ASSET_ORDER);
+            if (item.asset_order == "(null)") {
+                item.asset_order = "";
             }
             topo.push_back (item);
 
@@ -594,7 +594,7 @@ topology2_from_json_recursive (
             std::string TYPE {"TYPEID"}; TYPE.append (idx);
             std::string SUBTYPE {"SUBTYPEID"}; SUBTYPE.append (idx);
             std::string NAME {"NAME"}; NAME.append (idx);
-            std::string ORDER {"ORDER"}; ORDER.append (idx);
+            std::string ASSET_ORDER {"ASSET_ORDER"}; ASSET_ORDER.append (idx);
 
             std::string id = s_get (row, ID);
 
@@ -627,9 +627,9 @@ topology2_from_json_recursive (
                     s_get (row, NAME),
                     persist::subtypeid_to_subtype (s_geti (row, SUBTYPE)),
                     persist::typeid_to_type (s_geti (row, TYPE))};
-            it.order = s_get (row, ORDER);
-            if (it.order == "(null)")
-                it.order = "";
+            it.asset_order = s_get (row, ASSET_ORDER);
+            if (it.asset_order == "(null)")
+                it.asset_order = "";
 
             if (s_geti (row, TYPE) == persist::asset_type::GROUP)
                 s_topology2_devices_in_groups (conn, it);
