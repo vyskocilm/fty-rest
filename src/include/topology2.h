@@ -94,7 +94,7 @@ struct Topology
         subtype {subtype},
         type {type},
         contains {},
-        order {}
+        asset_order {}
         {}
 
     std::string id;
@@ -102,7 +102,7 @@ struct Topology
     std::string subtype;
     std::string type;
     Topology contains;
-    std::string order;
+    std::string asset_order;
     friend void operator<<= (cxxtools::SerializationInfo &si, const Item &asset);
 };
 //
