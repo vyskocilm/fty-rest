@@ -388,9 +388,7 @@ topology2_from (
         "    LEFT JOIN t_bios_asset_ext_attributes AS t4name ON (t4.id = t4name.id_asset_element AND t4name.keytag=\"name\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t5name ON (t5.id = t5name.id_asset_element AND t5name.keytag=\"name\") "
         "    LEFT JOIN t_bios_asset_ext_attributes AS t6name ON (t6.id = t6name.id_asset_element AND t6name.keytag=\"name\") "
-        "  WHERE t1.name=:from "
-        "  ORDER BY "
-        "   ORDER1 ASC, ORDER2 ASC, ORDER3 ASC, ORDER4 ASC, ORDER5 ASC, ORDER6 ASC ";
+        "  WHERE t1.name=:from ";
 
     tntdb::Statement st = conn.prepareCached (query);
 
